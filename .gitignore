@@ -1,0 +1,6 @@
+dist
+.idea
+node_modules
+examples
+coverage
+builder-test/*.xlf

@@ -1,0 +1,52 @@
+{
+  "$schema": "http://json-schema.org/schema",
+  "title": "Translation extraction and merge for Angular.",
+  "description": "Extraction and merge options",
+  "type": "object",
+  "properties": {
+    "format": {
+      "enum": ["xlf", "xlif", "xliff", "xlf2", "xliff2"],
+      "description": "Format for translation files. If unset default config from extract-i18n target is used."
+    },
+    "outputPath": {
+      "type": "string",
+      "description": "The file path where translation files are placed. If unset default config from extract-i18n target is used."
+    },
+    "targetFiles": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Translation files for each target language. Paths are assumed to be relative to 'outputPath'."
+    },
+    "removeIdsWithPrefix": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Remove translation units where the ID matches any of the given prefixes."
+    },
+    "fuzzyMatch": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether translation units without matching IDs are fuzzy matched by source text."
+    },
+    "resetTranslationState": {
+      "type": "boolean",
+      "default": true,
+      "description": "Reset the translation state to new/initial for new/changed units."
+    },
+    "collapseWhitespace": {
+      "type": "boolean",
+      "default": true,
+      "description": "collapsing of multiple whitespaces and trimming when comparing translations sources."
+    },
+    "includeContext": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether to include the context information (like notes) in the translation files. This is useful for sending the target translation files to translation agencies/services."
+    }
+  },
+  "additionalProperties": false,
+  "required": ["targetFiles"]
+}

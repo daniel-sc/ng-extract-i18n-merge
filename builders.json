@@ -1,0 +1,9 @@
+{
+  "builders": {
+    "ng-extract-i18n-merge": {
+      "implementation": "./dist/src/builder.js",
+      "schema": "./src/schema.json",
+      "description": "Extract and merge i18n translation units"
+    }
+  }
+}
