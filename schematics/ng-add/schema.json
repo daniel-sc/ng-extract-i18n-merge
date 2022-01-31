@@ -1,0 +1,22 @@
+{
+  "$schema": "http://json-schema.org/schema",
+  "$id": "ng-extract-i18n-merge-ng-add",
+  "title": "Angular extract i18n and merge translation files",
+  "type": "object",
+  "properties": {
+    "project": {
+      "type": "string",
+      "description": "The name of the project.",
+      "$default": {
+        "$source": "projectName"
+      }
+    },
+    "packageScript": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether to add a script entry in package.json to perform extraction and merging of translations.",
+      "x-prompt": "Add a command to package.json scripts to to perform extraction and merging of translations?"
+    }
+  },
+  "required": []
+}

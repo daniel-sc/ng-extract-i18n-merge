@@ -4,6 +4,10 @@
   "description": "Extract and merge i18n xliff translation files for angular projects.",
   "main": "index.js",
   "builders": "builders.json",
+  "schematics": "./schematics/collection.json",
+  "ng-add": {
+    "save": "devDependencies"
+  },
   "scripts": {
     "build": "tsc",
     "test": "jest",
@@ -27,6 +31,8 @@
   "dependencies": {
     "@angular-devkit/architect": "^0.1301.0",
     "@angular-devkit/core": "^13.0.0",
+    "@angular-devkit/schematics": "^13.0.0",
+    "@schematics/angular": "^13.0.0",
     "xliff-simple-merge": "~0.6.0",
     "xml_normalize": "~0.8.1"
   },
@@ -37,5 +43,9 @@
     "ts-node": "~10.4.0",
     "tslint": "~6.1.3",
     "typescript": "~4.5.5"
-  }
+  },
+  "files": [
+    "{dist,builders,schematics}/**/*.{json,js,d.ts}",
+    "builders.json"
+  ]
 }

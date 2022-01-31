@@ -1,0 +1,10 @@
+{
+  "$schema": "../node_modules/@angular-devkit/schematics/collection-schema.json",
+  "schematics": {
+    "ng-add": {
+      "description": "Add ng-extract-i18n-merge to the project and configure setup.",
+      "factory": "../dist/schematics/ng-add/index#ngAdd",
+      "schema": "./ng-add/schema.json"
+    }
+  }
+}
