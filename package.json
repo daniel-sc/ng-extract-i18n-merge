@@ -46,6 +46,7 @@
   },
   "files": [
     "{dist,builders,schematics}/**/*.{json,js,d.ts}",
+    "src/schema.json",
     "builders.json"
   ]
 }
