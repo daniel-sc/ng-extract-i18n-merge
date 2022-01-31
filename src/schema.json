@@ -39,7 +39,7 @@
     "collapseWhitespace": {
       "type": "boolean",
       "default": true,
-      "description": "collapsing of multiple whitespaces and trimming when comparing translations sources."
+      "description": "Collapsing of multiple whitespaces and trimming when comparing translations sources."
     },
     "includeContext": {
       "type": "boolean",
