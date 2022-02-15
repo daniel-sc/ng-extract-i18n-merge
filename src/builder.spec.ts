@@ -50,7 +50,7 @@ describe('Builder', () => {
             '  <file original="ng.template" id="ngi18n">\n' +
             '    <unit id="ID1">\n' +
             '      <segment>\n' +
-            '        <source>source val</source>\n' +
+            '        <source>source & val</source>\n' +
             '      </segment>\n' +
             '    </unit>\n' +
             '    <unit id="ID2">\n' +
@@ -69,8 +69,8 @@ describe('Builder', () => {
             '  <file original="ng.template" id="ngi18n">\n' +
             '    <unit id="ID1">\n' +
             '      <segment>\n' +
-            '        <source>source val</source>\n' +
-            '        <target>target val</target>\n' +
+            '        <source>source & val</source>\n' +
+            '        <target>target & val</target>\n' +
             '      </segment>\n' +
             '    </unit>\n' +
             '  </file>\n' +
