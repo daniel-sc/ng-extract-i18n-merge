@@ -3,7 +3,10 @@ import {updateWorkspace} from '@schematics/angular/utility/workspace';
 import {Schema} from './schema';
 import {JsonArray, JsonObject, Path, relative} from '@angular-devkit/core';
 
-function selectTargetFile(translation: string[] | undefined): string | undefined {
+function selectTargetFile(translation: string[] | string | undefined): string | undefined {
+    if (typeof translation === 'string') {
+        return translation || undefined;
+    }
     if (!translation || translation.length === 1) {
         return translation?.[0];
     }
@@ -44,7 +47,7 @@ export function ngAdd(_options: Schema): Rule {
             // infer target files:
             const i18nExtension: JsonObject | undefined = projectWorkspace.extensions.i18n as JsonObject | undefined;
             // alternative: search tree for *.xlf? --> not performant, contains node_modules
-            const files: string[] | undefined = i18nExtension?.locales ? (Object.values(i18nExtension?.locales) as JsonArray | undefined)?.map(l => selectTargetFile((l as JsonObject | undefined)?.translation as string[] | undefined)).filter(f => f !== undefined) as string[] | undefined : undefined;
+            const files: string[] | undefined = i18nExtension?.locales ? (Object.values(i18nExtension?.locales) as JsonArray | undefined)?.map(l => selectTargetFile((l as JsonObject | undefined)?.translation as string[] | string | undefined)).filter(f => f !== undefined) as string[] | undefined : undefined;
             if (!files?.length) {
                 context.logger.warn('Could not infer translation target files, please setup angular i18n and re-run `ng add ng-extract-i18n-merge`: https://angular.io/guide/i18n-common-merge#define-locales-in-the-build-configuration');
             } else {
