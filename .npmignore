@@ -1,0 +1,10 @@
+.github/
+.idea/
+builder-test/
+coverage/
+*.ts
+!*.d.ts
+*.spec.*
+jest*
+*.tgz
+tsconfig.json
