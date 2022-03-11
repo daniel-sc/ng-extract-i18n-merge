@@ -24,7 +24,7 @@ function selectTargetFile(translation: string[] | string | undefined): string | 
 function getFormatFromTargetFile(targetFilePath: string | undefined, tree: Tree, context: SchematicContext): 'xlf' | 'xlf2' | undefined {
     if (targetFilePath) {
         const content = tree.read(targetFilePath)?.toString();
-        const m = content?.match(/<xlff[^>]*"version"="([^"])"/i)
+        const m = content?.match(/<xliff[^>]*version=["']([^"']+)["']/i)
         if (m) {
             switch (m[1]) {
                 case '1.2':
