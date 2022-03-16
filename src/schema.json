@@ -36,6 +36,11 @@
       "default": true,
       "description": "Reset the translation state to new/initial for new/changed units."
     },
+    "newTranslationTargetsBlank": {
+      "type": "boolean",
+      "default": false,
+      "description": "Set target for new translation units to empty string (instead of original source)."
+    },
     "collapseWhitespace": {
       "type": "boolean",
       "default": true,
