@@ -10,6 +10,7 @@
   },
   "scripts": {
     "build": "tsc",
+    "prepack": "tsc",
     "test": "jest",
     "test-coverage": "jest --coverage"
   },
