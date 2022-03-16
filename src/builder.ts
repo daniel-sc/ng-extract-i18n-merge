@@ -12,7 +12,8 @@ interface Options extends JsonObject {
     fuzzyMatch: boolean,
     resetTranslationState: boolean,
     collapseWhitespace: boolean,
-    includeContext: boolean
+    includeContext: boolean,
+    newTranslationTargetsBlank: boolean,
 }
 
 export default createBuilder(copyFileBuilder);

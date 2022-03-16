@@ -176,6 +176,66 @@ describe('Builder', () => {
             '  </file>\n' +
             '</xliff>');
     });
+    test('extract-and-merge xlf 1.2 with newTranslationTargetsBlank', async () => {
+        await fs.writeFile('builder-test/messages.xlf', '<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+            '  <file source-language="de" datatype="plaintext" original="ng2.template">\n' +
+            '    <body>\n' +
+            '      <trans-unit id="ID1" datatype="html">\n' +
+            '        <source>source val</source>\n' +
+            '      </trans-unit>\n' +
+            '      <trans-unit id="ID2" datatype="html">\n' +
+            '        <source>source val2</source>\n' +
+            '      </trans-unit>\n' +
+            '    </body>\n' +
+            '  </file>\n' +
+            '</xliff>', 'utf8');
+        await fs.writeFile('builder-test/messages.fr.xlf', '<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+            '  <file source-language="de" target-language="fr-ch" datatype="plaintext" original="ng2.template">\n' +
+            '    <body>\n' +
+            '      <trans-unit id="ID1" datatype="html">\n' +
+            '        <source>source val</source>\n' +
+            '        <target state="translated">target val</target>\n' +
+            '      </trans-unit>\n' +
+            '    </body>\n' +
+            '  </file>\n' +
+            '</xliff>', 'utf8');
+
+        // A "run" can have multiple outputs, and contains progress information.
+        const run = await architect.scheduleTarget({project: 'builder-test', target: 'extract-i18n-merge'}, {
+            format: 'xlf',
+            targetFiles: ['messages.fr.xlf'],
+            outputPath: 'builder-test',
+            removeIdsWithPrefix: ['removeMe'],
+            newTranslationTargetsBlank: true
+        });
+
+        // The "result" member (of type BuilderOutput) is the next output.
+        await run.result;
+        const result = await run.result;
+        expect(result.success).toBeTruthy();
+
+        // Stop the builder from running. This stops Architect from keeping
+        // the builder-associated states in memory, since builders keep waiting
+        // to be scheduled.
+        await run.stop();
+
+        // Expect that the copied file is the same as its source.
+        const targetContent = await fs.readFile('builder-test/messages.fr.xlf', 'utf8');
+        expect(targetContent).toEqual('<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+            '  <file source-language="de" target-language="fr-ch" datatype="plaintext" original="ng2.template">\n' +
+            '    <body>\n' +
+            '      <trans-unit id="ID1" datatype="html">\n' +
+            '        <source>source val</source>\n' +
+            '        <target state="translated">target val</target>\n' +
+            '      </trans-unit>\n' +
+            '      <trans-unit id="ID2" datatype="html">\n' +
+            '        <source>source val2</source>\n' +
+            '        <target state="new"/>\n' +
+            '      </trans-unit>\n' +
+            '    </body>\n' +
+            '  </file>\n' +
+            '</xliff>');
+    });
 
     test('extract-and-merge with xml definition without newline', async () => {
         await fs.writeFile('builder-test/messages.xlf', '<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
