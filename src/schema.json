@@ -5,12 +5,23 @@
   "type": "object",
   "properties": {
     "format": {
-      "enum": ["xlf", "xlif", "xliff", "xlf2", "xliff2"],
+      "enum": [
+        "xlf",
+        "xlif",
+        "xliff",
+        "xlf2",
+        "xliff2"
+      ],
       "description": "Format for translation files. If unset default config from extract-i18n target is used."
     },
     "outputPath": {
       "type": "string",
       "description": "The file path where translation files are placed. If unset default config from extract-i18n target is used."
+    },
+    "sourceFile": {
+      "type": "string",
+      "description": "Translation source file. Path is assumed to be relative to 'outputPath'.",
+      "default": "messages.xlf"
     },
     "targetFiles": {
       "type": "array",

@@ -4,9 +4,10 @@ import {merge} from 'xliff-simple-merge/dist/src/merge';
 import {promises as fs} from 'fs';
 import {xmlNormalize} from 'xml_normalize/dist/src/xmlNormalize';
 
-interface Options extends JsonObject {
+export interface Options extends JsonObject {
     format: 'xlf' | 'xlif' | 'xliff' | 'xlf2' | 'xliff2' | null
     outputPath: string | null,
+    sourceFile: string | null,
     targetFiles: string[],
     sourceLanguageTargetFile: string | null,
     removeIdsWithPrefix: string[] | null,
@@ -39,7 +40,7 @@ async function copyFileBuilder(options: Options, context: BuilderContext): Promi
     }
     context.logger.info(`extracted translations successfully`);
 
-    const sourcePath = join(normalize(outputPath), 'messages.xlf');
+    const sourcePath = join(normalize(outputPath), options.sourceFile ?? 'messages.xlf');
     context.logger.info(`normalize ${sourcePath} ...`);
     const translationSourceFile = await fs.readFile(sourcePath, 'utf8');
     const removePaths = [

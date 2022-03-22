@@ -1,7 +1,8 @@
 import {Rule, SchematicContext, SchematicsException, Tree} from '@angular-devkit/schematics';
 import {updateWorkspace} from '@schematics/angular/utility/workspace';
 import {Schema} from './schema';
-import {JsonArray, JsonObject, Path, relative} from '@angular-devkit/core';
+import {JsonArray, JsonObject, normalize, Path, relative} from '@angular-devkit/core';
+import {Options} from '../../src/builder';
 
 function getTargetFiles(i18nExtension: JsonObject | undefined): string[] {
     const locales = i18nExtension?.locales ? (Object.values(i18nExtension?.locales) as JsonArray | string[] | undefined) : undefined;
@@ -40,6 +41,18 @@ function getFormatFromTargetFile(targetFilePath: string | undefined, tree: Tree,
     return undefined
 }
 
+function getOutFileRelativeToOutputPath(outFile: string, outputPathFromExtractI18nOptions: string | undefined, outputPathFromTargetFiles: string | undefined, tree: Tree, outputPath: string): Path {
+
+    const potentialBasePathsForOutFile = [
+        outputPathFromExtractI18nOptions,
+        outputPathFromTargetFiles,
+        'src/locales',
+        '.'
+    ].filter(p => !!p);
+    const basePathForOutFile = potentialBasePathsForOutFile.find(p => tree.exists(normalize(`${p}/${outFile}`)));
+    return basePathForOutFile ? relative(`/${outputPath}` as Path, `/${basePathForOutFile}/${outFile}` as Path) : outFile as Path;
+}
+
 // noinspection JSUnusedGlobalSymbols
 export function ngAdd(_options: Schema): Rule {
     return (tree: Tree, context: SchematicContext) => {
@@ -63,21 +76,26 @@ export function ngAdd(_options: Schema): Rule {
             // infer outputPath
             const outputPathFromExtractI18nOptions = projectWorkspace.targets.get('extract-i18n')?.options?.outputPath as string | undefined;
             const outputPathFromTargetFiles: string | undefined = files?.[0]?.substring(0, files?.[0]?.lastIndexOf('/') ?? files?.[0]?.length);
-            const outputPath: string = outputPathFromExtractI18nOptions ?? outputPathFromTargetFiles ?? 'src/locales';
+            const outputPath = normalize(outputPathFromExtractI18nOptions ?? outputPathFromTargetFiles ?? 'src/locales');
             context.logger.info(`inferred output path: ${outputPath}`);
             // check if inferred matches "extract-i18n" target config
 
             // infer format:
-            const formatFromExtractI18nOptions = projectWorkspace.targets.get('extract-i18n')?.options?.format as string | undefined;
+            const formatFromExtractI18nOptions = projectWorkspace.targets.get('extract-i18n')?.options?.format as Options['format'] | undefined;
             const formatFromTargetFiles = getFormatFromTargetFile(files?.[0], tree, context);
-            const format: string = formatFromExtractI18nOptions ?? formatFromTargetFiles ?? 'xlf2';
+            const format: Options['format'] = formatFromExtractI18nOptions ?? formatFromTargetFiles ?? 'xlf2';
             context.logger.info(`inferred format: ${format}`);
 
             // remove path from files
             const filesWithoutOutputPath = files?.map(f => relative(`/${outputPath}` as Path, `/${f}` as Path));
 
             const target = projectWorkspace.targets.get('extract-i18n-merge');
-            const builderOptions = {format, outputPath, targetFiles: filesWithoutOutputPath ?? []};
+            const builderOptions: Partial<Options> = {format, outputPath, targetFiles: filesWithoutOutputPath ?? []};
+
+            const outFileRelativeToOutputPath = getOutFileRelativeToOutputPath(projectWorkspace.targets.get('extract-i18n')?.options?.outFile as string | null ?? 'messages.xlf', outputPathFromExtractI18nOptions, outputPathFromTargetFiles, tree, outputPath);
+            if (outFileRelativeToOutputPath !== 'messages.xlf') {
+                builderOptions.sourceFile = outFileRelativeToOutputPath;
+            }
             if (target) {
                 context.logger.info(`Overwriting previous extract-i18n-merge entry in project ${projectName}.`);
                 target.options = builderOptions;
