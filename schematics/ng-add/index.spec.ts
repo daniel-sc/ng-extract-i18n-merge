@@ -80,6 +80,39 @@ describe('ngAdd', () => {
             '          }\n' +
             '        }'));
     });
+    it('should infer non default outFile', async () => {
+        appTree.create('/src/other-path/messages.fr.xlf', xliffFileV1_2);
+        const angularJson = JSON.parse(appTree.readContent('/angular.json'));
+        angularJson.projects.bar.i18n = {
+            locales: {
+                'fr-FR': {
+                    translation: ['src/other-path/messages.fr.xlf'],
+                    baseHref: 'fr/'
+                }
+            }
+        };
+        angularJson.projects.bar.architect["extract-i18n"] = {
+            "builder": "@angular-devkit/build-angular:extract-i18n",
+            "options": {
+                "outFile": "my-messages.xlf",
+                "outputPath": "src/some-path"
+            }
+        };
+        appTree.overwrite('/angular.json', JSON.stringify(angularJson));
+        appTree.create('/src/some-path/my-messages.xlf', '<>');
+
+        const tree = await runner.runSchematicAsync('ng-add', {}, appTree).toPromise();
+
+        expect(norm(tree.readContent('/angular.json'))).toContain(norm('"extract-i18n-merge": {\n' +
+            '          "builder": "ng-extract-i18n-merge:ng-extract-i18n-merge",\n' +
+            '          "options": {\n' +
+            '          "format": "xlf",\n' +
+            '            "outputPath": "src/some-path",\n' +
+            '            "targetFiles": [ "../other-path/messages.fr.xlf" ],\n' +
+            '            "sourceFile": "my-messages.xlf"\n' +
+            '          }\n' +
+            '        }'));
+    });
     it('should infer format for config with non array translations', async () => {
         appTree.create('/src/other-path/messages.fr.xlf', xliffFileV1_2);
         const angularJson = JSON.parse(appTree.readContent('/angular.json'));
