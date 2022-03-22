@@ -8,6 +8,7 @@ interface Options extends JsonObject {
     format: 'xlf' | 'xlif' | 'xliff' | 'xlf2' | 'xliff2' | null
     outputPath: string | null,
     targetFiles: string[],
+    sourceLanguageTargetFile: string | null,
     removeIdsWithPrefix: string[] | null,
     fuzzyMatch: boolean,
     resetTranslationState: boolean,
@@ -57,7 +58,7 @@ async function copyFileBuilder(options: Options, context: BuilderContext): Promi
         const targetPath = join(normalize(outputPath), targetFile);
         context.logger.info(`merge and normalize ${targetPath} ...`);
         const translationTargetFile = await fs.readFile(targetPath, 'utf8');
-        const mergedTarget = merge(normalizedTranslationSourceFile, translationTargetFile, options);
+        const mergedTarget = merge(normalizedTranslationSourceFile, translationTargetFile, {...options, sourceLanguage: targetFile === options.sourceLanguageTargetFile});
         const normalizedTarget = xmlNormalize({
             in: mergedTarget,
             normalizeWhitespace: true,

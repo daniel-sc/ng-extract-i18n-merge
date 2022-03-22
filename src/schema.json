@@ -19,6 +19,10 @@
       },
       "description": "Translation files for each target language. Paths are assumed to be relative to 'outputPath'."
     },
+    "sourceLanguageTargetFile": {
+      "type": "string",
+      "description": "If this is set (to one of the `targetFiles`), new translations in that target file will be set to `state=\"final\"` (instead of default `state=\"new\"`)."
+    },
     "removeIdsWithPrefix": {
       "type": "array",
       "items": {
