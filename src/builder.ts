@@ -1,5 +1,5 @@
 import {BuilderContext, BuilderOutput, createBuilder} from '@angular-devkit/architect';
-import {join, JsonObject, normalize} from '@angular-devkit/core';
+import {basename, dirname, join, JsonObject, normalize} from '@angular-devkit/core';
 import {merge} from 'xliff-simple-merge/dist/src/merge';
 import {promises as fs} from 'fs';
 import {xmlNormalize} from 'xml_normalize/dist/src/xmlNormalize';
@@ -33,14 +33,15 @@ async function copyFileBuilder(options: Options, context: BuilderContext): Promi
     const isXliffV2 = format.includes('2');
 
     context.logger.info('running "extract-i18n" ...');
-    const extractI18nRun = await context.scheduleTarget(extractI18nTarget, {outputPath, format, progress: false});
+    const sourcePath = join(normalize(outputPath), options.sourceFile ?? 'messages.xlf');
+
+    const extractI18nRun = await context.scheduleTarget(extractI18nTarget, {outputPath: dirname(sourcePath), outFile: basename(sourcePath), format, progress: false});
     const extractI18nResult = await extractI18nRun.result;
     if (!extractI18nResult.success) {
         return {success: false, error: `"extract-i18n" failed: ${extractI18nResult.error}`};
     }
     context.logger.info(`extracted translations successfully`);
 
-    const sourcePath = join(normalize(outputPath), options.sourceFile ?? 'messages.xlf');
     context.logger.info(`normalize ${sourcePath} ...`);
     const translationSourceFile = await fs.readFile(sourcePath, 'utf8');
     const removePaths = [
@@ -72,4 +73,3 @@ async function copyFileBuilder(options: Options, context: BuilderContext): Promi
     context.logger.info('finished i18n merging and normalizing');
     return {success: true};
 }
-

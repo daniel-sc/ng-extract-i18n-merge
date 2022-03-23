@@ -3,10 +3,12 @@ import {TestingArchitectHost} from '@angular-devkit/architect/testing';
 import {schema} from '@angular-devkit/core';
 import {promises as fs} from 'fs';
 import builder from './builder';
+import Mock = jest.Mock;
 
 describe('Builder', () => {
     let architect: Architect;
     let architectHost: TestingArchitectHost;
+    let extractI18nBuilderMock: Mock;
 
     beforeEach(async () => {
         const registry = new schema.CoreSchemaRegistry();
@@ -25,7 +27,8 @@ describe('Builder', () => {
             project: 'builder-test',
             target: 'extract-i18n-merge'
         }, 'ng-extract-i18n-merge:ng-extract-i18n-merge');
-        await architectHost.addBuilder('@angular-devkit/build-angular:extract-i18n', createBuilder(() => ({success: true}))); // dummy builder
+        extractI18nBuilderMock = jest.fn(() => ({success: true}));
+        await architectHost.addBuilder('@angular-devkit/build-angular:extract-i18n', createBuilder(extractI18nBuilderMock)); // dummy builder
         await architectHost.addTarget({
             project: 'builder-test',
             target: 'extract-i18n'
@@ -417,6 +420,14 @@ describe('Builder', () => {
         // the builder-associated states in memory, since builders keep waiting
         // to be scheduled.
         await run.stop();
+
+        expect(extractI18nBuilderMock.mock.calls.length).toEqual(1);
+        expect(extractI18nBuilderMock.mock.calls[0][0]).toEqual({
+            format: 'xlf',
+            outFile: 'my-messages.xlf',
+            outputPath: 'builder-test',
+            progress: false,
+        });
 
         // Expect that the copied file is the same as its source.
         const targetContent = await fs.readFile('builder-test/messages.fr.xlf', 'utf8');
