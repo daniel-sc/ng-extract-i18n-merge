@@ -213,6 +213,92 @@ describe('Builder', () => {
             '  </file>\n' +
             '</xliff>');
     });
+    test('extract-and-merge xlf 2.0 with specified sourceLanguageTargetFile should update target of sourceLanguageTargetFile', async () => {
+        await fs.writeFile('builder-test/messages.xlf', '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="en">\n' +
+            '  <file original="ng.template" id="ngi18n">\n' +
+            '    <unit id="ID1">\n' +
+            '      <segment>\n' +
+            '        <source>source val changed</source>\n' +
+            '      </segment>\n' +
+            '    </unit>\n' +
+            '    <unit id="ID2">\n' +
+            '      <segment>\n' +
+            '        <source>source val2</source>\n' +
+            '      </segment>\n' +
+            '    </unit>\n' +
+            '  </file>\n' +
+            '</xliff>', 'utf8');
+        await fs.writeFile('builder-test/messages.fr.xlf', '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="en">\n' +
+            '  <file original="ng.template" id="ngi18n">\n' +
+            '    <unit id="ID1">\n' +
+            '      <segment state="final">\n' +
+            '        <source>source val</source>\n' +
+            '        <target>target val</target>\n' +
+            '      </segment>\n' +
+            '    </unit>\n' +
+            '  </file>\n' +
+            '</xliff>', 'utf8');
+        await fs.writeFile('builder-test/messages.en.xlf', '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="en">\n' +
+            '  <file original="ng.template" id="ngi18n">\n' +
+            '    <unit id="ID1">\n' +
+            '      <segment state="final">\n' +
+            '        <source>source val</source>\n' +
+            '        <target>source val</target>\n' +
+            '      </segment>\n' +
+            '    </unit>\n' +
+            '  </file>\n' +
+            '</xliff>', 'utf8');
+
+        // A "run" can have multiple outputs, and contains progress information.
+        const run = await architect.scheduleTarget({project: 'builder-test', target: 'extract-i18n-merge'}, {
+            format: 'xlf2',
+            targetFiles: ['messages.fr.xlf', 'messages.en.xlf'],
+            sourceLanguageTargetFile: 'messages.en.xlf',
+            outputPath: 'builder-test',
+        });
+
+        await run.result;
+        const result = await run.result;
+        expect(result.success).toBeTruthy();
+        await run.stop();
+
+        // Expect that the copied file is the same as its source.
+        const targetContent1 = await fs.readFile('builder-test/messages.fr.xlf', 'utf8');
+        expect(targetContent1).toEqual('<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="en">\n' +
+            '  <file original="ng.template" id="ngi18n">\n' +
+            '    <unit id="ID1">\n' +
+            '      <segment state="initial">\n' +
+            '        <source>source val changed</source>\n' +
+            '        <target>target val</target>\n' +
+            '      </segment>\n' +
+            '    </unit>\n' +
+            '    <unit id="ID2">\n' +
+            '      <segment state="initial">\n' +
+            '        <source>source val2</source>\n' +
+            '        <target>source val2</target>\n' +
+            '      </segment>\n' +
+            '    </unit>\n' +
+            '  </file>\n' +
+            '</xliff>');
+
+        const targetContent2 = await fs.readFile('builder-test/messages.en.xlf', 'utf8');
+        expect(targetContent2).toEqual('<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="en">\n' +
+            '  <file original="ng.template" id="ngi18n">\n' +
+            '    <unit id="ID1">\n' +
+            '      <segment state="final">\n' +
+            '        <source>source val changed</source>\n' +
+            '        <target>source val changed</target>\n' +
+            '      </segment>\n' +
+            '    </unit>\n' +
+            '    <unit id="ID2">\n' +
+            '      <segment state="final">\n' +
+            '        <source>source val2</source>\n' +
+            '        <target>source val2</target>\n' +
+            '      </segment>\n' +
+            '    </unit>\n' +
+            '  </file>\n' +
+            '</xliff>');
+    });
 
     test('extract-and-merge xlf 1.2', async () => {
         await fs.writeFile('builder-test/messages.xlf', '<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
