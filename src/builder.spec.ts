@@ -443,4 +443,63 @@ describe('Builder', () => {
             '  </file>\n' +
             '</xliff>');
     });
+    test('retain whitespace between interpolations', async () => {
+        await fs.writeFile('builder-test/messages.xlf', '<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+            '  <file source-language="de" datatype="plaintext" original="ng2.template">\n' +
+            '    <body>\n' +
+            '      <trans-unit id="ID1" datatype="html">\n' +
+            '        <source>Some text <ph id="0" equiv="INTERPOLATION" disp="{{ myLabel }}"/> <ph id="1" equiv="INTERPOLATION_1" disp="{{ myNumber }}"/></source>\n' +
+            '      </trans-unit>\n' +
+            '      <trans-unit id="ID2" datatype="html">\n' +
+            '        <source>no-space<ph id="0" equiv="INTERPOLATION" disp="{{ myLabel }}"/> <ph id="1" equiv="INTERPOLATION_1" disp="{{ myNumber }}"/></source>\n' +
+            '      </trans-unit>\n' +
+            '    </body>\n' +
+            '  </file>\n' +
+            '</xliff>', 'utf8');
+        await fs.writeFile('builder-test/messages.fr.xlf', '<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+            '  <file source-language="de" target-language="fr-ch" datatype="plaintext" original="ng2.template">\n' +
+            '    <body>\n' +
+            '    </body>\n' +
+            '  </file>\n' +
+            '</xliff>', 'utf8');
+
+        const run = await architect.scheduleTarget({project: 'builder-test', target: 'extract-i18n-merge'}, {
+            format: 'xlf',
+            targetFiles: ['messages.fr.xlf'],
+            outputPath: 'builder-test'
+        });
+        await run.result;
+        const result = await run.result;
+        expect(result.success).toBeTruthy();
+        await run.stop();
+
+        const sourceContent = await fs.readFile('builder-test/messages.xlf', 'utf8');
+        expect(sourceContent).toEqual('<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+            '  <file source-language="de" datatype="plaintext" original="ng2.template">\n' +
+            '    <body>\n' +
+            '      <trans-unit id="ID1" datatype="html">\n' +
+            '        <source>Some text <ph id="0" equiv="INTERPOLATION" disp="{{ myLabel }}"/> <ph id="1" equiv="INTERPOLATION_1" disp="{{ myNumber }}"/></source>\n' +
+            '      </trans-unit>\n' +
+            '      <trans-unit id="ID2" datatype="html">\n' +
+            '        <source>no-space<ph id="0" equiv="INTERPOLATION" disp="{{ myLabel }}"/> <ph id="1" equiv="INTERPOLATION_1" disp="{{ myNumber }}"/></source>\n' +
+            '      </trans-unit>\n' +
+            '    </body>\n' +
+            '  </file>\n' +
+            '</xliff>');
+        const targetContent = await fs.readFile('builder-test/messages.fr.xlf', 'utf8');
+        expect(targetContent).toEqual('<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+            '  <file source-language="de" target-language="fr-ch" datatype="plaintext" original="ng2.template">\n' +
+            '    <body>\n' +
+            '      <trans-unit id="ID1" datatype="html">\n' +
+            '        <source>Some text <ph id="0" equiv="INTERPOLATION" disp="{{ myLabel }}"/> <ph id="1" equiv="INTERPOLATION_1" disp="{{ myNumber }}"/></source>\n' +
+            '        <target state="new">Some text <ph id="0" equiv="INTERPOLATION" disp="{{ myLabel }}"/> <ph id="1" equiv="INTERPOLATION_1" disp="{{ myNumber }}"/></target>\n' +
+            '      </trans-unit>\n' +
+            '      <trans-unit id="ID2" datatype="html">\n' +
+            '        <source>no-space<ph id="0" equiv="INTERPOLATION" disp="{{ myLabel }}"/> <ph id="1" equiv="INTERPOLATION_1" disp="{{ myNumber }}"/></source>\n' +
+            '        <target state="new">no-space<ph id="0" equiv="INTERPOLATION" disp="{{ myLabel }}"/> <ph id="1" equiv="INTERPOLATION_1" disp="{{ myNumber }}"/></target>\n' +
+            '      </trans-unit>\n' +
+            '    </body>\n' +
+            '  </file>\n' +
+            '</xliff>');
+    });
 });
