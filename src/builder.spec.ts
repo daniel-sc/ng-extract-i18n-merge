@@ -529,6 +529,175 @@ describe('Builder', () => {
             '  </file>\n' +
             '</xliff>');
     });
+    describe('multiple context groups', () => {
+        beforeEach(async () => {
+            await fs.writeFile('builder-test/messages.xlf', '<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+                '  <file source-language="de" datatype="plaintext" original="ng2.template">\n' +
+                '    <body>\n' +
+                '      <trans-unit id="ID1" datatype="html">\n' +
+                '        <source>Some text</source>\n' +
+                '        <context-group purpose="location">\n' +
+                '          <context context-type="sourcefile">src/app/app-routing.module.ts</context>\n' +
+                '          <context context-type="linenumber">12</context>\n' +
+                '        </context-group>\n' +
+                '        <context-group purpose="location">\n' +
+                '          <context context-type="sourcefile">src/app/app.component.html</context>\n' +
+                '          <context context-type="linenumber">4</context>\n' +
+                '        </context-group>\n' +
+                '      </trans-unit>\n' +
+                '    </body>\n' +
+                '  </file>\n' +
+                '</xliff>', 'utf8');
+        })
+        test('add new context groups', async () => {
+            await fs.writeFile('builder-test/messages.fr.xlf', '<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+                '  <file source-language="de" target-language="fr-ch" datatype="plaintext" original="ng2.template">\n' +
+                '    <body>\n' +
+                '      <trans-unit id="ID1" datatype="html">\n' +
+                '        <source>Some text</source>\n' +
+                '        <target state="new">Some text</target>\n' +
+                '        <context-group purpose="location">\n' +
+                '          <context context-type="sourcefile">src/app/app-routing.module.ts</context>\n' +
+                '          <context context-type="linenumber">12</context>\n' +
+                '        </context-group>\n' +
+                '      </trans-unit>\n' +
+                '    </body>\n' +
+                '  </file>\n' +
+                '</xliff>', 'utf8');
+
+
+            const run = await architect.scheduleTarget({project: 'builder-test', target: 'extract-i18n-merge'}, {
+                format: 'xlf',
+                targetFiles: ['messages.fr.xlf'],
+                includeContext: true,
+                outputPath: 'builder-test'
+            });
+            await run.result;
+            const result = await run.result;
+            expect(result.success).toBeTruthy();
+            await run.stop();
+
+            const targetContent = await fs.readFile('builder-test/messages.fr.xlf', 'utf8');
+            expect(targetContent).toEqual('<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+                '  <file source-language="de" target-language="fr-ch" datatype="plaintext" original="ng2.template">\n' +
+                '    <body>\n' +
+                '      <trans-unit id="ID1" datatype="html">\n' +
+                '        <source>Some text</source>\n' +
+                '        <target state="new">Some text</target>\n' +
+                '        <context-group purpose="location">\n' +
+                '          <context context-type="sourcefile">src/app/app-routing.module.ts</context>\n' +
+                '          <context context-type="linenumber">12</context>\n' +
+                '        </context-group>\n' +
+                '        <context-group purpose="location">\n' +
+                '          <context context-type="sourcefile">src/app/app.component.html</context>\n' +
+                '          <context context-type="linenumber">4</context>\n' +
+                '        </context-group>\n' +
+                '      </trans-unit>\n' +
+                '    </body>\n' +
+                '  </file>\n' +
+                '</xliff>');
+        });
+        test('retain multiple context nodes', async () => {
+
+            await fs.writeFile('builder-test/messages.fr.xlf', '<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+                '  <file source-language="de" target-language="fr-ch" datatype="plaintext" original="ng2.template">\n' +
+                '    <body>\n' +
+                '    </body>\n' +
+                '  </file>\n' +
+                '</xliff>', 'utf8');
+
+            const run = await architect.scheduleTarget({project: 'builder-test', target: 'extract-i18n-merge'}, {
+                format: 'xlf',
+                targetFiles: ['messages.fr.xlf'],
+                includeContext: true,
+                outputPath: 'builder-test'
+            });
+            await run.result;
+            const result = await run.result;
+            expect(result.success).toBeTruthy();
+            await run.stop();
+
+            const sourceContent = await fs.readFile('builder-test/messages.xlf', 'utf8');
+            expect(sourceContent).toEqual('<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+                '  <file source-language="de" datatype="plaintext" original="ng2.template">\n' +
+                '    <body>\n' +
+                '      <trans-unit id="ID1" datatype="html">\n' +
+                '        <source>Some text</source>\n' +
+                '        <context-group purpose="location">\n' +
+                '          <context context-type="sourcefile">src/app/app-routing.module.ts</context>\n' +
+                '          <context context-type="linenumber">12</context>\n' +
+                '        </context-group>\n' +
+                '        <context-group purpose="location">\n' +
+                '          <context context-type="sourcefile">src/app/app.component.html</context>\n' +
+                '          <context context-type="linenumber">4</context>\n' +
+                '        </context-group>\n' +
+                '      </trans-unit>\n' +
+                '    </body>\n' +
+                '  </file>\n' +
+                '</xliff>');
+            const targetContent = await fs.readFile('builder-test/messages.fr.xlf', 'utf8');
+            expect(targetContent).toEqual('<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+                '  <file source-language="de" target-language="fr-ch" datatype="plaintext" original="ng2.template">\n' +
+                '    <body>\n' +
+                '      <trans-unit id="ID1" datatype="html">\n' +
+                '        <source>Some text</source>\n' +
+                '        <target state="new">Some text</target>\n' +
+                '        <context-group purpose="location">\n' +
+                '          <context context-type="sourcefile">src/app/app-routing.module.ts</context>\n' +
+                '          <context context-type="linenumber">12</context>\n' +
+                '        </context-group>\n' +
+                '        <context-group purpose="location">\n' +
+                '          <context context-type="sourcefile">src/app/app.component.html</context>\n' +
+                '          <context context-type="linenumber">4</context>\n' +
+                '        </context-group>\n' +
+                '      </trans-unit>\n' +
+                '    </body>\n' +
+                '  </file>\n' +
+                '</xliff>');
+        });
+        test('remove multiple context nodes', async () => {
+            await fs.writeFile('builder-test/messages.fr.xlf', '<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+                '  <file source-language="de" target-language="fr-ch" datatype="plaintext" original="ng2.template">\n' +
+                '    <body>\n' +
+                '    </body>\n' +
+                '  </file>\n' +
+                '</xliff>', 'utf8');
+
+            const run = await architect.scheduleTarget({project: 'builder-test', target: 'extract-i18n-merge'}, {
+                format: 'xlf',
+                targetFiles: ['messages.fr.xlf'],
+                includeContext: false,
+                outputPath: 'builder-test'
+            });
+            await run.result;
+            const result = await run.result;
+            expect(result.success).toBeTruthy();
+            await run.stop();
+
+            const sourceContent = await fs.readFile('builder-test/messages.xlf', 'utf8');
+            expect(sourceContent).toEqual('<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+                '  <file source-language="de" datatype="plaintext" original="ng2.template">\n' +
+                '    <body>\n' +
+                '      <trans-unit id="ID1" datatype="html">\n' +
+                '        <source>Some text</source>\n' +
+                '      </trans-unit>\n' +
+                '    </body>\n' +
+                '  </file>\n' +
+                '</xliff>');
+            const targetContent = await fs.readFile('builder-test/messages.fr.xlf', 'utf8');
+            expect(targetContent).toEqual('<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+                '  <file source-language="de" target-language="fr-ch" datatype="plaintext" original="ng2.template">\n' +
+                '    <body>\n' +
+                '      <trans-unit id="ID1" datatype="html">\n' +
+                '        <source>Some text</source>\n' +
+                '        <target state="new">Some text</target>\n' +
+                '      </trans-unit>\n' +
+                '    </body>\n' +
+                '  </file>\n' +
+                '</xliff>');
+        });
+    });
+
     test('retain whitespace between interpolations', async () => {
         await fs.writeFile('builder-test/messages.xlf', '<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
             '  <file source-language="de" datatype="plaintext" original="ng2.template">\n' +
