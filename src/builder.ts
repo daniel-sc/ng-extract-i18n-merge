@@ -35,7 +35,12 @@ async function copyFileBuilder(options: Options, context: BuilderContext): Promi
     context.logger.info('running "extract-i18n" ...');
     const sourcePath = join(normalize(outputPath), options.sourceFile ?? 'messages.xlf');
 
-    const extractI18nRun = await context.scheduleTarget(extractI18nTarget, {outputPath: dirname(sourcePath), outFile: basename(sourcePath), format, progress: false});
+    const extractI18nRun = await context.scheduleTarget(extractI18nTarget, {
+        outputPath: dirname(sourcePath),
+        outFile: basename(sourcePath),
+        format,
+        progress: false
+    });
     const extractI18nResult = await extractI18nRun.result;
     if (!extractI18nResult.success) {
         return {success: false, error: `"extract-i18n" failed: ${extractI18nResult.error}`};
@@ -60,7 +65,11 @@ async function copyFileBuilder(options: Options, context: BuilderContext): Promi
         const targetPath = join(normalize(outputPath), targetFile);
         context.logger.info(`merge and normalize ${targetPath} ...`);
         const translationTargetFile = await fs.readFile(targetPath, 'utf8');
-        const mergedTarget = merge(normalizedTranslationSourceFile, translationTargetFile, {...options, sourceLanguage: targetFile === options.sourceLanguageTargetFile});
+        const mergedTarget = merge(normalizedTranslationSourceFile, translationTargetFile, {
+            ...options,
+            syncTargetsWithInitialState: true,
+            sourceLanguage: targetFile === options.sourceLanguageTargetFile
+        });
         const normalizedTarget = xmlNormalize({
             in: mergedTarget,
             normalizeWhitespace: true,
