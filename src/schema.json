@@ -52,9 +52,18 @@
       "description": "Reset the translation state to new/initial for new/changed units."
     },
     "newTranslationTargetsBlank": {
-      "type": "boolean",
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "enum": [
+            "omit"
+          ]
+        }
+      ],
       "default": false,
-      "description": "Set target for new translation units to empty string (instead of original source)."
+      "description": "Set target for new translation units to empty string (instead of original source). 'omit' will omit the target element for new units."
     },
     "collapseWhitespace": {
       "type": "boolean",
@@ -68,5 +77,7 @@
     }
   },
   "additionalProperties": false,
-  "required": ["targetFiles"]
+  "required": [
+    "targetFiles"
+  ]
 }

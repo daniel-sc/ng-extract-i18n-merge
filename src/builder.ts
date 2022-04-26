@@ -15,7 +15,7 @@ export interface Options extends JsonObject {
     resetTranslationState: boolean,
     collapseWhitespace: boolean,
     includeContext: boolean,
-    newTranslationTargetsBlank: boolean,
+    newTranslationTargetsBlank: boolean | 'omit',
 }
 
 export default createBuilder(copyFileBuilder);
