@@ -65,6 +65,14 @@
       "default": false,
       "description": "Set target for new translation units to empty string (instead of original source). 'omit' will omit the target element for new units."
     },
+    "sort": {
+      "enum": [
+        "idAsc",
+        "stableAppendNew"
+      ],
+      "default": "idAsc",
+      "description": "Sorting of all translation units in source and target translation files."
+    },
     "collapseWhitespace": {
       "type": "boolean",
       "default": true,
