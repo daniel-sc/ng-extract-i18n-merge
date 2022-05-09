@@ -37,6 +37,11 @@ describe('Builder', () => {
 
     test('should fail if extract-i18n fails', async () => {
         await architectHost.addBuilder('@angular-devkit/build-angular:extract-i18n', createBuilder(() => ({success: false}))); // dummy builder
+        // write dummy file, so that reading before extraction will not fail:
+        await fs.writeFile('builder-test/messages.xlf', '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">\n' +
+            '  <file original="ng.template" id="ngi18n">\n' +
+            '  </file>\n' +
+            '</xliff>', 'utf8');
         // A "run" can have multiple outputs, and contains progress information.
         const run = await architect.scheduleTarget({project: 'builder-test', target: 'extract-i18n-merge'}, {
             format: 'xlf2',
@@ -756,5 +761,176 @@ describe('Builder', () => {
             '    </body>\n' +
             '  </file>\n' +
             '</xliff>');
+    });
+
+    describe('sort', () => {
+        beforeEach(async () => {
+            extractI18nBuilderMock = jest.fn(async () => {
+                // update messages.xlf:
+                await fs.writeFile('builder-test/messages.xlf', '<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+                    '  <file source-language="de" datatype="plaintext" original="ng2.template">\n' +
+                    '    <body>\n' +
+                    '      <trans-unit id="ID1" datatype="html">\n' +
+                    '        <source>text1</source>\n' +
+                    '      </trans-unit>\n' +
+                    '      <trans-unit id="ID3" datatype="html">\n' +
+                    '        <source>text3</source>\n' +
+                    '      </trans-unit>\n' +
+                    '      <trans-unit id="ID2" datatype="html">\n' +
+                    '        <source>text2</source>\n' +
+                    '      </trans-unit>\n' +
+                    '      <trans-unit id="ID4" datatype="html">\n' +
+                    '        <source>text4</source>\n' +
+                    '      </trans-unit>\n' +
+                    '    </body>\n' +
+                    '  </file>\n' +
+                    '</xliff>', 'utf8');
+                return ({success: true});
+            });
+            await architectHost.addBuilder('@angular-devkit/build-angular:extract-i18n', createBuilder(extractI18nBuilderMock));
+
+
+            await fs.writeFile('builder-test/messages.xlf', '<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+                '  <file source-language="de" datatype="plaintext" original="ng2.template">\n' +
+                '    <body>\n' +
+                '      <trans-unit id="ID2" datatype="html">\n' +
+                '        <source>text2</source>\n' +
+                '      </trans-unit>\n' +
+                '      <trans-unit id="old-id-1" datatype="html">\n' +
+                '        <source>text1</source>\n' +
+                '      </trans-unit>\n' +
+                '    </body>\n' +
+                '  </file>\n' +
+                '</xliff>', 'utf8');
+            await fs.writeFile('builder-test/messages.fr.xlf', '<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+                '  <file source-language="de" target-language="fr-ch" datatype="plaintext" original="ng2.template">\n' +
+                '    <body>\n' +
+                '      <trans-unit id="ID2" datatype="html">\n' +
+                '        <source>text2</source>\n' +
+                '        <target state="new">translation2</target>\n' +
+                '      </trans-unit>\n' +
+                '      <trans-unit id="old-id-1" datatype="html">\n' +
+                '        <source>text1</source>\n' +
+                '        <target state="new">translation1</target>\n' +
+                '      </trans-unit>\n' +
+                '    </body>\n' +
+                '  </file>\n' +
+                '</xliff>', 'utf8');
+
+        });
+        describe('idAsc', () => {
+            test('should sort by ID', async () => {
+                const run = await architect.scheduleTarget({project: 'builder-test', target: 'extract-i18n-merge'}, {
+                    format: 'xlf',
+                    targetFiles: ['messages.fr.xlf'],
+                    outputPath: 'builder-test',
+                    // default: sort: 'idAsc'
+                });
+                await run.result;
+                const result = await run.result;
+                expect(result.success).toBeTruthy();
+                await run.stop();
+
+                const sourceContent = await fs.readFile('builder-test/messages.xlf', 'utf8');
+                expect(sourceContent).toEqual('<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+                    '  <file source-language="de" datatype="plaintext" original="ng2.template">\n' +
+                    '    <body>\n' +
+                    '      <trans-unit id="ID1" datatype="html">\n' +
+                    '        <source>text1</source>\n' +
+                    '      </trans-unit>\n' +
+                    '      <trans-unit id="ID2" datatype="html">\n' +
+                    '        <source>text2</source>\n' +
+                    '      </trans-unit>\n' +
+                    '      <trans-unit id="ID3" datatype="html">\n' +
+                    '        <source>text3</source>\n' +
+                    '      </trans-unit>\n' +
+                    '      <trans-unit id="ID4" datatype="html">\n' +
+                    '        <source>text4</source>\n' +
+                    '      </trans-unit>\n' +
+                    '    </body>\n' +
+                    '  </file>\n' +
+                    '</xliff>');
+                const targetContent = await fs.readFile('builder-test/messages.fr.xlf', 'utf8');
+                expect(targetContent).toEqual('<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+                    '  <file source-language="de" target-language="fr-ch" datatype="plaintext" original="ng2.template">\n' +
+                    '    <body>\n' +
+                    '      <trans-unit id="ID1" datatype="html">\n' +
+                    '        <source>text1</source>\n' +
+                    '        <target state="new">translation1</target>\n' +
+                    '      </trans-unit>\n' +
+                    '      <trans-unit id="ID2" datatype="html">\n' +
+                    '        <source>text2</source>\n' +
+                    '        <target state="new">translation2</target>\n' +
+                    '      </trans-unit>\n' +
+                    '      <trans-unit id="ID3" datatype="html">\n' +
+                    '        <source>text3</source>\n' +
+                    '        <target state="new">text3</target>\n' +
+                    '      </trans-unit>\n' +
+                    '      <trans-unit id="ID4" datatype="html">\n' +
+                    '        <source>text4</source>\n' +
+                    '        <target state="new">text4</target>\n' +
+                    '      </trans-unit>\n' +
+                    '    </body>\n' +
+                    '  </file>\n' +
+                    '</xliff>');
+            });
+        });
+        describe('stableAppendNew', () => {
+            test('should keep existing order in source and target file and append new translations', async () => {
+                const run = await architect.scheduleTarget({project: 'builder-test', target: 'extract-i18n-merge'}, {
+                    format: 'xlf',
+                    targetFiles: ['messages.fr.xlf'],
+                    outputPath: 'builder-test',
+                    sort: 'stableAppendNew'
+                });
+                await run.result;
+                const result = await run.result;
+                expect(result.success).toBeTruthy();
+                await run.stop();
+
+                const sourceContent = await fs.readFile('builder-test/messages.xlf', 'utf8');
+                expect(sourceContent).toEqual('<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+                    '  <file source-language="de" datatype="plaintext" original="ng2.template">\n' +
+                    '    <body>\n' +
+                    '      <trans-unit id="ID2" datatype="html">\n' +
+                    '        <source>text2</source>\n' +
+                    '      </trans-unit>\n' +
+                    '      <trans-unit id="ID1" datatype="html">\n' +
+                    '        <source>text1</source>\n' +
+                    '      </trans-unit>\n' +
+                    '      <trans-unit id="ID3" datatype="html">\n' +
+                    '        <source>text3</source>\n' +
+                    '      </trans-unit>\n' +
+                    '      <trans-unit id="ID4" datatype="html">\n' +
+                    '        <source>text4</source>\n' +
+                    '      </trans-unit>\n' +
+                    '    </body>\n' +
+                    '  </file>\n' +
+                    '</xliff>');
+                const targetContent = await fs.readFile('builder-test/messages.fr.xlf', 'utf8');
+                expect(targetContent).toEqual('<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+                    '  <file source-language="de" target-language="fr-ch" datatype="plaintext" original="ng2.template">\n' +
+                    '    <body>\n' +
+                    '      <trans-unit id="ID2" datatype="html">\n' +
+                    '        <source>text2</source>\n' +
+                    '        <target state="new">translation2</target>\n' +
+                    '      </trans-unit>\n' +
+                    '      <trans-unit id="ID1" datatype="html">\n' +
+                    '        <source>text1</source>\n' +
+                    '        <target state="new">translation1</target>\n' +
+                    '      </trans-unit>\n' +
+                    '      <trans-unit id="ID3" datatype="html">\n' +
+                    '        <source>text3</source>\n' +
+                    '        <target state="new">text3</target>\n' +
+                    '      </trans-unit>\n' +
+                    '      <trans-unit id="ID4" datatype="html">\n' +
+                    '        <source>text4</source>\n' +
+                    '        <target state="new">text4</target>\n' +
+                    '      </trans-unit>\n' +
+                    '    </body>\n' +
+                    '  </file>\n' +
+                    '</xliff>');
+            });
+        });
     });
 });
