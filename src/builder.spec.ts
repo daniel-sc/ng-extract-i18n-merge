@@ -37,6 +37,11 @@ describe('Builder', () => {
 
     test('should fail if extract-i18n fails', async () => {
         await architectHost.addBuilder('@angular-devkit/build-angular:extract-i18n', createBuilder(() => ({success: false}))); // dummy builder
+        // write dummy file, so that reading before extraction will not fail:
+        await fs.writeFile('builder-test/messages.xlf', '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">\n' +
+            '  <file original="ng.template" id="ngi18n">\n' +
+            '  </file>\n' +
+            '</xliff>', 'utf8');
         // A "run" can have multiple outputs, and contains progress information.
         const run = await architect.scheduleTarget({project: 'builder-test', target: 'extract-i18n-merge'}, {
             format: 'xlf2',
