@@ -35,7 +35,7 @@
     "@angular-devkit/schematics": "^13.0.0",
     "@schematics/angular": "^13.0.0",
     "xliff-simple-merge": "~0.12.0",
-    "xml_normalize": "~0.8.3",
+    "xml_normalize": "~0.8.4",
     "xmldoc": "~1.1.2"
   },
   "devDependencies": {
