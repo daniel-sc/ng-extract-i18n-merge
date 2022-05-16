@@ -96,7 +96,7 @@ async function copyFileBuilder(options: Options, context: BuilderContext): Promi
         ...(options.removeIdsWithPrefix ?? []).map(removePrefix => isXliffV2 ? `/xliff/file/unit[starts-with(@id,"${removePrefix}")]` : `/xliff/file/body/trans-unit[starts-with(@id,"${removePrefix}")]`)
     ];
     const idPath = isXliffV2 ? '/xliff/file/unit/@id' : '/xliff/file/body/trans-unit/@id';
-    const sort: Options['sort'] = options.sort ?? 'idAsc';
+    const sort: Options['sort'] = options.sort ?? 'stableAppendNew';
     const normalizedTranslationSourceFile = xmlNormalize({
         in: translationSourceFile,
         trim: false,

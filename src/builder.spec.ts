@@ -884,7 +884,7 @@ describe('Builder', () => {
                     format: 'xlf',
                     targetFiles: ['messages.fr.xlf'],
                     outputPath: 'builder-test',
-                    // default: sort: 'idAsc'
+                    sort: 'idAsc'
                 });
                 await run.result;
                 const result = await run.result;
@@ -941,7 +941,7 @@ describe('Builder', () => {
                     format: 'xlf',
                     targetFiles: ['messages.fr.xlf'],
                     outputPath: 'builder-test',
-                    sort: 'stableAppendNew'
+                    // default: sort: 'stableAppendNew'
                 });
                 await run.result;
                 const result = await run.result;

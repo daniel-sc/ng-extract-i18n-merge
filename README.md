@@ -42,7 +42,7 @@ In your `angular.json` you'll find a new target `extract-i18n-merge` that can be
 | `collapseWhitespace`         | `true`                                                      | Collapsing of multiple whitespaces/line breaks in translation sources and targets.                                                                                                                       |
 | `includeContext`             | `false`                                                     | Whether to include the context information (like notes) in the translation files. This is useful for sending the target translation files to translation agencies/services.                              |
 | `newTranslationTargetsBlank` | `false`                                                     | When `false` (default) the "target" of new translation units is set to the "source" value. When `true`, an empty string is used. When `'omit'`, no target element is created.                            |
-| `sort`                       | `"idAsc"`                                                   | Sorting of all translation units in source and target translation files. Supported: `"idAsc"` (sort by translation IDs), `"stableAppendNew"` (keep existing sorting, append new translations at the end) |
+| `sort`                       | `"stableAppendNew"`                                         | Sorting of all translation units in source and target translation files. Supported: `"idAsc"` (sort by translation IDs), `"stableAppendNew"` (keep existing sorting, append new translations at the end) |
 
 ## Contribute
 
