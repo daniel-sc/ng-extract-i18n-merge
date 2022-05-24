@@ -29,10 +29,6 @@ describe('Builder', () => {
         }, 'ng-extract-i18n-merge:ng-extract-i18n-merge');
         extractI18nBuilderMock = jest.fn(() => ({success: true}));
         await architectHost.addBuilder('@angular-devkit/build-angular:extract-i18n', createBuilder(extractI18nBuilderMock)); // dummy builder
-        await architectHost.addTarget({
-            project: 'builder-test',
-            target: 'extract-i18n'
-        }, '@angular-devkit/build-angular:extract-i18n');
     });
 
     test('should fail if extract-i18n fails', async () => {
