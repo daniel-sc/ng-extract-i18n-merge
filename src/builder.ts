@@ -56,6 +56,7 @@ function resetSortOrder(originalTranslationSourceFile: string, updatedTranslatio
     // we need to reformat the xml (whitespaces are messed up by the sort):
     return xmlNormalize({
         in: xmlDeclaration + updatedTranslationSourceDoc.toString({preserveWhitespace: true, compressed: true}),
+        trim: false,
         normalizeWhitespace: true
     });
 }
@@ -95,9 +96,10 @@ async function copyFileBuilder(options: Options, context: BuilderContext): Promi
         ...(options.removeIdsWithPrefix ?? []).map(removePrefix => isXliffV2 ? `/xliff/file/unit[starts-with(@id,"${removePrefix}")]` : `/xliff/file/body/trans-unit[starts-with(@id,"${removePrefix}")]`)
     ];
     const idPath = isXliffV2 ? '/xliff/file/unit/@id' : '/xliff/file/body/trans-unit/@id';
-    const sort: Options['sort'] = options.sort ?? 'idAsc';
+    const sort: Options['sort'] = options.sort ?? 'stableAppendNew';
     const normalizedTranslationSourceFile = xmlNormalize({
         in: translationSourceFile,
+        trim: false,
         normalizeWhitespace: true,
         sortPath: sort === 'idAsc' ? idPath : undefined,
         removePath: removePaths
@@ -116,6 +118,7 @@ async function copyFileBuilder(options: Options, context: BuilderContext): Promi
         });
         const normalizedTarget = xmlNormalize({
             in: mergedTarget,
+            trim: false,
             normalizeWhitespace: true,
             // no sorting for 'stableAppendNew' as this is the default merge behaviour:
             sortPath: sort === 'idAsc' ? idPath : undefined,

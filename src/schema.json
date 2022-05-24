@@ -70,13 +70,13 @@
         "idAsc",
         "stableAppendNew"
       ],
-      "default": "idAsc",
+      "default": "stableAppendNew",
       "description": "Sorting of all translation units in source and target translation files."
     },
     "collapseWhitespace": {
       "type": "boolean",
       "default": true,
-      "description": "Collapsing of multiple whitespaces and trimming when comparing translations sources."
+      "description": "Collapsing of multiple whitespaces/line breaks in translation sources and targets."
     },
     "includeContext": {
       "type": "boolean",
