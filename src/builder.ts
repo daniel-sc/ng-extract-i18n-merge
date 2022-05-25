@@ -16,6 +16,7 @@ export interface Options extends JsonObject {
     fuzzyMatch: boolean,
     resetTranslationState: boolean,
     collapseWhitespace: boolean,
+    trim: boolean,
     includeContext: boolean,
     newTranslationTargetsBlank: boolean | 'omit',
     sort: 'idAsc' | 'stableAppendNew',
@@ -24,7 +25,7 @@ export interface Options extends JsonObject {
 
 export default createBuilder(extractI18nMergeBuilder);
 
-function resetSortOrder(originalTranslationSourceFile: string, updatedTranslationSourceFile: string, idPath: string, idMapping: { [oldId: string]: string }): string {
+function resetSortOrder(originalTranslationSourceFile: string, updatedTranslationSourceFile: string, idPath: string, idMapping: { [oldId: string]: string }, options: Options): string {
     const originalDocEval = new Evaluator(new XmlDocument(originalTranslationSourceFile));
     const originalIdsOrder = originalDocEval.evalValues(idPath).map(id => idMapping[id] ?? id);
 
@@ -57,8 +58,8 @@ function resetSortOrder(originalTranslationSourceFile: string, updatedTranslatio
     // we need to reformat the xml (whitespaces are messed up by the sort):
     return xmlNormalize({
         in: xmlDeclaration + updatedTranslationSourceDoc.toString({preserveWhitespace: true, compressed: true}),
-        trim: false,
-        normalizeWhitespace: true
+        trim: options.trim ?? false,
+        normalizeWhitespace: options.collapseWhitespace ?? true
     });
 }
 
@@ -98,8 +99,8 @@ async function extractI18nMergeBuilder(options: Options, context: BuilderContext
     const sort: Options['sort'] = options.sort ?? 'stableAppendNew';
     const normalizedTranslationSourceFile = xmlNormalize({
         in: translationSourceFile,
-        trim: false,
-        normalizeWhitespace: true,
+        trim: options.trim ?? false,
+        normalizeWhitespace: options.collapseWhitespace ?? true,
         sortPath: sort === 'idAsc' ? idPath : undefined,
         removePath: removePaths
     });
@@ -117,8 +118,8 @@ async function extractI18nMergeBuilder(options: Options, context: BuilderContext
         });
         const normalizedTarget = xmlNormalize({
             in: mergedTarget,
-            trim: false,
-            normalizeWhitespace: true,
+            trim: options.trim ?? false,
+            normalizeWhitespace: options.collapseWhitespace,
             // no sorting for 'stableAppendNew' as this is the default merge behaviour:
             sortPath: sort === 'idAsc' ? idPath : undefined,
             removePath: removePaths
@@ -128,7 +129,7 @@ async function extractI18nMergeBuilder(options: Options, context: BuilderContext
     }
 
     if (sort === 'stableAppendNew') {
-        const normalizedTranslationSourceFileWithStableSorting = resetSortOrder(translationSourceFileOriginal, normalizedTranslationSourceFile, idPath, idMapping);
+        const normalizedTranslationSourceFileWithStableSorting = resetSortOrder(translationSourceFileOriginal, normalizedTranslationSourceFile, idPath, idMapping, options);
         await fs.writeFile(sourcePath, normalizedTranslationSourceFileWithStableSorting);
     } else {
         await fs.writeFile(sourcePath, normalizedTranslationSourceFile);

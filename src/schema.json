@@ -78,6 +78,11 @@
       "default": true,
       "description": "Collapsing of multiple whitespaces/line breaks in translation sources and targets."
     },
+    "trim": {
+      "type": "boolean",
+      "default": false,
+      "description": "Trim translation sources and targets."
+    },
     "includeContext": {
       "type": "boolean",
       "default": false,
