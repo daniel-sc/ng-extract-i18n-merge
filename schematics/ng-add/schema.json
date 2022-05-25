@@ -10,12 +10,6 @@
       "$default": {
         "$source": "projectName"
       }
-    },
-    "packageScript": {
-      "type": "boolean",
-      "default": true,
-      "description": "Whether to add a script entry in package.json to perform extraction and merging of translations.",
-      "x-prompt": "Add a command to package.json scripts to to perform extraction and merging of translations?"
     }
   },
   "required": []

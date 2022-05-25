@@ -74,14 +74,16 @@ export function ngAdd(_options: Schema): Rule {
             }
 
             // infer outputPath
-            const outputPathFromExtractI18nOptions = projectWorkspace.targets.get('extract-i18n')?.options?.outputPath as string | undefined;
+            const existingI18nTargetOptions = projectWorkspace.targets.get('extract-i18n')?.options;
+            const outputPathFromExtractI18nOptions = existingI18nTargetOptions?.outputPath as string | undefined;
             const outputPathFromTargetFiles: string | undefined = files?.[0]?.substring(0, files?.[0]?.lastIndexOf('/') ?? files?.[0]?.length);
             const outputPath = normalize(outputPathFromExtractI18nOptions ?? outputPathFromTargetFiles ?? 'src/locales');
             context.logger.info(`inferred output path: ${outputPath}`);
-            // check if inferred matches "extract-i18n" target config
+
+            const browserTarget = existingI18nTargetOptions?.browserTarget as string | undefined ?? `${projectName}:build`;
 
             // infer format:
-            const formatFromExtractI18nOptions = projectWorkspace.targets.get('extract-i18n')?.options?.format as Options['format'] | undefined;
+            const formatFromExtractI18nOptions = existingI18nTargetOptions?.format as Options['format'] | undefined;
             const formatFromTargetFiles = getFormatFromTargetFile(files?.[0], tree, context);
             const format: Options['format'] = formatFromExtractI18nOptions ?? formatFromTargetFiles ?? 'xlf2';
             context.logger.info(`inferred format: ${format}`);
@@ -89,31 +91,28 @@ export function ngAdd(_options: Schema): Rule {
             // remove path from files
             const filesWithoutOutputPath = files?.map(f => relative(`/${outputPath}` as Path, `/${f}` as Path));
 
-            const target = projectWorkspace.targets.get('extract-i18n-merge');
-            const builderOptions: Partial<Options> = {format, outputPath, targetFiles: filesWithoutOutputPath ?? []};
+            const target = projectWorkspace.targets.get('extract-i18n');
+            const builderOptions: Partial<Options> = {
+                browserTarget,
+                format,
+                outputPath,
+                targetFiles: filesWithoutOutputPath ?? []
+            };
 
-            const outFileRelativeToOutputPath = getOutFileRelativeToOutputPath(projectWorkspace.targets.get('extract-i18n')?.options?.outFile as string | null ?? 'messages.xlf', outputPathFromExtractI18nOptions, outputPathFromTargetFiles, tree, outputPath);
+            const outFileRelativeToOutputPath = getOutFileRelativeToOutputPath(existingI18nTargetOptions?.outFile as string | null ?? 'messages.xlf', outputPathFromExtractI18nOptions, outputPathFromTargetFiles, tree, outputPath);
             if (outFileRelativeToOutputPath !== 'messages.xlf') {
                 builderOptions.sourceFile = outFileRelativeToOutputPath;
             }
             if (target) {
-                context.logger.info(`Overwriting previous extract-i18n-merge entry in project ${projectName}.`);
+                context.logger.info(`Overwriting previous extract-i18n entry in project ${projectName}.`);
+                target.builder = 'ng-extract-i18n-merge:ng-extract-i18n-merge';
                 target.options = builderOptions;
             } else {
                 projectWorkspace.targets.add({
-                    name: 'extract-i18n-merge',
+                    name: 'extract-i18n',
                     builder: 'ng-extract-i18n-merge:ng-extract-i18n-merge',
                     options: builderOptions,
                 });
-            }
-
-            if (_options.packageScript) {
-                const packageJson = JSON.parse(tree.read('package.json')!.toString('utf8'));
-                packageJson.scripts = {
-                    ...packageJson.scripts,
-                    'extract-i18n-merge': `ng run ${projectName}:extract-i18n-merge`
-                };
-                tree.overwrite('package.json', JSON.stringify(packageJson, null, 2));
             }
         });
     };
