@@ -8,6 +8,9 @@
   "ng-add": {
     "save": "devDependencies"
   },
+  "ng-update": {
+    "migratoins": "./schematics/migrations/migrations.json"
+  },
   "scripts": {
     "build": "tsc",
     "prepack": "tsc",
