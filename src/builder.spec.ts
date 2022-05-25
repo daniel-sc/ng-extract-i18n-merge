@@ -2,8 +2,11 @@ import {Architect, createBuilder} from '@angular-devkit/architect';
 import {TestingArchitectHost} from '@angular-devkit/architect/testing';
 import {schema} from '@angular-devkit/core';
 import {promises as fs} from 'fs';
-import builder from './builder';
+import builder, {Options} from './builder';
 import Mock = jest.Mock;
+
+const MESSAGES_XLF_PATH = 'builder-test/messages.xlf';
+const MESSAGES_FR_XLF_PATH = 'builder-test/messages.fr.xlf';
 
 describe('Builder', () => {
     let architect: Architect;
@@ -31,10 +34,41 @@ describe('Builder', () => {
         await architectHost.addBuilder('@angular-devkit/build-angular:extract-i18n', createBuilder(extractI18nBuilderMock)); // dummy builder
     });
 
+    // todo parameter object?
+    async function runTest(messagesBefore: string, messagesFrBefore: string, options: Partial<Options>, messagesExpected: string | undefined, messagesFrExpected: string | undefined) {
+        await fs.writeFile(MESSAGES_XLF_PATH, messagesBefore, 'utf8');
+        await fs.writeFile(MESSAGES_FR_XLF_PATH, messagesFrBefore, 'utf8');
+
+        // A "run" can have multiple outputs, and contains progress information.
+        const run = await architect.scheduleTarget({project: 'builder-test', target: 'extract-i18n-merge'}, {
+            targetFiles: ['messages.fr.xlf'],
+            ...options
+        });
+
+        // The "result" member (of type BuilderOutput) is the next output.
+        await run.result;
+        const result = await run.result;
+        expect(result.success).toBeTruthy();
+
+        // Stop the builder from running. This stops Architect from keeping
+        // the builder-associated states in memory, since builders keep waiting
+        // to be scheduled.
+        await run.stop();
+
+        if (messagesExpected) {
+            const targetContent = await fs.readFile(MESSAGES_XLF_PATH, 'utf8');
+            expect(targetContent).toEqual(messagesExpected)
+        }
+        if (messagesFrExpected) {
+            const targetContent = await fs.readFile(MESSAGES_FR_XLF_PATH, 'utf8');
+            expect(targetContent).toEqual(messagesFrExpected)
+        }
+    }
+
     test('should fail if extract-i18n fails', async () => {
         await architectHost.addBuilder('@angular-devkit/build-angular:extract-i18n', createBuilder(() => ({success: false}))); // dummy builder
         // write dummy file, so that reading before extraction will not fail:
-        await fs.writeFile('builder-test/messages.xlf', '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">\n' +
+        await fs.writeFile(MESSAGES_XLF_PATH, '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">\n' +
             '  <file original="ng.template" id="ngi18n">\n' +
             '  </file>\n' +
             '</xliff>', 'utf8');
@@ -56,7 +90,8 @@ describe('Builder', () => {
     });
 
     test('extract-and-merge xlf 2.0', async () => {
-        await fs.writeFile('builder-test/messages.xlf', '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">\n' +
+        await runTest(
+            '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">\n' +
             '  <file original="ng.template" id="ngi18n">\n' +
             '    <unit id="ID1">\n' +
             '      <segment>\n' +
@@ -74,8 +109,8 @@ describe('Builder', () => {
             '      </segment>\n' +
             '    </unit>\n' +
             '  </file>\n' +
-            '</xliff>', 'utf8');
-        await fs.writeFile('builder-test/messages.fr.xlf', '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">\n' +
+            '</xliff>',
+            '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">\n' +
             '  <file original="ng.template" id="ngi18n">\n' +
             '    <unit id="ID1">\n' +
             '      <segment>\n' +
@@ -84,29 +119,15 @@ describe('Builder', () => {
             '      </segment>\n' +
             '    </unit>\n' +
             '  </file>\n' +
-            '</xliff>', 'utf8');
-
-        // A "run" can have multiple outputs, and contains progress information.
-        const run = await architect.scheduleTarget({project: 'builder-test', target: 'extract-i18n-merge'}, {
-            format: 'xlf2',
-            targetFiles: ['messages.fr.xlf'],
-            outputPath: 'builder-test',
-            removeIdsWithPrefix: ['removeMe']
-        });
-
-        // The "result" member (of type BuilderOutput) is the next output.
-        await run.result;
-        const result = await run.result;
-        expect(result.success).toBeTruthy();
-
-        // Stop the builder from running. This stops Architect from keeping
-        // the builder-associated states in memory, since builders keep waiting
-        // to be scheduled.
-        await run.stop();
-
-        // Expect that the copied file is the same as its source.
-        const targetContent = await fs.readFile('builder-test/messages.fr.xlf', 'utf8');
-        expect(targetContent).toEqual('<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">\n' +
+            '</xliff>',
+            {
+                format: 'xlf2',
+                targetFiles: ['messages.fr.xlf'],
+                outputPath: 'builder-test',
+                removeIdsWithPrefix: ['removeMe']
+            },
+            undefined,
+            '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">\n' +
             '  <file original="ng.template" id="ngi18n">\n' +
             '    <unit id="ID1">\n' +
             '      <segment>\n' +
@@ -124,7 +145,8 @@ describe('Builder', () => {
             '</xliff>');
     });
     test('extract-and-merge xlf 2.0 with specified sourceLanguageTargetFile', async () => {
-        await fs.writeFile('builder-test/messages.xlf', '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="en">\n' +
+        // todo second lang
+        await fs.writeFile(MESSAGES_XLF_PATH, '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="en">\n' +
             '  <file original="ng.template" id="ngi18n">\n' +
             '    <unit id="ID1">\n' +
             '      <segment>\n' +
@@ -138,7 +160,7 @@ describe('Builder', () => {
             '    </unit>\n' +
             '  </file>\n' +
             '</xliff>', 'utf8');
-        await fs.writeFile('builder-test/messages.fr.xlf', '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="en">\n' +
+        await fs.writeFile(MESSAGES_FR_XLF_PATH, '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="en">\n' +
             '  <file original="ng.template" id="ngi18n">\n' +
             '    <unit id="ID1">\n' +
             '      <segment>\n' +
@@ -178,7 +200,7 @@ describe('Builder', () => {
         await run.stop();
 
         // Expect that the copied file is the same as its source.
-        const targetContent1 = await fs.readFile('builder-test/messages.fr.xlf', 'utf8');
+        const targetContent1 = await fs.readFile(MESSAGES_FR_XLF_PATH, 'utf8');
         expect(targetContent1).toEqual('<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="en">\n' +
             '  <file original="ng.template" id="ngi18n">\n' +
             '    <unit id="ID1">\n' +
@@ -215,7 +237,8 @@ describe('Builder', () => {
             '</xliff>');
     });
     test('extract-and-merge xlf 2.0 with specified sourceLanguageTargetFile should update target of sourceLanguageTargetFile', async () => {
-        await fs.writeFile('builder-test/messages.xlf', '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="en">\n' +
+        // TODO second lang
+        await fs.writeFile(MESSAGES_XLF_PATH, '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="en">\n' +
             '  <file original="ng.template" id="ngi18n">\n' +
             '    <unit id="ID1">\n' +
             '      <segment>\n' +
@@ -229,7 +252,7 @@ describe('Builder', () => {
             '    </unit>\n' +
             '  </file>\n' +
             '</xliff>', 'utf8');
-        await fs.writeFile('builder-test/messages.fr.xlf', '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="en">\n' +
+        await fs.writeFile(MESSAGES_FR_XLF_PATH, '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="en">\n' +
             '  <file original="ng.template" id="ngi18n">\n' +
             '    <unit id="ID1">\n' +
             '      <segment state="final">\n' +
@@ -264,7 +287,7 @@ describe('Builder', () => {
         await run.stop();
 
         // Expect that the copied file is the same as its source.
-        const targetContent1 = await fs.readFile('builder-test/messages.fr.xlf', 'utf8');
+        const targetContent1 = await fs.readFile(MESSAGES_FR_XLF_PATH, 'utf8');
         expect(targetContent1).toEqual('<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="en">\n' +
             '  <file original="ng.template" id="ngi18n">\n' +
             '    <unit id="ID1">\n' +
@@ -302,7 +325,8 @@ describe('Builder', () => {
     });
 
     test('extract-and-merge xlf 1.2', async () => {
-        await fs.writeFile('builder-test/messages.xlf', '<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+        await runTest(
+            '<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
             '  <file source-language="de" datatype="plaintext" original="ng2.template">\n' +
             '    <body>\n' +
             '      <trans-unit id="ID1" datatype="html">\n' +
@@ -316,8 +340,8 @@ describe('Builder', () => {
             '      </trans-unit>\n' +
             '    </body>\n' +
             '  </file>\n' +
-            '</xliff>', 'utf8');
-        await fs.writeFile('builder-test/messages.fr.xlf', '<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+            '</xliff>',
+            '<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
             '  <file source-language="de" target-language="fr-ch" datatype="plaintext" original="ng2.template">\n' +
             '    <body>\n' +
             '      <trans-unit id="ID1" datatype="html">\n' +
@@ -326,29 +350,15 @@ describe('Builder', () => {
             '      </trans-unit>\n' +
             '    </body>\n' +
             '  </file>\n' +
-            '</xliff>', 'utf8');
-
-        // A "run" can have multiple outputs, and contains progress information.
-        const run = await architect.scheduleTarget({project: 'builder-test', target: 'extract-i18n-merge'}, {
-            format: 'xlf',
-            targetFiles: ['messages.fr.xlf'],
-            outputPath: 'builder-test',
-            removeIdsWithPrefix: ['removeMe']
-        });
-
-        // The "result" member (of type BuilderOutput) is the next output.
-        await run.result;
-        const result = await run.result;
-        expect(result.success).toBeTruthy();
-
-        // Stop the builder from running. This stops Architect from keeping
-        // the builder-associated states in memory, since builders keep waiting
-        // to be scheduled.
-        await run.stop();
-
-        // Expect that the copied file is the same as its source.
-        const targetContent = await fs.readFile('builder-test/messages.fr.xlf', 'utf8');
-        expect(targetContent).toEqual('<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+            '</xliff>',
+            {
+                format: 'xlf',
+                targetFiles: ['messages.fr.xlf'],
+                outputPath: 'builder-test',
+                removeIdsWithPrefix: ['removeMe']
+            },
+            undefined,
+            '<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
             '  <file source-language="de" target-language="fr-ch" datatype="plaintext" original="ng2.template">\n' +
             '    <body>\n' +
             '      <trans-unit id="ID1" datatype="html">\n' +
@@ -364,7 +374,8 @@ describe('Builder', () => {
             '</xliff>');
     });
     test('extract-and-merge xlf 1.2 with newTranslationTargetsBlank', async () => {
-        await fs.writeFile('builder-test/messages.xlf', '<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+        await runTest(
+            '<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
             '  <file source-language="de" datatype="plaintext" original="ng2.template">\n' +
             '    <body>\n' +
             '      <trans-unit id="ID1" datatype="html">\n' +
@@ -375,8 +386,8 @@ describe('Builder', () => {
             '      </trans-unit>\n' +
             '    </body>\n' +
             '  </file>\n' +
-            '</xliff>', 'utf8');
-        await fs.writeFile('builder-test/messages.fr.xlf', '<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+            '</xliff>',
+            '<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
             '  <file source-language="de" target-language="fr-ch" datatype="plaintext" original="ng2.template">\n' +
             '    <body>\n' +
             '      <trans-unit id="ID1" datatype="html">\n' +
@@ -385,30 +396,16 @@ describe('Builder', () => {
             '      </trans-unit>\n' +
             '    </body>\n' +
             '  </file>\n' +
-            '</xliff>', 'utf8');
-
-        // A "run" can have multiple outputs, and contains progress information.
-        const run = await architect.scheduleTarget({project: 'builder-test', target: 'extract-i18n-merge'}, {
-            format: 'xlf',
-            targetFiles: ['messages.fr.xlf'],
-            outputPath: 'builder-test',
-            removeIdsWithPrefix: ['removeMe'],
-            newTranslationTargetsBlank: true
-        });
-
-        // The "result" member (of type BuilderOutput) is the next output.
-        await run.result;
-        const result = await run.result;
-        expect(result.success).toBeTruthy();
-
-        // Stop the builder from running. This stops Architect from keeping
-        // the builder-associated states in memory, since builders keep waiting
-        // to be scheduled.
-        await run.stop();
-
-        // Expect that the copied file is the same as its source.
-        const targetContent = await fs.readFile('builder-test/messages.fr.xlf', 'utf8');
-        expect(targetContent).toEqual('<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+            '</xliff>',
+            {
+                format: 'xlf',
+                targetFiles: ['messages.fr.xlf'],
+                outputPath: 'builder-test',
+                removeIdsWithPrefix: ['removeMe'],
+                newTranslationTargetsBlank: true
+            },
+            undefined,
+            '<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
             '  <file source-language="de" target-language="fr-ch" datatype="plaintext" original="ng2.template">\n' +
             '    <body>\n' +
             '      <trans-unit id="ID1" datatype="html">\n' +
@@ -425,7 +422,8 @@ describe('Builder', () => {
     });
 
     test('extract-and-merge with xml definition without newline', async () => {
-        await fs.writeFile('builder-test/messages.xlf', '<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+        await runTest(
+            '<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
             '  <file source-language="de" datatype="plaintext" original="ng2.template">\n' +
             '    <body>\n' +
             '      <trans-unit id="ID1" datatype="html">\n' +
@@ -433,34 +431,20 @@ describe('Builder', () => {
             '      </trans-unit>\n' +
             '    </body>\n' +
             '  </file>\n' +
-            '</xliff>', 'utf8');
-        await fs.writeFile('builder-test/messages.fr.xlf', '<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+            '</xliff>',
+            '<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
             '  <file source-language="de" target-language="fr-ch" datatype="plaintext" original="ng2.template">\n' +
             '    <body>\n' +
             '    </body>\n' +
             '  </file>\n' +
-            '</xliff>', 'utf8');
-
-        // A "run" can have multiple outputs, and contains progress information.
-        const run = await architect.scheduleTarget({project: 'builder-test', target: 'extract-i18n-merge'}, {
-            format: 'xlf',
-            targetFiles: ['messages.fr.xlf'],
-            outputPath: 'builder-test'
-        });
-
-        // The "result" member (of type BuilderOutput) is the next output.
-        await run.result;
-        const result = await run.result;
-        expect(result.success).toBeTruthy();
-
-        // Stop the builder from running. This stops Architect from keeping
-        // the builder-associated states in memory, since builders keep waiting
-        // to be scheduled.
-        await run.stop();
-
-        // Expect that the copied file is the same as its source.
-        const targetContent = await fs.readFile('builder-test/messages.fr.xlf', 'utf8');
-        expect(targetContent).toEqual('<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+            '</xliff>',
+            {
+                format: 'xlf',
+                targetFiles: ['messages.fr.xlf'],
+                outputPath: 'builder-test'
+            },
+            undefined,
+            '<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
             '  <file source-language="de" target-language="fr-ch" datatype="plaintext" original="ng2.template">\n' +
             '    <body>\n' +
             '      <trans-unit id="ID1" datatype="html">\n' +
@@ -472,7 +456,7 @@ describe('Builder', () => {
             '</xliff>');
     });
     test('handle non default source file name', async () => {
-        await fs.writeFile('builder-test/my-messages.xlf', '<?xml version="1.0"?>\n' +
+        await runTest('<?xml version="1.0"?>\n' +
             '<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
             '  <file source-language="de" datatype="plaintext" original="ng2.template">\n' +
             '    <body>\n' +
@@ -481,44 +465,22 @@ describe('Builder', () => {
             '      </trans-unit>\n' +
             '    </body>\n' +
             '  </file>\n' +
-            '</xliff>', 'utf8');
-        await fs.writeFile('builder-test/messages.fr.xlf', '<?xml version="1.0"?>\n' +
+            '</xliff>',
+            '<?xml version="1.0"?>\n' +
             '<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
             '  <file source-language="de" target-language="fr-ch" datatype="plaintext" original="ng2.template">\n' +
             '    <body>\n' +
             '    </body>\n' +
             '  </file>\n' +
-            '</xliff>', 'utf8');
-
-        // A "run" can have multiple outputs, and contains progress information.
-        const run = await architect.scheduleTarget({project: 'builder-test', target: 'extract-i18n-merge'}, {
-            format: 'xlf',
-            targetFiles: ['messages.fr.xlf'],
-            sourceFile: 'my-messages.xlf',
-            outputPath: 'builder-test'
-        });
-
-        // The "result" member (of type BuilderOutput) is the next output.
-        await run.result;
-        const result = await run.result;
-        expect(result.success).toBeTruthy();
-
-        // Stop the builder from running. This stops Architect from keeping
-        // the builder-associated states in memory, since builders keep waiting
-        // to be scheduled.
-        await run.stop();
-
-        expect(extractI18nBuilderMock.mock.calls.length).toEqual(1);
-        expect(extractI18nBuilderMock.mock.calls[0][0]).toEqual({
-            format: 'xlf',
-            outFile: 'my-messages.xlf',
-            outputPath: 'builder-test',
-            progress: false,
-        });
-
-        // Expect that the copied file is the same as its source.
-        const targetContent = await fs.readFile('builder-test/messages.fr.xlf', 'utf8');
-        expect(targetContent).toEqual('<?xml version="1.0"?>\n' +
+            '</xliff>',
+            {
+                format: 'xlf',
+                targetFiles: ['messages.fr.xlf'],
+                sourceFile: 'my-messages.xlf',
+                outputPath: 'builder-test'
+            },
+            undefined,
+            '<?xml version="1.0"?>\n' +
             '<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
             '  <file source-language="de" target-language="fr-ch" datatype="plaintext" original="ng2.template">\n' +
             '    <body>\n' +
@@ -528,10 +490,20 @@ describe('Builder', () => {
             '      </trans-unit>\n' +
             '    </body>\n' +
             '  </file>\n' +
-            '</xliff>');
+            '</xliff>'
+        );
+
+        expect(extractI18nBuilderMock.mock.calls.length).toEqual(1);
+        expect(extractI18nBuilderMock.mock.calls[0][0]).toEqual({
+            format: 'xlf',
+            outFile: 'my-messages.xlf',
+            outputPath: 'builder-test',
+            progress: false,
+        });
     });
     test('retain leading and trailing whitespaces', async () => {
-        await fs.writeFile('builder-test/messages.xlf', '<?xml version="1.0"?>\n' +
+        await runTest(
+            '<?xml version="1.0"?>\n' +
             '<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
             '  <file source-language="de" datatype="plaintext" original="ng2.template">\n' +
             '    <body>\n' +
@@ -540,34 +512,20 @@ describe('Builder', () => {
             '      </trans-unit>\n' +
             '    </body>\n' +
             '  </file>\n' +
-            '</xliff>', 'utf8');
-        await fs.writeFile('builder-test/messages.fr.xlf', '<?xml version="1.0"?>\n' +
+            '</xliff>',
+            '<?xml version="1.0"?>\n' +
             '<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
             '  <file source-language="de" target-language="fr-ch" datatype="plaintext" original="ng2.template">\n' +
             '    <body>\n' +
             '    </body>\n' +
             '  </file>\n' +
-            '</xliff>', 'utf8');
-
-        // A "run" can have multiple outputs, and contains progress information.
-        const run = await architect.scheduleTarget({project: 'builder-test', target: 'extract-i18n-merge'}, {
-            format: 'xlf',
-            targetFiles: ['messages.fr.xlf'],
-            outputPath: 'builder-test'
-        });
-
-        // The "result" member (of type BuilderOutput) is the next output.
-        await run.result;
-        const result = await run.result;
-        expect(result.success).toBeTruthy();
-
-        // Stop the builder from running. This stops Architect from keeping
-        // the builder-associated states in memory, since builders keep waiting
-        // to be scheduled.
-        await run.stop();
-
-        const sourceContent = await fs.readFile('builder-test/messages.xlf', 'utf8');
-        expect(sourceContent).toEqual('<?xml version="1.0"?>\n' +
+            '</xliff>',
+            {
+                format: 'xlf',
+                targetFiles: ['messages.fr.xlf'],
+                outputPath: 'builder-test'
+            },
+            '<?xml version="1.0"?>\n' +
             '<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
             '  <file source-language="de" datatype="plaintext" original="ng2.template">\n' +
             '    <body>\n' +
@@ -576,9 +534,8 @@ describe('Builder', () => {
             '      </trans-unit>\n' +
             '    </body>\n' +
             '  </file>\n' +
-            '</xliff>');
-        const targetContent = await fs.readFile('builder-test/messages.fr.xlf', 'utf8');
-        expect(targetContent).toEqual('<?xml version="1.0"?>\n' +
+            '</xliff>',
+            '<?xml version="1.0"?>\n' +
             '<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
             '  <file source-language="de" target-language="fr-ch" datatype="plaintext" original="ng2.template">\n' +
             '    <body>\n' +
@@ -588,11 +545,13 @@ describe('Builder', () => {
             '      </trans-unit>\n' +
             '    </body>\n' +
             '  </file>\n' +
-            '</xliff>');
+            '</xliff>'
+        );
     });
     describe('trim', () => {
         test('retain whitespaces when trim=false and collapseWhitespace=false', async () => {
-            await fs.writeFile('builder-test/messages.xlf', '<?xml version="1.0"?>\n' +
+            await runTest(
+                '<?xml version="1.0"?>\n' +
                 '<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
                 '  <file source-language="de" datatype="plaintext" original="ng2.template">\n' +
                 '    <body>\n' +
@@ -601,36 +560,22 @@ describe('Builder', () => {
                 '      </trans-unit>\n' +
                 '    </body>\n' +
                 '  </file>\n' +
-                '</xliff>', 'utf8');
-            await fs.writeFile('builder-test/messages.fr.xlf', '<?xml version="1.0"?>\n' +
+                '</xliff>',
+                '<?xml version="1.0"?>\n' +
                 '<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
                 '  <file source-language="de" target-language="fr-ch" datatype="plaintext" original="ng2.template">\n' +
                 '    <body>\n' +
                 '    </body>\n' +
                 '  </file>\n' +
-                '</xliff>', 'utf8');
-
-            // A "run" can have multiple outputs, and contains progress information.
-            const run = await architect.scheduleTarget({project: 'builder-test', target: 'extract-i18n-merge'}, {
-                format: 'xlf',
-                targetFiles: ['messages.fr.xlf'],
-                outputPath: 'builder-test',
-                collapseWhitespace: false,
-                trim: false
-            });
-
-            // The "result" member (of type BuilderOutput) is the next output.
-            await run.result;
-            const result = await run.result;
-            expect(result.success).toBeTruthy();
-
-            // Stop the builder from running. This stops Architect from keeping
-            // the builder-associated states in memory, since builders keep waiting
-            // to be scheduled.
-            await run.stop();
-
-            const sourceContent = await fs.readFile('builder-test/messages.xlf', 'utf8');
-            expect(sourceContent).toEqual('<?xml version="1.0"?>\n' +
+                '</xliff>',
+                {
+                    format: 'xlf',
+                    targetFiles: ['messages.fr.xlf'],
+                    outputPath: 'builder-test',
+                    collapseWhitespace: false,
+                    trim: false
+                },
+                '<?xml version="1.0"?>\n' +
                 '<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
                 '  <file source-language="de" datatype="plaintext" original="ng2.template">\n' +
                 '    <body>\n' +
@@ -639,9 +584,8 @@ describe('Builder', () => {
                 '      </trans-unit>\n' +
                 '    </body>\n' +
                 '  </file>\n' +
-                '</xliff>');
-            const targetContent = await fs.readFile('builder-test/messages.fr.xlf', 'utf8');
-            expect(targetContent).toEqual('<?xml version="1.0"?>\n' +
+                '</xliff>',
+                '<?xml version="1.0"?>\n' +
                 '<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
                 '  <file source-language="de" target-language="fr-ch" datatype="plaintext" original="ng2.template">\n' +
                 '    <body>\n' +
@@ -651,10 +595,12 @@ describe('Builder', () => {
                 '      </trans-unit>\n' +
                 '    </body>\n' +
                 '  </file>\n' +
-                '</xliff>');
+                '</xliff>'
+            );
         });
         test('retain whitespaces when trim=false and collapseWhitespace=true', async () => {
-            await fs.writeFile('builder-test/messages.xlf', '<?xml version="1.0"?>\n' +
+            await runTest(
+                '<?xml version="1.0"?>\n' +
                 '<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
                 '  <file source-language="de" datatype="plaintext" original="ng2.template">\n' +
                 '    <body>\n' +
@@ -663,36 +609,22 @@ describe('Builder', () => {
                 '      </trans-unit>\n' +
                 '    </body>\n' +
                 '  </file>\n' +
-                '</xliff>', 'utf8');
-            await fs.writeFile('builder-test/messages.fr.xlf', '<?xml version="1.0"?>\n' +
+                '</xliff>',
+                '<?xml version="1.0"?>\n' +
                 '<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
                 '  <file source-language="de" target-language="fr-ch" datatype="plaintext" original="ng2.template">\n' +
                 '    <body>\n' +
                 '    </body>\n' +
                 '  </file>\n' +
-                '</xliff>', 'utf8');
-
-            // A "run" can have multiple outputs, and contains progress information.
-            const run = await architect.scheduleTarget({project: 'builder-test', target: 'extract-i18n-merge'}, {
-                format: 'xlf',
-                targetFiles: ['messages.fr.xlf'],
-                outputPath: 'builder-test',
-                // default: collapseWhitespace: true,
-                // default: trim: false
-            });
-
-            // The "result" member (of type BuilderOutput) is the next output.
-            await run.result;
-            const result = await run.result;
-            expect(result.success).toBeTruthy();
-
-            // Stop the builder from running. This stops Architect from keeping
-            // the builder-associated states in memory, since builders keep waiting
-            // to be scheduled.
-            await run.stop();
-
-            const sourceContent = await fs.readFile('builder-test/messages.xlf', 'utf8');
-            expect(sourceContent).toEqual('<?xml version="1.0"?>\n' +
+                '</xliff>',
+                {
+                    format: 'xlf',
+                    targetFiles: ['messages.fr.xlf'],
+                    outputPath: 'builder-test',
+                    // default: collapseWhitespace: true,
+                    // default: trim: false
+                },
+                '<?xml version="1.0"?>\n' +
                 '<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
                 '  <file source-language="de" datatype="plaintext" original="ng2.template">\n' +
                 '    <body>\n' +
@@ -701,9 +633,8 @@ describe('Builder', () => {
                 '      </trans-unit>\n' +
                 '    </body>\n' +
                 '  </file>\n' +
-                '</xliff>');
-            const targetContent = await fs.readFile('builder-test/messages.fr.xlf', 'utf8');
-            expect(targetContent).toEqual('<?xml version="1.0"?>\n' +
+                '</xliff>',
+                '<?xml version="1.0"?>\n' +
                 '<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
                 '  <file source-language="de" target-language="fr-ch" datatype="plaintext" original="ng2.template">\n' +
                 '    <body>\n' +
@@ -713,10 +644,12 @@ describe('Builder', () => {
                 '      </trans-unit>\n' +
                 '    </body>\n' +
                 '  </file>\n' +
-                '</xliff>');
+                '</xliff>'
+            );
         });
         test('remove whitespaces when trim=true and collapseWhitespace=true', async () => {
-            await fs.writeFile('builder-test/messages.xlf', '<?xml version="1.0"?>\n' +
+            await runTest(
+                '<?xml version="1.0"?>\n' +
                 '<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
                 '  <file source-language="de" datatype="plaintext" original="ng2.template">\n' +
                 '    <body>\n' +
@@ -725,36 +658,22 @@ describe('Builder', () => {
                 '      </trans-unit>\n' +
                 '    </body>\n' +
                 '  </file>\n' +
-                '</xliff>', 'utf8');
-            await fs.writeFile('builder-test/messages.fr.xlf', '<?xml version="1.0"?>\n' +
+                '</xliff>',
+                '<?xml version="1.0"?>\n' +
                 '<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
                 '  <file source-language="de" target-language="fr-ch" datatype="plaintext" original="ng2.template">\n' +
                 '    <body>\n' +
                 '    </body>\n' +
                 '  </file>\n' +
-                '</xliff>', 'utf8');
-
-            // A "run" can have multiple outputs, and contains progress information.
-            const run = await architect.scheduleTarget({project: 'builder-test', target: 'extract-i18n-merge'}, {
-                format: 'xlf',
-                targetFiles: ['messages.fr.xlf'],
-                outputPath: 'builder-test',
-                // default: collapseWhitespace: true
-                trim: true
-            });
-
-            // The "result" member (of type BuilderOutput) is the next output.
-            await run.result;
-            const result = await run.result;
-            expect(result.success).toBeTruthy();
-
-            // Stop the builder from running. This stops Architect from keeping
-            // the builder-associated states in memory, since builders keep waiting
-            // to be scheduled.
-            await run.stop();
-
-            const sourceContent = await fs.readFile('builder-test/messages.xlf', 'utf8');
-            expect(sourceContent).toEqual('<?xml version="1.0"?>\n' +
+                '</xliff>',
+                {
+                    format: 'xlf',
+                    targetFiles: ['messages.fr.xlf'],
+                    outputPath: 'builder-test',
+                    // default: collapseWhitespace: true
+                    trim: true
+                },
+                '<?xml version="1.0"?>\n' +
                 '<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
                 '  <file source-language="de" datatype="plaintext" original="ng2.template">\n' +
                 '    <body>\n' +
@@ -763,9 +682,8 @@ describe('Builder', () => {
                 '      </trans-unit>\n' +
                 '    </body>\n' +
                 '  </file>\n' +
-                '</xliff>');
-            const targetContent = await fs.readFile('builder-test/messages.fr.xlf', 'utf8');
-            expect(targetContent).toEqual('<?xml version="1.0"?>\n' +
+                '</xliff>',
+                '<?xml version="1.0"?>\n' +
                 '<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
                 '  <file source-language="de" target-language="fr-ch" datatype="plaintext" original="ng2.template">\n' +
                 '    <body>\n' +
@@ -775,10 +693,12 @@ describe('Builder', () => {
                 '      </trans-unit>\n' +
                 '    </body>\n' +
                 '  </file>\n' +
-                '</xliff>');
+                '</xliff>'
+            );
         });
         test('remove whitespaces when trim=true and collapseWhitespace=false', async () => {
-            await fs.writeFile('builder-test/messages.xlf', '<?xml version="1.0"?>\n' +
+            await runTest(
+                '<?xml version="1.0"?>\n' +
                 '<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
                 '  <file source-language="de" datatype="plaintext" original="ng2.template">\n' +
                 '    <body>\n' +
@@ -787,36 +707,22 @@ describe('Builder', () => {
                 '      </trans-unit>\n' +
                 '    </body>\n' +
                 '  </file>\n' +
-                '</xliff>', 'utf8');
-            await fs.writeFile('builder-test/messages.fr.xlf', '<?xml version="1.0"?>\n' +
+                '</xliff>',
+                '<?xml version="1.0"?>\n' +
                 '<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
                 '  <file source-language="de" target-language="fr-ch" datatype="plaintext" original="ng2.template">\n' +
                 '    <body>\n' +
                 '    </body>\n' +
                 '  </file>\n' +
-                '</xliff>', 'utf8');
-
-            // A "run" can have multiple outputs, and contains progress information.
-            const run = await architect.scheduleTarget({project: 'builder-test', target: 'extract-i18n-merge'}, {
-                format: 'xlf',
-                targetFiles: ['messages.fr.xlf'],
-                outputPath: 'builder-test',
-                collapseWhitespace: false,
-                trim: true
-            });
-
-            // The "result" member (of type BuilderOutput) is the next output.
-            await run.result;
-            const result = await run.result;
-            expect(result.success).toBeTruthy();
-
-            // Stop the builder from running. This stops Architect from keeping
-            // the builder-associated states in memory, since builders keep waiting
-            // to be scheduled.
-            await run.stop();
-
-            const sourceContent = await fs.readFile('builder-test/messages.xlf', 'utf8');
-            expect(sourceContent).toEqual('<?xml version="1.0"?>\n' +
+                '</xliff>',
+                {
+                    format: 'xlf',
+                    targetFiles: ['messages.fr.xlf'],
+                    outputPath: 'builder-test',
+                    collapseWhitespace: false,
+                    trim: true
+                },
+                '<?xml version="1.0"?>\n' +
                 '<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
                 '  <file source-language="de" datatype="plaintext" original="ng2.template">\n' +
                 '    <body>\n' +
@@ -825,9 +731,8 @@ describe('Builder', () => {
                 '      </trans-unit>\n' +
                 '    </body>\n' +
                 '  </file>\n' +
-                '</xliff>');
-            const targetContent = await fs.readFile('builder-test/messages.fr.xlf', 'utf8');
-            expect(targetContent).toEqual('<?xml version="1.0"?>\n' +
+                '</xliff>',
+                '<?xml version="1.0"?>\n' +
                 '<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
                 '  <file source-language="de" target-language="fr-ch" datatype="plaintext" original="ng2.template">\n' +
                 '    <body>\n' +
@@ -837,12 +742,14 @@ describe('Builder', () => {
                 '      </trans-unit>\n' +
                 '    </body>\n' +
                 '  </file>\n' +
-                '</xliff>');
+                '</xliff>'
+            );
         });
     });
     describe('collapseWhitespace', () => {
         test('retain whitespaces when collapseWhitespace=false', async () => {
-            await fs.writeFile('builder-test/messages.xlf', '<?xml version="1.0"?>\n' +
+            await runTest(
+                '<?xml version="1.0"?>\n' +
                 '<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
                 '  <file source-language="de" datatype="plaintext" original="ng2.template">\n' +
                 '    <body>\n' +
@@ -851,35 +758,21 @@ describe('Builder', () => {
                 '      </trans-unit>\n' +
                 '    </body>\n' +
                 '  </file>\n' +
-                '</xliff>', 'utf8');
-            await fs.writeFile('builder-test/messages.fr.xlf', '<?xml version="1.0"?>\n' +
+                '</xliff>',
+                '<?xml version="1.0"?>\n' +
                 '<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
                 '  <file source-language="de" target-language="fr-ch" datatype="plaintext" original="ng2.template">\n' +
                 '    <body>\n' +
                 '    </body>\n' +
                 '  </file>\n' +
-                '</xliff>', 'utf8');
-
-            // A "run" can have multiple outputs, and contains progress information.
-            const run = await architect.scheduleTarget({project: 'builder-test', target: 'extract-i18n-merge'}, {
-                format: 'xlf',
-                targetFiles: ['messages.fr.xlf'],
-                outputPath: 'builder-test',
-                collapseWhitespace: false
-            });
-
-            // The "result" member (of type BuilderOutput) is the next output.
-            await run.result;
-            const result = await run.result;
-            expect(result.success).toBeTruthy();
-
-            // Stop the builder from running. This stops Architect from keeping
-            // the builder-associated states in memory, since builders keep waiting
-            // to be scheduled.
-            await run.stop();
-
-            const sourceContent = await fs.readFile('builder-test/messages.xlf', 'utf8');
-            expect(sourceContent).toEqual('<?xml version="1.0"?>\n' +
+                '</xliff>',
+                {
+                    format: 'xlf',
+                    targetFiles: ['messages.fr.xlf'],
+                    outputPath: 'builder-test',
+                    collapseWhitespace: false
+                },
+                '<?xml version="1.0"?>\n' +
                 '<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
                 '  <file source-language="de" datatype="plaintext" original="ng2.template">\n' +
                 '    <body>\n' +
@@ -888,9 +781,8 @@ describe('Builder', () => {
                 '      </trans-unit>\n' +
                 '    </body>\n' +
                 '  </file>\n' +
-                '</xliff>');
-            const targetContent = await fs.readFile('builder-test/messages.fr.xlf', 'utf8');
-            expect(targetContent).toEqual('<?xml version="1.0"?>\n' +
+                '</xliff>',
+                '<?xml version="1.0"?>\n' +
                 '<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
                 '  <file source-language="de" target-language="fr-ch" datatype="plaintext" original="ng2.template">\n' +
                 '    <body>\n' +
@@ -900,10 +792,12 @@ describe('Builder', () => {
                 '      </trans-unit>\n' +
                 '    </body>\n' +
                 '  </file>\n' +
-                '</xliff>');
+                '</xliff>'
+            );
         });
         test('remove whitespaces when collapseWhitespace=true', async () => {
-            await fs.writeFile('builder-test/messages.xlf', '<?xml version="1.0"?>\n' +
+            await runTest(
+                '<?xml version="1.0"?>\n' +
                 '<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
                 '  <file source-language="de" datatype="plaintext" original="ng2.template">\n' +
                 '    <body>\n' +
@@ -912,35 +806,21 @@ describe('Builder', () => {
                 '      </trans-unit>\n' +
                 '    </body>\n' +
                 '  </file>\n' +
-                '</xliff>', 'utf8');
-            await fs.writeFile('builder-test/messages.fr.xlf', '<?xml version="1.0"?>\n' +
+                '</xliff>',
+                '<?xml version="1.0"?>\n' +
                 '<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
                 '  <file source-language="de" target-language="fr-ch" datatype="plaintext" original="ng2.template">\n' +
                 '    <body>\n' +
                 '    </body>\n' +
                 '  </file>\n' +
-                '</xliff>', 'utf8');
-
-            // A "run" can have multiple outputs, and contains progress information.
-            const run = await architect.scheduleTarget({project: 'builder-test', target: 'extract-i18n-merge'}, {
-                format: 'xlf',
-                targetFiles: ['messages.fr.xlf'],
-                outputPath: 'builder-test',
-                // default: collapseWhitespace: true
-            });
-
-            // The "result" member (of type BuilderOutput) is the next output.
-            await run.result;
-            const result = await run.result;
-            expect(result.success).toBeTruthy();
-
-            // Stop the builder from running. This stops Architect from keeping
-            // the builder-associated states in memory, since builders keep waiting
-            // to be scheduled.
-            await run.stop();
-
-            const sourceContent = await fs.readFile('builder-test/messages.xlf', 'utf8');
-            expect(sourceContent).toEqual('<?xml version="1.0"?>\n' +
+                '</xliff>',
+                {
+                    format: 'xlf',
+                    targetFiles: ['messages.fr.xlf'],
+                    outputPath: 'builder-test',
+                    // default: collapseWhitespace: true
+                },
+                '<?xml version="1.0"?>\n' +
                 '<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
                 '  <file source-language="de" datatype="plaintext" original="ng2.template">\n' +
                 '    <body>\n' +
@@ -949,9 +829,8 @@ describe('Builder', () => {
                 '      </trans-unit>\n' +
                 '    </body>\n' +
                 '  </file>\n' +
-                '</xliff>');
-            const targetContent = await fs.readFile('builder-test/messages.fr.xlf', 'utf8');
-            expect(targetContent).toEqual('<?xml version="1.0"?>\n' +
+                '</xliff>',
+                '<?xml version="1.0"?>\n' +
                 '<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
                 '  <file source-language="de" target-language="fr-ch" datatype="plaintext" original="ng2.template">\n' +
                 '    <body>\n' +
@@ -961,31 +840,32 @@ describe('Builder', () => {
                 '      </trans-unit>\n' +
                 '    </body>\n' +
                 '  </file>\n' +
-                '</xliff>');
+                '</xliff>'
+            );
         });
     });
     describe('multiple context groups', () => {
-        beforeEach(async () => {
-            await fs.writeFile('builder-test/messages.xlf', '<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
-                '  <file source-language="de" datatype="plaintext" original="ng2.template">\n' +
-                '    <body>\n' +
-                '      <trans-unit id="ID1" datatype="html">\n' +
-                '        <source>Some text</source>\n' +
-                '        <context-group purpose="location">\n' +
-                '          <context context-type="sourcefile">src/app/app-routing.module.ts</context>\n' +
-                '          <context context-type="linenumber">12</context>\n' +
-                '        </context-group>\n' +
-                '        <context-group purpose="location">\n' +
-                '          <context context-type="sourcefile">src/app/app.component.html</context>\n' +
-                '          <context context-type="linenumber">4</context>\n' +
-                '        </context-group>\n' +
-                '      </trans-unit>\n' +
-                '    </body>\n' +
-                '  </file>\n' +
-                '</xliff>', 'utf8');
-        })
+        const multipleContextGroupsDefaultMessages = '<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+            '  <file source-language="de" datatype="plaintext" original="ng2.template">\n' +
+            '    <body>\n' +
+            '      <trans-unit id="ID1" datatype="html">\n' +
+            '        <source>Some text</source>\n' +
+            '        <context-group purpose="location">\n' +
+            '          <context context-type="sourcefile">src/app/app-routing.module.ts</context>\n' +
+            '          <context context-type="linenumber">12</context>\n' +
+            '        </context-group>\n' +
+            '        <context-group purpose="location">\n' +
+            '          <context context-type="sourcefile">src/app/app.component.html</context>\n' +
+            '          <context context-type="linenumber">4</context>\n' +
+            '        </context-group>\n' +
+            '      </trans-unit>\n' +
+            '    </body>\n' +
+            '  </file>\n' +
+            '</xliff>'
         test('add new context groups', async () => {
-            await fs.writeFile('builder-test/messages.fr.xlf', '<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+            await runTest(
+                multipleContextGroupsDefaultMessages,
+                '<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
                 '  <file source-language="de" target-language="fr-ch" datatype="plaintext" original="ng2.template">\n' +
                 '    <body>\n' +
                 '      <trans-unit id="ID1" datatype="html">\n' +
@@ -998,22 +878,15 @@ describe('Builder', () => {
                 '      </trans-unit>\n' +
                 '    </body>\n' +
                 '  </file>\n' +
-                '</xliff>', 'utf8');
-
-
-            const run = await architect.scheduleTarget({project: 'builder-test', target: 'extract-i18n-merge'}, {
-                format: 'xlf',
-                targetFiles: ['messages.fr.xlf'],
-                includeContext: true,
-                outputPath: 'builder-test'
-            });
-            await run.result;
-            const result = await run.result;
-            expect(result.success).toBeTruthy();
-            await run.stop();
-
-            const targetContent = await fs.readFile('builder-test/messages.fr.xlf', 'utf8');
-            expect(targetContent).toEqual('<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+                '</xliff>',
+                {
+                    format: 'xlf',
+                    targetFiles: ['messages.fr.xlf'],
+                    includeContext: true,
+                    outputPath: 'builder-test'
+                },
+                undefined,
+                '<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
                 '  <file source-language="de" target-language="fr-ch" datatype="plaintext" original="ng2.template">\n' +
                 '    <body>\n' +
                 '      <trans-unit id="ID1" datatype="html">\n' +
@@ -1030,30 +903,26 @@ describe('Builder', () => {
                 '      </trans-unit>\n' +
                 '    </body>\n' +
                 '  </file>\n' +
-                '</xliff>');
+                '</xliff>'
+            );
         });
         test('retain multiple context nodes', async () => {
 
-            await fs.writeFile('builder-test/messages.fr.xlf', '<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+            await runTest(
+                multipleContextGroupsDefaultMessages,
+                '<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
                 '  <file source-language="de" target-language="fr-ch" datatype="plaintext" original="ng2.template">\n' +
                 '    <body>\n' +
                 '    </body>\n' +
                 '  </file>\n' +
-                '</xliff>', 'utf8');
-
-            const run = await architect.scheduleTarget({project: 'builder-test', target: 'extract-i18n-merge'}, {
-                format: 'xlf',
-                targetFiles: ['messages.fr.xlf'],
-                includeContext: true,
-                outputPath: 'builder-test'
-            });
-            await run.result;
-            const result = await run.result;
-            expect(result.success).toBeTruthy();
-            await run.stop();
-
-            const sourceContent = await fs.readFile('builder-test/messages.xlf', 'utf8');
-            expect(sourceContent).toEqual('<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+                '</xliff>',
+                {
+                    format: 'xlf',
+                    targetFiles: ['messages.fr.xlf'],
+                    includeContext: true,
+                    outputPath: 'builder-test'
+                },
+                '<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
                 '  <file source-language="de" datatype="plaintext" original="ng2.template">\n' +
                 '    <body>\n' +
                 '      <trans-unit id="ID1" datatype="html">\n' +
@@ -1069,9 +938,8 @@ describe('Builder', () => {
                 '      </trans-unit>\n' +
                 '    </body>\n' +
                 '  </file>\n' +
-                '</xliff>');
-            const targetContent = await fs.readFile('builder-test/messages.fr.xlf', 'utf8');
-            expect(targetContent).toEqual('<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+                '</xliff>',
+                '<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
                 '  <file source-language="de" target-language="fr-ch" datatype="plaintext" original="ng2.template">\n' +
                 '    <body>\n' +
                 '      <trans-unit id="ID1" datatype="html">\n' +
@@ -1088,29 +956,25 @@ describe('Builder', () => {
                 '      </trans-unit>\n' +
                 '    </body>\n' +
                 '  </file>\n' +
-                '</xliff>');
+                '</xliff>'
+            );
         });
         test('remove multiple context nodes', async () => {
-            await fs.writeFile('builder-test/messages.fr.xlf', '<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+            await runTest(
+                multipleContextGroupsDefaultMessages,
+                '<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
                 '  <file source-language="de" target-language="fr-ch" datatype="plaintext" original="ng2.template">\n' +
                 '    <body>\n' +
                 '    </body>\n' +
                 '  </file>\n' +
-                '</xliff>', 'utf8');
-
-            const run = await architect.scheduleTarget({project: 'builder-test', target: 'extract-i18n-merge'}, {
-                format: 'xlf',
-                targetFiles: ['messages.fr.xlf'],
-                includeContext: false,
-                outputPath: 'builder-test'
-            });
-            await run.result;
-            const result = await run.result;
-            expect(result.success).toBeTruthy();
-            await run.stop();
-
-            const sourceContent = await fs.readFile('builder-test/messages.xlf', 'utf8');
-            expect(sourceContent).toEqual('<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+                '</xliff>',
+                {
+                    format: 'xlf',
+                    targetFiles: ['messages.fr.xlf'],
+                    includeContext: false,
+                    outputPath: 'builder-test'
+                },
+                '<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
                 '  <file source-language="de" datatype="plaintext" original="ng2.template">\n' +
                 '    <body>\n' +
                 '      <trans-unit id="ID1" datatype="html">\n' +
@@ -1118,9 +982,8 @@ describe('Builder', () => {
                 '      </trans-unit>\n' +
                 '    </body>\n' +
                 '  </file>\n' +
-                '</xliff>');
-            const targetContent = await fs.readFile('builder-test/messages.fr.xlf', 'utf8');
-            expect(targetContent).toEqual('<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+                '</xliff>',
+                '<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
                 '  <file source-language="de" target-language="fr-ch" datatype="plaintext" original="ng2.template">\n' +
                 '    <body>\n' +
                 '      <trans-unit id="ID1" datatype="html">\n' +
@@ -1129,12 +992,14 @@ describe('Builder', () => {
                 '      </trans-unit>\n' +
                 '    </body>\n' +
                 '  </file>\n' +
-                '</xliff>');
+                '</xliff>'
+            );
         });
     });
 
     test('retain whitespace between interpolations', async () => {
-        await fs.writeFile('builder-test/messages.xlf', '<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+        await runTest(
+            '<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
             '  <file source-language="de" datatype="plaintext" original="ng2.template">\n' +
             '    <body>\n' +
             '      <trans-unit id="ID1" datatype="html">\n' +
@@ -1145,26 +1010,19 @@ describe('Builder', () => {
             '      </trans-unit>\n' +
             '    </body>\n' +
             '  </file>\n' +
-            '</xliff>', 'utf8');
-        await fs.writeFile('builder-test/messages.fr.xlf', '<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+            '</xliff>',
+            '<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
             '  <file source-language="de" target-language="fr-ch" datatype="plaintext" original="ng2.template">\n' +
             '    <body>\n' +
             '    </body>\n' +
             '  </file>\n' +
-            '</xliff>', 'utf8');
-
-        const run = await architect.scheduleTarget({project: 'builder-test', target: 'extract-i18n-merge'}, {
-            format: 'xlf',
-            targetFiles: ['messages.fr.xlf'],
-            outputPath: 'builder-test'
-        });
-        await run.result;
-        const result = await run.result;
-        expect(result.success).toBeTruthy();
-        await run.stop();
-
-        const sourceContent = await fs.readFile('builder-test/messages.xlf', 'utf8');
-        expect(sourceContent).toEqual('<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+            '</xliff>',
+            {
+                format: 'xlf',
+                targetFiles: ['messages.fr.xlf'],
+                outputPath: 'builder-test'
+            },
+            '<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
             '  <file source-language="de" datatype="plaintext" original="ng2.template">\n' +
             '    <body>\n' +
             '      <trans-unit id="ID1" datatype="html">\n' +
@@ -1175,9 +1033,8 @@ describe('Builder', () => {
             '      </trans-unit>\n' +
             '    </body>\n' +
             '  </file>\n' +
-            '</xliff>');
-        const targetContent = await fs.readFile('builder-test/messages.fr.xlf', 'utf8');
-        expect(targetContent).toEqual('<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+            '</xliff>',
+            '<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
             '  <file source-language="de" target-language="fr-ch" datatype="plaintext" original="ng2.template">\n' +
             '    <body>\n' +
             '      <trans-unit id="ID1" datatype="html">\n' +
@@ -1190,14 +1047,41 @@ describe('Builder', () => {
             '      </trans-unit>\n' +
             '    </body>\n' +
             '  </file>\n' +
-            '</xliff>');
+            '</xliff>'
+        );
     });
 
     describe('sort', () => {
+        const sortDefaultMessages = '<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+            '  <file source-language="de" datatype="plaintext" original="ng2.template">\n' +
+            '    <body>\n' +
+            '      <trans-unit id="ID2" datatype="html">\n' +
+            '        <source>text2</source>\n' +
+            '      </trans-unit>\n' +
+            '      <trans-unit id="old-id-1" datatype="html">\n' +
+            '        <source>text1</source>\n' +
+            '      </trans-unit>\n' +
+            '    </body>\n' +
+            '  </file>\n' +
+            '</xliff>';
+        const sortDefaultMessagesFr = '<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+            '  <file source-language="de" target-language="fr-ch" datatype="plaintext" original="ng2.template">\n' +
+            '    <body>\n' +
+            '      <trans-unit id="ID2" datatype="html">\n' +
+            '        <source>text2</source>\n' +
+            '        <target state="new">translation2</target>\n' +
+            '      </trans-unit>\n' +
+            '      <trans-unit id="old-id-1" datatype="html">\n' +
+            '        <source>text1</source>\n' +
+            '        <target state="new">translation1</target>\n' +
+            '      </trans-unit>\n' +
+            '    </body>\n' +
+            '  </file>\n' +
+            '</xliff>';
         beforeEach(async () => {
             extractI18nBuilderMock = jest.fn(async () => {
                 // update messages.xlf:
-                await fs.writeFile('builder-test/messages.xlf', '<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+                await fs.writeFile(MESSAGES_XLF_PATH, '<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
                     '  <file source-language="de" datatype="plaintext" original="ng2.template">\n' +
                     '    <body>\n' +
                     '      <trans-unit id="ID1" datatype="html">\n' +
@@ -1219,50 +1103,19 @@ describe('Builder', () => {
             });
             await architectHost.addBuilder('@angular-devkit/build-angular:extract-i18n', createBuilder(extractI18nBuilderMock));
 
-
-            await fs.writeFile('builder-test/messages.xlf', '<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
-                '  <file source-language="de" datatype="plaintext" original="ng2.template">\n' +
-                '    <body>\n' +
-                '      <trans-unit id="ID2" datatype="html">\n' +
-                '        <source>text2</source>\n' +
-                '      </trans-unit>\n' +
-                '      <trans-unit id="old-id-1" datatype="html">\n' +
-                '        <source>text1</source>\n' +
-                '      </trans-unit>\n' +
-                '    </body>\n' +
-                '  </file>\n' +
-                '</xliff>', 'utf8');
-            await fs.writeFile('builder-test/messages.fr.xlf', '<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
-                '  <file source-language="de" target-language="fr-ch" datatype="plaintext" original="ng2.template">\n' +
-                '    <body>\n' +
-                '      <trans-unit id="ID2" datatype="html">\n' +
-                '        <source>text2</source>\n' +
-                '        <target state="new">translation2</target>\n' +
-                '      </trans-unit>\n' +
-                '      <trans-unit id="old-id-1" datatype="html">\n' +
-                '        <source>text1</source>\n' +
-                '        <target state="new">translation1</target>\n' +
-                '      </trans-unit>\n' +
-                '    </body>\n' +
-                '  </file>\n' +
-                '</xliff>', 'utf8');
-
         });
         describe('idAsc', () => {
             test('should sort by ID', async () => {
-                const run = await architect.scheduleTarget({project: 'builder-test', target: 'extract-i18n-merge'}, {
-                    format: 'xlf',
-                    targetFiles: ['messages.fr.xlf'],
-                    outputPath: 'builder-test',
-                    sort: 'idAsc'
-                });
-                await run.result;
-                const result = await run.result;
-                expect(result.success).toBeTruthy();
-                await run.stop();
-
-                const sourceContent = await fs.readFile('builder-test/messages.xlf', 'utf8');
-                expect(sourceContent).toEqual('<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+                await runTest(
+                    sortDefaultMessages,
+                    sortDefaultMessagesFr,
+                    {
+                        format: 'xlf',
+                        targetFiles: ['messages.fr.xlf'],
+                        outputPath: 'builder-test',
+                        sort: 'idAsc'
+                    },
+                    '<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
                     '  <file source-language="de" datatype="plaintext" original="ng2.template">\n' +
                     '    <body>\n' +
                     '      <trans-unit id="ID1" datatype="html">\n' +
@@ -1279,9 +1132,8 @@ describe('Builder', () => {
                     '      </trans-unit>\n' +
                     '    </body>\n' +
                     '  </file>\n' +
-                    '</xliff>');
-                const targetContent = await fs.readFile('builder-test/messages.fr.xlf', 'utf8');
-                expect(targetContent).toEqual('<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+                    '</xliff>',
+                    '<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
                     '  <file source-language="de" target-language="fr-ch" datatype="plaintext" original="ng2.template">\n' +
                     '    <body>\n' +
                     '      <trans-unit id="ID1" datatype="html">\n' +
@@ -1302,24 +1154,22 @@ describe('Builder', () => {
                     '      </trans-unit>\n' +
                     '    </body>\n' +
                     '  </file>\n' +
-                    '</xliff>');
+                    '</xliff>'
+                );
             });
         });
         describe('stableAppendNew', () => {
             test('should keep existing order in source and target file and append new translations', async () => {
-                const run = await architect.scheduleTarget({project: 'builder-test', target: 'extract-i18n-merge'}, {
-                    format: 'xlf',
-                    targetFiles: ['messages.fr.xlf'],
-                    outputPath: 'builder-test',
-                    // default: sort: 'stableAppendNew'
-                });
-                await run.result;
-                const result = await run.result;
-                expect(result.success).toBeTruthy();
-                await run.stop();
-
-                const sourceContent = await fs.readFile('builder-test/messages.xlf', 'utf8');
-                expect(sourceContent).toEqual('<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+                await runTest(
+                    sortDefaultMessages,
+                    sortDefaultMessagesFr,
+                    {
+                        format: 'xlf',
+                        targetFiles: ['messages.fr.xlf'],
+                        outputPath: 'builder-test',
+                        // default: sort: 'stableAppendNew'
+                    },
+                    '<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
                     '  <file source-language="de" datatype="plaintext" original="ng2.template">\n' +
                     '    <body>\n' +
                     '      <trans-unit id="ID2" datatype="html">\n' +
@@ -1336,9 +1186,8 @@ describe('Builder', () => {
                     '      </trans-unit>\n' +
                     '    </body>\n' +
                     '  </file>\n' +
-                    '</xliff>');
-                const targetContent = await fs.readFile('builder-test/messages.fr.xlf', 'utf8');
-                expect(targetContent).toEqual('<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+                    '</xliff>',
+                    '<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
                     '  <file source-language="de" target-language="fr-ch" datatype="plaintext" original="ng2.template">\n' +
                     '    <body>\n' +
                     '      <trans-unit id="ID2" datatype="html">\n' +
@@ -1359,7 +1208,8 @@ describe('Builder', () => {
                     '      </trans-unit>\n' +
                     '    </body>\n' +
                     '  </file>\n' +
-                    '</xliff>');
+                    '</xliff>'
+                );
             });
         });
     });
