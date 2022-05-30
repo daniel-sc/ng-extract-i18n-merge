@@ -4,7 +4,7 @@
     "migration-v2": {
       "description": "Update to version 2",
       "version": "2.0.0",
-      "factory": "./2_0_0/index"
+      "factory": "../../dist/schematics/migrations/2_0_0/index"
     }
   }
 }

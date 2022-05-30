@@ -9,7 +9,7 @@
     "save": "devDependencies"
   },
   "ng-update": {
-    "migratoins": "./schematics/migrations/migrations.json"
+    "migrations": "./schematics/migrations/migrations.json"
   },
   "scripts": {
     "build": "tsc",
