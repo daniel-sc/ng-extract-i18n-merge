@@ -38,7 +38,7 @@ export default function (): Rule {
                     project.targets.set('extract-i18n', i18nTarget);
                     context.logger.info(`project.targets1: ${JSON.stringify(Array.from(project.targets.entries()))}`);
 
-                    project.targets.delete('extract-i18n-merge');
+                    // project.targets.delete('extract-i18n-merge');
                     context.logger.info(`project.targets2: ${JSON.stringify(Array.from(project.targets.entries()))}`);
                 }
             });
