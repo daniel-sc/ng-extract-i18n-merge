@@ -34,7 +34,9 @@ export default function (): Rule {
                         ...i18nMergeTarget.options,
                         browserTarget: i18nTarget.options?.browserTarget ?? `${projectName}:build`
                     }
+                    context.logger.info(`setting extract-i18n target to: ${JSON.stringify(i18nTarget)}`);
                     project.targets.set('extract-i18n', {...i18nTarget});
+                    context.logger.info(`setting extract-i18n target to: ${JSON.stringify(i18nTarget)}`);
                 }
             });
 
