@@ -34,7 +34,7 @@ export default function (): Rule {
                         ...i18nMergeTarget.options,
                         browserTarget: i18nTarget.options?.browserTarget ?? `${projectName}:build`
                     }
-                    project.targets.set('extract-i18n', i18nTarget);
+                    project.targets.set('extract-i18n', {...i18nTarget});
                 }
             });
 
