@@ -22,6 +22,7 @@ function updateNpmScript(tree: Tree, logger: SchematicContext['logger']) {
 
 export default function (): Rule {
     return (tree: Tree, context: SchematicContext) => {
+        updateNpmScript(tree, context.logger);
         return updateWorkspace((workspace) => {
             workspace.projects.forEach((project, projectName) => {
                 const i18nMergeTarget = project.targets.get('extract-i18n-merge');
@@ -39,8 +40,6 @@ export default function (): Rule {
                     context.logger.info(`project.targets: ${JSON.stringify(Array.from(project.targets.entries()))}`);
                 }
             });
-
-            updateNpmScript(tree, context.logger);
         });
     };
 }
