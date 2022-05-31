@@ -35,10 +35,11 @@ export default function (): Rule {
                         browserTarget: i18nTarget.options?.browserTarget ?? `${projectName}:build`
                     }
                     context.logger.info(`setting extract-i18n target to: ${JSON.stringify(i18nTarget)}`);
-                    project.targets.set('extract-i18n', i18nTarget);
+                    project.targets.delete('extract-i18n'); // 'set' not working!?
+                    project.targets.add({name: 'extract-i18n', ...i18nTarget});
                     context.logger.info(`project.targets1: ${JSON.stringify(Array.from(project.targets.entries()))}`);
 
-                    // project.targets.delete('extract-i18n-merge');
+                    project.targets.delete('extract-i18n-merge');
                     context.logger.info(`project.targets2: ${JSON.stringify(Array.from(project.targets.entries()))}`);
                 }
             });
