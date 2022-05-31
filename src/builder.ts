@@ -16,14 +16,16 @@ export interface Options extends JsonObject {
     fuzzyMatch: boolean,
     resetTranslationState: boolean,
     collapseWhitespace: boolean,
+    trim: boolean,
     includeContext: boolean,
     newTranslationTargetsBlank: boolean | 'omit',
-    sort: 'idAsc' | 'stableAppendNew'
+    sort: 'idAsc' | 'stableAppendNew',
+    browserTarget: string
 }
 
-export default createBuilder(copyFileBuilder);
+export default createBuilder(extractI18nMergeBuilder);
 
-function resetSortOrder(originalTranslationSourceFile: string, updatedTranslationSourceFile: string, idPath: string, idMapping: { [oldId: string]: string }): string {
+function resetSortOrder(originalTranslationSourceFile: string, updatedTranslationSourceFile: string, idPath: string, idMapping: { [oldId: string]: string }, options: Options): string {
     const originalDocEval = new Evaluator(new XmlDocument(originalTranslationSourceFile));
     const originalIdsOrder = originalDocEval.evalValues(idPath).map(id => idMapping[id] ?? id);
 
@@ -56,33 +58,31 @@ function resetSortOrder(originalTranslationSourceFile: string, updatedTranslatio
     // we need to reformat the xml (whitespaces are messed up by the sort):
     return xmlNormalize({
         in: xmlDeclaration + updatedTranslationSourceDoc.toString({preserveWhitespace: true, compressed: true}),
-        trim: false,
-        normalizeWhitespace: true
+        trim: options.trim ?? false,
+        normalizeWhitespace: options.collapseWhitespace ?? true
     });
 }
 
-async function copyFileBuilder(options: Options, context: BuilderContext): Promise<BuilderOutput> {
+async function extractI18nMergeBuilder(options: Options, context: BuilderContext): Promise<BuilderOutput> {
     context.logger.info(`Running ng-extract-i18n-merge for project ${context.target?.project}`);
 
     console.debug = () => null; // prevent debug output from xml_normalize and xliff-simple-merge
-    const extractI18nTarget = {target: 'extract-i18n', project: context.target?.project!};
-    const extractI18nOptions = await context.getTargetOptions(extractI18nTarget);
     context.logger.debug(`options: ${JSON.stringify(options)}`);
-    context.logger.debug(`extractI18nOptions: ${JSON.stringify(extractI18nOptions)}`);
-    const outputPath = options.outputPath as string || extractI18nOptions.outputPath as string || '.';
-    const format = options.format as string || extractI18nOptions.format as string || 'xlf';
+    const outputPath = options.outputPath as string || '.';
+    const format = options.format as string || 'xlf';
     const isXliffV2 = format.includes('2');
 
     context.logger.info('running "extract-i18n" ...');
     const sourcePath = join(normalize(outputPath), options.sourceFile ?? 'messages.xlf');
     const translationSourceFileOriginal = await fs.readFile(sourcePath, 'utf8');
 
-    const extractI18nRun = await context.scheduleTarget(extractI18nTarget, {
+    const extractI18nRun = await context.scheduleBuilder('@angular-devkit/build-angular:extract-i18n', {
+        browserTarget: options.browserTarget,
         outputPath: dirname(sourcePath),
         outFile: basename(sourcePath),
         format,
         progress: false
-    });
+    }, {target: context.target, logger: context.logger.createChild('extract-i18n')});
     const extractI18nResult = await extractI18nRun.result;
     if (!extractI18nResult.success) {
         return {success: false, error: `"extract-i18n" failed: ${extractI18nResult.error}`};
@@ -99,8 +99,8 @@ async function copyFileBuilder(options: Options, context: BuilderContext): Promi
     const sort: Options['sort'] = options.sort ?? 'stableAppendNew';
     const normalizedTranslationSourceFile = xmlNormalize({
         in: translationSourceFile,
-        trim: false,
-        normalizeWhitespace: true,
+        trim: options.trim ?? false,
+        normalizeWhitespace: options.collapseWhitespace ?? true,
         sortPath: sort === 'idAsc' ? idPath : undefined,
         removePath: removePaths
     });
@@ -118,8 +118,8 @@ async function copyFileBuilder(options: Options, context: BuilderContext): Promi
         });
         const normalizedTarget = xmlNormalize({
             in: mergedTarget,
-            trim: false,
-            normalizeWhitespace: true,
+            trim: options.trim ?? false,
+            normalizeWhitespace: options.collapseWhitespace,
             // no sorting for 'stableAppendNew' as this is the default merge behaviour:
             sortPath: sort === 'idAsc' ? idPath : undefined,
             removePath: removePaths
@@ -129,7 +129,7 @@ async function copyFileBuilder(options: Options, context: BuilderContext): Promi
     }
 
     if (sort === 'stableAppendNew') {
-        const normalizedTranslationSourceFileWithStableSorting = resetSortOrder(translationSourceFileOriginal, normalizedTranslationSourceFile, idPath, idMapping);
+        const normalizedTranslationSourceFileWithStableSorting = resetSortOrder(translationSourceFileOriginal, normalizedTranslationSourceFile, idPath, idMapping, options);
         await fs.writeFile(sourcePath, normalizedTranslationSourceFileWithStableSorting);
     } else {
         await fs.writeFile(sourcePath, normalizedTranslationSourceFile);

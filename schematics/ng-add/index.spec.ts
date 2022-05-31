@@ -46,10 +46,11 @@ describe('ngAdd', () => {
 
     it('works', async () => {
         const tree = await runner.runSchematicAsync('ng-add', {}, appTree).toPromise();
-        expect(norm(tree.readContent('/angular.json'))).toContain(norm('"extract-i18n-merge": {\n' +
+        expect(norm(tree.readContent('/angular.json'))).toContain(norm('"extract-i18n": {\n' +
             '          "builder": "ng-extract-i18n-merge:ng-extract-i18n-merge",\n' +
             '          "options": {\n' +
-            '          "format": "xlf2",\n' +
+            '            "browserTarget": "bar:build",\n' +
+            '            "format": "xlf2",\n' +
             '            "outputPath": "src/locales",\n' +
             '            "targetFiles": []\n' +
             '          }\n' +
@@ -71,10 +72,11 @@ describe('ngAdd', () => {
 
         const tree = await runner.runSchematicAsync('ng-add', {}, appTree).toPromise();
 
-        expect(norm(tree.readContent('/angular.json'))).toContain(norm('"extract-i18n-merge": {\n' +
+        expect(norm(tree.readContent('/angular.json'))).toContain(norm('"extract-i18n": {\n' +
             '          "builder": "ng-extract-i18n-merge:ng-extract-i18n-merge",\n' +
             '          "options": {\n' +
-            '          "format": "xlf",\n' +
+            '            "browserTarget": "bar:build",\n' +
+            '            "format": "xlf",\n' +
             '            "outputPath": "src/other-path",\n' +
             '            "targetFiles": [ "messages.fr.xlf" ]\n' +
             '          }\n' +
@@ -103,10 +105,11 @@ describe('ngAdd', () => {
 
         const tree = await runner.runSchematicAsync('ng-add', {}, appTree).toPromise();
 
-        expect(norm(tree.readContent('/angular.json'))).toContain(norm('"extract-i18n-merge": {\n' +
+        expect(norm(tree.readContent('/angular.json'))).toContain(norm('"extract-i18n": {\n' +
             '          "builder": "ng-extract-i18n-merge:ng-extract-i18n-merge",\n' +
             '          "options": {\n' +
-            '          "format": "xlf",\n' +
+            '            "browserTarget": "bar:build",\n' +
+            '            "format": "xlf",\n' +
             '            "outputPath": "src/some-path",\n' +
             '            "targetFiles": [ "../other-path/messages.fr.xlf" ],\n' +
             '            "sourceFile": "my-messages.xlf"\n' +
@@ -128,10 +131,11 @@ describe('ngAdd', () => {
 
         const tree = await runner.runSchematicAsync('ng-add', {}, appTree).toPromise();
 
-        expect(norm(tree.readContent('/angular.json'))).toContain(norm('"extract-i18n-merge": {\n' +
+        expect(norm(tree.readContent('/angular.json'))).toContain(norm('"extract-i18n": {\n' +
             '          "builder": "ng-extract-i18n-merge:ng-extract-i18n-merge",\n' +
             '          "options": {\n' +
-            '          "format": "xlf",\n' +
+            '            "browserTarget": "bar:build",\n' +
+            '            "format": "xlf",\n' +
             '            "outputPath": "src/other-path",\n' +
             '            "targetFiles": [ "messages.fr.xlf" ]\n' +
             '          }\n' +
@@ -149,10 +153,11 @@ describe('ngAdd', () => {
 
         const tree = await runner.runSchematicAsync('ng-add', {}, appTree).toPromise();
 
-        expect(norm(tree.readContent('/angular.json'))).toContain(norm('"extract-i18n-merge": {\n' +
+        expect(norm(tree.readContent('/angular.json'))).toContain(norm('"extract-i18n": {\n' +
             '          "builder": "ng-extract-i18n-merge:ng-extract-i18n-merge",\n' +
             '          "options": {\n' +
-            '          "format": "xlf",\n' +
+            '            "browserTarget": "bar:build",\n' +
+            '            "format": "xlf",\n' +
             '            "outputPath": "src/other-path",\n' +
             '            "targetFiles": [ "messages.fr.xlf" ]\n' +
             '          }\n' +
@@ -166,20 +171,21 @@ describe('ngAdd', () => {
                 'fr-FR': 'src/other-path/messages.fr.xlf'
             }
         };
-        angularJson.projects.bar.architect['extract-i18n-merge'] = {
+        angularJson.projects.bar.architect['extract-i18n'] = {
             builder: 'ng-extract-i18n-merge:ng-extract-i18n-merge', options: {
-                format: 'xlf2',
-                outputPath: 'some_random_path'
+                format: 'xlf',
+                someUnrecognizedOption: 'some_random_path'
             }
         };
         appTree.overwrite('/angular.json', JSON.stringify(angularJson));
 
         const tree = await runner.runSchematicAsync('ng-add', {}, appTree).toPromise();
 
-        expect(norm(tree.readContent('/angular.json'))).toContain(norm('"extract-i18n-merge": {\n' +
+        expect(norm(tree.readContent('/angular.json'))).toContain(norm('"extract-i18n": {\n' +
             '          "builder": "ng-extract-i18n-merge:ng-extract-i18n-merge",\n' +
             '          "options": {\n' +
-            '          "format": "xlf",\n' +
+            '            "browserTarget": "bar:build",\n' +
+            '            "format": "xlf",\n' +
             '            "outputPath": "src/other-path",\n' +
             '            "targetFiles": [ "messages.fr.xlf" ]\n' +
             '          }\n' +
@@ -204,10 +210,11 @@ describe('ngAdd', () => {
 
         const tree = await runner.runSchematicAsync('ng-add', {}, appTree).toPromise();
 
-        expect(norm(tree.readContent('/angular.json'))).toContain(norm('"extract-i18n-merge": {\n' +
+        expect(norm(tree.readContent('/angular.json'))).toContain(norm('"extract-i18n": {\n' +
             '          "builder": "ng-extract-i18n-merge:ng-extract-i18n-merge",\n' +
             '          "options": {\n' +
-            '          "format": "xlf2",\n' +
+            '            "browserTarget": "bar:build",\n' +
+            '            "format": "xlf2",\n' +
             '            "outputPath": "src/other-path",\n' +
             '            "targetFiles": [ "messages.fr.xlf" ]\n' +
             '          }\n' +
