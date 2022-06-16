@@ -79,12 +79,7 @@ describe('Builder', () => {
     }
 
     test('should fail if extract-i18n fails', async () => {
-        await architectHost.addBuilder('@angular-devkit/build-angular:extract-i18n', createBuilder(() => ({success: false}))); // dummy builder
-        // write dummy file, so that reading before extraction will not fail:
-        await fs.writeFile(MESSAGES_XLF_PATH, '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">\n' +
-            '  <file original="ng.template" id="ngi18n">\n' +
-            '  </file>\n' +
-            '</xliff>', 'utf8');
+        architectHost.addBuilder('@angular-devkit/build-angular:extract-i18n', createBuilder(() => ({success: false}))); // dummy builder
         // A "run" can have multiple outputs, and contains progress information.
         const run = await architect.scheduleTarget({project: 'builder-test', target: 'extract-i18n-merge'}, {
             format: 'xlf2',
@@ -100,6 +95,40 @@ describe('Builder', () => {
         // the builder-associated states in memory, since builders keep waiting
         // to be scheduled.
         await run.stop();
+    });
+
+    test('should succeed without a source file', async () => {
+        const dummyContent = '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">\n' +
+                '  <file original="ng.template" id="ngi18n">\n' +
+                '  </file>\n' +
+                '</xliff>';
+        architectHost.addBuilder('@angular-devkit/build-angular:extract-i18n', createBuilder(async () => {
+            await fs.writeFile(MESSAGES_XLF_PATH, dummyContent, 'utf8');
+            return {success: true};
+        })); // dummy builder that only writes the source file
+
+        await fs.writeFile(MESSAGES_FR_XLF_PATH, dummyContent, 'utf8');
+
+        try {
+            // A "run" can have multiple outputs, and contains progress information.
+            const run = await architect.scheduleTarget({project: 'builder-test', target: 'extract-i18n-merge'}, {
+                format: 'xlf2',
+                targetFiles: ['messages.fr.xlf'],
+                outputPath: 'builder-test',
+            });
+
+            // The "result" member (of type BuilderOutput) is the next output.
+            const result = await run.result;
+            expect(result.success).toBeTruthy();
+
+            // Stop the builder from running. This stops Architect from keeping
+            // the builder-associated states in memory, since builders keep waiting
+            // to be scheduled.
+            await run.stop();
+        } finally {
+            await fs.rm?.(MESSAGES_XLF_PATH, {force: true});
+            await fs.rm?.(MESSAGES_FR_XLF_PATH, {force: true});
+        }
     });
 
     test('extract-and-merge xlf 2.0', async () => {

@@ -74,7 +74,16 @@ async function extractI18nMergeBuilder(options: Options, context: BuilderContext
 
     context.logger.info('running "extract-i18n" ...');
     const sourcePath = join(normalize(outputPath), options.sourceFile ?? 'messages.xlf');
-    const translationSourceFileOriginal = await fs.readFile(sourcePath, 'utf8');
+
+    let translationSourceFileOriginal;
+    try {
+        translationSourceFileOriginal = await fs.readFile(sourcePath, 'utf8');
+    } catch (e) {
+        // a missing source file is OK
+        if((e as NodeJS.ErrnoException).code !== 'ENOENT') {
+            throw e;
+        }
+    }
 
     const extractI18nRun = await context.scheduleBuilder('@angular-devkit/build-angular:extract-i18n', {
         browserTarget: options.browserTarget,
@@ -128,7 +137,7 @@ async function extractI18nMergeBuilder(options: Options, context: BuilderContext
         idMapping = {...idMapping, ...mapping};
     }
 
-    if (sort === 'stableAppendNew') {
+    if (sort === 'stableAppendNew' && translationSourceFileOriginal) {
         const normalizedTranslationSourceFileWithStableSorting = resetSortOrder(translationSourceFileOriginal, normalizedTranslationSourceFile, idPath, idMapping, options);
         await fs.writeFile(sourcePath, normalizedTranslationSourceFileWithStableSorting);
     } else {
