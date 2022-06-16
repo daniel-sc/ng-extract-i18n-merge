@@ -98,7 +98,7 @@ describe('Builder', () => {
     });
 
     test('should succeed without a source file', async () => {
-	const dummyContent = '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">\n' +
+        const dummyContent = '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">\n' +
                 '  <file original="ng.template" id="ngi18n">\n' +
                 '  </file>\n' +
                 '</xliff>';
