@@ -126,7 +126,7 @@ describe('Builder', () => {
             // to be scheduled.
             await run.stop();
         } finally {
-            await fs.rm(MESSAGES_XLF_PATH, {force: true});
+            await fs.rm?.(MESSAGES_XLF_PATH, {force: true});
             await fs.rm(MESSAGES_FR_XLF_PATH, {force: true});
         }
     });
