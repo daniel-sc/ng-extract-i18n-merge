@@ -74,8 +74,8 @@ describe('Builder', () => {
                 expect(targetContent).toEqual(p.messagesFrExpected)
             }
         } finally {
-            await fs.rm?.(p.sourceFilename ?? MESSAGES_XLF_PATH, {force: true});
-            await fs.rm?.(MESSAGES_FR_XLF_PATH, {force: true});
+            await (fs.rm?.(p.sourceFilename ?? MESSAGES_XLF_PATH, {force: true}) ?? fs.unlink(p.sourceFilename ?? MESSAGES_XLF_PATH));
+            await (fs.rm?.(MESSAGES_FR_XLF_PATH, {force: true}) ?? fs.unlink(MESSAGES_FR_XLF_PATH));
         }
     }
 
