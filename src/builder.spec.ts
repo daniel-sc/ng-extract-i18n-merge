@@ -8,15 +8,6 @@ import Mock = jest.Mock;
 const MESSAGES_XLF_PATH = 'builder-test/messages.xlf';
 const MESSAGES_FR_XLF_PATH = 'builder-test/messages.fr.xlf';
 
-interface RunTestParams {
-    sourceFilename?: string;
-    messagesBefore: string;
-    messagesFrBefore: string;
-    options: Partial<Options>;
-    messagesExpected?: string;
-    messagesFrExpected?: string;
-}
-
 describe('Builder', () => {
     let architect: Architect;
     let architectHost: TestingArchitectHost;
@@ -43,14 +34,24 @@ describe('Builder', () => {
         await architectHost.addBuilder('@angular-devkit/build-angular:extract-i18n', createBuilder(extractI18nBuilderMock)); // dummy builder
     });
 
-    async function runTest(p: RunTestParams) {
+    async function runTest(p: {
+        sourceFilename?: string;
+        messagesBefore: string;
+        messagesFrBefore?: string;
+        options: Partial<Options>;
+        messagesExpected?: string;
+        messagesFrExpected?: string;
+    }) {
         try {
             await fs.writeFile(p.sourceFilename ?? MESSAGES_XLF_PATH, p.messagesBefore, 'utf8');
-            await fs.writeFile(MESSAGES_FR_XLF_PATH, p.messagesFrBefore, 'utf8');
+            if (p.messagesFrBefore) {
+                await fs.writeFile(MESSAGES_FR_XLF_PATH, p.messagesFrBefore, 'utf8');
+            }
 
             // A "run" can have multiple outputs, and contains progress information.
             const run = await architect.scheduleTarget({project: 'builder-test', target: 'extract-i18n-merge'}, {
                 targetFiles: ['messages.fr.xlf'],
+                outputPath: 'builder-test',
                 ...p.options
             });
 
@@ -99,9 +100,9 @@ describe('Builder', () => {
 
     test('should succeed without a source file', async () => {
         const dummyContent = '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">\n' +
-                '  <file original="ng.template" id="ngi18n">\n' +
-                '  </file>\n' +
-                '</xliff>';
+            '  <file original="ng.template" id="ngi18n">\n' +
+            '  </file>\n' +
+            '</xliff>';
         architectHost.addBuilder('@angular-devkit/build-angular:extract-i18n', createBuilder(async () => {
             await fs.writeFile(MESSAGES_XLF_PATH, dummyContent, 'utf8');
             return {success: true};
@@ -129,6 +130,62 @@ describe('Builder', () => {
             await fs.rm?.(MESSAGES_XLF_PATH, {force: true});
             await fs.rm?.(MESSAGES_FR_XLF_PATH, {force: true});
         }
+    });
+
+    test('should auto create new target files for xlf 2.0', async () => {
+        await runTest({
+            messagesBefore: '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">\n' +
+                '  <file original="ng.template" id="ngi18n">\n' +
+                '    <unit id="ID1">\n' +
+                '      <segment>\n' +
+                '        <source>source val</source>\n' +
+                '      </segment>\n' +
+                '    </unit>\n' +
+                '  </file>\n' +
+                '</xliff>',
+            options: {
+                format: 'xlf2',
+            },
+            messagesFrExpected: '<?xml version="1.0" encoding="UTF-8"?>\n' +
+                '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de" trgLang="fr">\n' +
+                '  <file original="ng.template" id="ngi18n">\n' +
+                '    <unit id="ID1">\n' +
+                '      <segment state="initial">\n' +
+                '        <source>source val</source>\n' +
+                '        <target>source val</target>\n' +
+                '      </segment>\n' +
+                '    </unit>\n' +
+                '  </file>\n' +
+                '</xliff>'
+        })
+    });
+
+    test('should auto create new target files for xlf 1.2', async () => {
+        await runTest({
+            messagesBefore: '<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+                '  <file source-language="de" datatype="plaintext" original="ng2.template">\n' +
+                '    <body>\n' +
+                '      <trans-unit id="ID1" datatype="html">\n' +
+                '        <source>source val</source>\n' +
+                '      </trans-unit>\n' +
+                '    </body>\n' +
+                '  </file>\n' +
+                '</xliff>',
+            options: {
+                format: 'xlf',
+            },
+            messagesFrExpected: '<?xml version="1.0" encoding="UTF-8"?>\n' +
+                '<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+                '  <file source-language="de" target-language="fr" datatype="plaintext" original="ng2.template">\n' +
+                '    <body>\n' +
+                '      <trans-unit id="ID1" datatype="html">\n' +
+                '        <source>source val</source>\n' +
+                '        <target state="new">source val</target>\n' +
+                '      </trans-unit>\n' +
+                '    </body>\n' +
+                '  </file>\n' +
+                '</xliff>'
+        });
     });
 
     test('extract-and-merge xlf 2.0', async () => {
