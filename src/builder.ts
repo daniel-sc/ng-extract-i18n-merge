@@ -5,6 +5,7 @@ import {promises as fs} from 'fs';
 import {xmlNormalize} from 'xml_normalize/dist/src/xmlNormalize';
 import {XmlDocument, XmlElement} from 'xmldoc';
 import {Evaluator} from 'xml_normalize/dist/src/xpath/simpleXPath';
+import {readFileIfExists} from './fileUtils';
 
 export interface Options extends JsonObject {
     format: 'xlf' | 'xlif' | 'xliff' | 'xlf2' | 'xliff2' | null
@@ -63,6 +64,33 @@ function resetSortOrder(originalTranslationSourceFile: string, updatedTranslatio
     });
 }
 
+function createEmptyTarget(isXliffV2: boolean, srcLang: string, targetLang: string): string {
+    if (isXliffV2) {
+        return `<?xml version="1.0" encoding="UTF-8"?>
+<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="${srcLang}" trgLang="${targetLang}">
+  <file original="ng.template" id="ngi18n">
+  </file>
+</xliff>`;
+    } else {
+        return `<?xml version="1.0" encoding="UTF-8"?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
+  <file source-language="${srcLang}" target-language="${targetLang}" datatype="plaintext" original="ng2.template">
+    <body>
+    </body>
+  </file>
+</xliff>`;
+    }
+}
+
+function extractSourceLocale(translationSourceFile: string, isXliffV2: boolean): string {
+    const doc = new Evaluator(new XmlDocument(translationSourceFile));
+    return doc.evalValues(isXliffV2 ? '/xliff/@srcLang' : '/xliff/file/@source-language')[0] ?? 'en';
+}
+
+function extractTargetLocale(targetPath: string): string {
+    return targetPath.match(/\.([a-zA-Z-]+)\.xlf$/)?.[1] ?? 'en';
+}
+
 async function extractI18nMergeBuilder(options: Options, context: BuilderContext): Promise<BuilderOutput> {
     context.logger.info(`Running ng-extract-i18n-merge for project ${context.target?.project}`);
 
@@ -74,16 +102,7 @@ async function extractI18nMergeBuilder(options: Options, context: BuilderContext
 
     context.logger.info('running "extract-i18n" ...');
     const sourcePath = join(normalize(outputPath), options.sourceFile ?? 'messages.xlf');
-
-    let translationSourceFileOriginal;
-    try {
-        translationSourceFileOriginal = await fs.readFile(sourcePath, 'utf8');
-    } catch (e) {
-        // a missing source file is OK
-        if((e as NodeJS.ErrnoException).code !== 'ENOENT') {
-            throw e;
-        }
-    }
+    const translationSourceFileOriginal = await readFileIfExists(sourcePath);
 
     const extractI18nRun = await context.scheduleBuilder('@angular-devkit/build-angular:extract-i18n', {
         browserTarget: options.browserTarget,
@@ -119,7 +138,7 @@ async function extractI18nMergeBuilder(options: Options, context: BuilderContext
     for (const targetFile of options.targetFiles) {
         const targetPath = join(normalize(outputPath), targetFile);
         context.logger.info(`merge and normalize ${targetPath} ...`);
-        const translationTargetFile = await fs.readFile(targetPath, 'utf8');
+        const translationTargetFile = await readFileIfExists(targetPath) ?? createEmptyTarget(isXliffV2, extractSourceLocale(translationSourceFile, isXliffV2), extractTargetLocale(targetPath));
         const [mergedTarget, mapping] = mergeWithMapping(normalizedTranslationSourceFile, translationTargetFile, {
             ...options,
             syncTargetsWithInitialState: true,
