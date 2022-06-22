@@ -4,6 +4,7 @@ import {schema} from '@angular-devkit/core';
 import {promises as fs} from 'fs';
 import builder, {Options} from './builder';
 import Mock = jest.Mock;
+import {rmSafe} from './rmSafe';
 
 const MESSAGES_XLF_PATH = 'builder-test/messages.xlf';
 const MESSAGES_FR_XLF_PATH = 'builder-test/messages.fr.xlf';
@@ -74,8 +75,8 @@ describe('Builder', () => {
                 expect(targetContent).toEqual(p.messagesFrExpected)
             }
         } finally {
-            await (fs.rm?.(p.sourceFilename ?? MESSAGES_XLF_PATH, {force: true}) ?? fs.unlink(p.sourceFilename ?? MESSAGES_XLF_PATH));
-            await (fs.rm?.(MESSAGES_FR_XLF_PATH, {force: true}) ?? fs.unlink(MESSAGES_FR_XLF_PATH));
+            await rmSafe(p.sourceFilename ?? MESSAGES_XLF_PATH);
+            await rmSafe(MESSAGES_FR_XLF_PATH);
         }
     }
 

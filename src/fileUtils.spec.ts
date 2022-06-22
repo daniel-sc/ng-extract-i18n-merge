@@ -1,5 +1,6 @@
 import {promises as fs} from 'fs';
 import {readFileIfExists} from './fileUtils';
+import {rmSafe} from './rmSafe';
 
 describe('fileUtils', () => {
     it('should return file contents if file is present', async () => {
@@ -8,7 +9,7 @@ describe('fileUtils', () => {
             const result = await readFileIfExists('test.txt');
             expect(result).toEqual('test file content\nsecond line');
         } finally {
-            await (fs.rm?.('test.txt') ?? fs.unlink('test.txt'));
+            await rmSafe('test.txt');
         }
     });
     it('should return null if file does not exists', async () => {
