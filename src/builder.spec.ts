@@ -128,8 +128,8 @@ describe('Builder', () => {
             // to be scheduled.
             await run.stop();
         } finally {
-            await fs.rm?.(MESSAGES_XLF_PATH, {force: true});
-            await fs.rm?.(MESSAGES_FR_XLF_PATH, {force: true});
+            await rmSafe(MESSAGES_XLF_PATH);
+            await rmSafe(MESSAGES_FR_XLF_PATH);
         }
     });
 
@@ -338,9 +338,9 @@ describe('Builder', () => {
             '</xliff>');
 
         // cleanup:
-        await fs.rm?.(MESSAGES_XLF_PATH, {force: true});
-        await fs.rm?.(MESSAGES_FR_XLF_PATH, {force: true});
-        await fs.rm?.('builder-test/messages.en.xlf', {force: true});
+        await rmSafe(MESSAGES_XLF_PATH);
+        await rmSafe(MESSAGES_FR_XLF_PATH);
+        await rmSafe('builder-test/messages.en.xlf');
     });
     test('extract-and-merge xlf 2.0 with specified sourceLanguageTargetFile should update target of sourceLanguageTargetFile', async () => {
         // TODO second lang
@@ -430,9 +430,9 @@ describe('Builder', () => {
             '</xliff>');
 
         // cleanup:
-        await fs.rm?.(MESSAGES_XLF_PATH, {force: true});
-        await fs.rm?.(MESSAGES_FR_XLF_PATH, {force: true});
-        await fs.rm?.('builder-test/messages.en.xlf', {force: true});
+        await rmSafe(MESSAGES_XLF_PATH);
+        await rmSafe(MESSAGES_FR_XLF_PATH);
+        await rmSafe('builder-test/messages.en.xlf');
     });
 
     test('extract-and-merge xlf 1.2', async () => {
