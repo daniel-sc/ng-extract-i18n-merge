@@ -34,9 +34,9 @@
   "homepage": "https://github.com/daniel-sc/ng-extract-i18n-merge#readme",
   "dependencies": {
     "@angular-devkit/architect": "^0.1301.0",
-    "@angular-devkit/core": "^13.0.0",
-    "@angular-devkit/schematics": "^13.0.0",
-    "@schematics/angular": "^13.0.0",
+    "@angular-devkit/core": "^13.0.0 || ^14.0.0",
+    "@angular-devkit/schematics": "^13.0.0 || ^14.0.0",
+    "@schematics/angular": "^13.0.0 || ^14.0.0",
     "xliff-simple-merge": "~0.12.1",
     "xml_normalize": "~0.8.4",
     "xmldoc": "~1.1.2"

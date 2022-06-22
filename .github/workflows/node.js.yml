@@ -16,7 +16,15 @@ jobs:
     strategy:
       matrix:
         node-version: [12.x, 14.x, 16.x]
-        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+        angular-version: [13.1.4, 14.0.2]
+        exclude:
+          - node-version: 12.x
+            angular-version: 14.0.2
+        include:
+          - angular-version: 13.1.4
+            devkit-version: 0.1301.4
+          - angular-version: 14.0.2
+            devkit-version: 0.1400.2
 
     steps:
     - uses: actions/checkout@v2
@@ -24,6 +32,7 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: ${{ matrix.node-version }}
+    - run: npm i --package-lock-only "@angular-devkit/architect@${{ matrix.devkit-version }}" "@angular-devkit/core@${{ matrix.angular-version }}" "@angular-devkit/schematics@${{ matrix.angular-version }}" "@schematics/angular@${{ matrix.angular-version }}"
     - run: npm ci
     - run: npm run build
     - run: npm run test-coverage
