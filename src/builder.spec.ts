@@ -45,7 +45,7 @@ describe('Builder', () => {
     }) {
         try {
             await fs.writeFile(p.sourceFilename ?? MESSAGES_XLF_PATH, p.messagesBefore, 'utf8');
-            if (p.messagesFrBefore) {
+            if (p.messagesFrBefore !== undefined) {
                 await fs.writeFile(MESSAGES_FR_XLF_PATH, p.messagesFrBefore, 'utf8');
             }
 
@@ -66,11 +66,11 @@ describe('Builder', () => {
             // to be scheduled.
             await run.stop();
 
-            if (p.messagesExpected) {
+            if (p.messagesExpected !== undefined) {
                 const targetContent = await fs.readFile(p.sourceFilename ?? MESSAGES_XLF_PATH, 'utf8');
                 expect(targetContent).toEqual(p.messagesExpected)
             }
-            if (p.messagesFrExpected) {
+            if (p.messagesFrExpected !== undefined) {
                 const targetContent = await fs.readFile(MESSAGES_FR_XLF_PATH, 'utf8');
                 expect(targetContent).toEqual(p.messagesFrExpected)
             }
@@ -147,8 +147,35 @@ describe('Builder', () => {
             options: {
                 format: 'xlf2',
             },
-            messagesFrExpected: '<?xml version="1.0" encoding="UTF-8"?>\n' +
-                '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de" trgLang="fr">\n' +
+            messagesFrExpected: '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de" trgLang="fr">\n' +
+                '  <file original="ng.template" id="ngi18n">\n' +
+                '    <unit id="ID1">\n' +
+                '      <segment state="initial">\n' +
+                '        <source>source val</source>\n' +
+                '        <target>source val</target>\n' +
+                '      </segment>\n' +
+                '    </unit>\n' +
+                '  </file>\n' +
+                '</xliff>'
+        })
+    });
+
+    test('should handle empty target files for xlf 2.0', async () => {
+        await runTest({
+            messagesFrBefore: '',
+            messagesBefore: '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">\n' +
+                '  <file original="ng.template" id="ngi18n">\n' +
+                '    <unit id="ID1">\n' +
+                '      <segment>\n' +
+                '        <source>source val</source>\n' +
+                '      </segment>\n' +
+                '    </unit>\n' +
+                '  </file>\n' +
+                '</xliff>',
+            options: {
+                format: 'xlf2',
+            },
+            messagesFrExpected: '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de" trgLang="fr">\n' +
                 '  <file original="ng.template" id="ngi18n">\n' +
                 '    <unit id="ID1">\n' +
                 '      <segment state="initial">\n' +
@@ -175,8 +202,35 @@ describe('Builder', () => {
             options: {
                 format: 'xlf',
             },
-            messagesFrExpected: '<?xml version="1.0" encoding="UTF-8"?>\n' +
-                '<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+            messagesFrExpected: '<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+                '  <file source-language="de" target-language="fr" datatype="plaintext" original="ng2.template">\n' +
+                '    <body>\n' +
+                '      <trans-unit id="ID1" datatype="html">\n' +
+                '        <source>source val</source>\n' +
+                '        <target state="new">source val</target>\n' +
+                '      </trans-unit>\n' +
+                '    </body>\n' +
+                '  </file>\n' +
+                '</xliff>'
+        });
+    });
+
+    test('should handle empty target file for xlf 1.2', async () => {
+        await runTest({
+            messagesFrBefore: '',
+            messagesBefore: '<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+                '  <file source-language="de" datatype="plaintext" original="ng2.template">\n' +
+                '    <body>\n' +
+                '      <trans-unit id="ID1" datatype="html">\n' +
+                '        <source>source val</source>\n' +
+                '      </trans-unit>\n' +
+                '    </body>\n' +
+                '  </file>\n' +
+                '</xliff>',
+            options: {
+                format: 'xlf',
+            },
+            messagesFrExpected: '<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
                 '  <file source-language="de" target-language="fr" datatype="plaintext" original="ng2.template">\n' +
                 '    <body>\n' +
                 '      <trans-unit id="ID1" datatype="html">\n' +
