@@ -185,7 +185,59 @@ describe('Builder', () => {
                 '    </unit>\n' +
                 '  </file>\n' +
                 '</xliff>'
-        })
+        });
+    });
+
+    test('should handle missing target node for changed text', async () => {
+        await runTest({
+            messagesFrBefore: '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de" trgLang="fr">\n' +
+                '  <file original="ng.template" id="ngi18n">\n' +
+                '    <unit id="ID1">\n' +
+                '      <segment state="initial">\n' +
+                '        <source>source val</source>\n' +
+                '      </segment>\n' +
+                '    </unit>\n' +
+                '    <unit id="ID2">\n' +
+                '      <segment state="initial">\n' +
+                '        <source>old source val2</source>\n' +
+                '      </segment>\n' +
+                '    </unit>\n' +
+                '  </file>\n' +
+                '</xliff>',
+            messagesBefore: '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">\n' +
+                '  <file original="ng.template" id="ngi18n">\n' +
+                '    <unit id="ID1">\n' +
+                '      <segment>\n' +
+                '        <source>source val</source>\n' +
+                '      </segment>\n' +
+                '    </unit>\n' +
+                '    <unit id="ID2">\n' +
+                '      <segment>\n' +
+                '        <source>source val2</source>\n' +
+                '      </segment>\n' +
+                '    </unit>\n' +
+                '  </file>\n' +
+                '</xliff>',
+            options: {
+                format: 'xlf2',
+            },
+            messagesFrExpected: '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de" trgLang="fr">\n' +
+                '  <file original="ng.template" id="ngi18n">\n' +
+                '    <unit id="ID1">\n' +
+                '      <segment state="initial">\n' +
+                '        <source>source val</source>\n' +
+                // only changed source texts trigger target creation
+                '      </segment>\n' +
+                '    </unit>\n' +
+                '    <unit id="ID2">\n' +
+                '      <segment state="initial">\n' +
+                '        <source>source val2</source>\n' +
+                '        <target>source val2</target>\n' +
+                '      </segment>\n' +
+                '    </unit>\n' +
+                '  </file>\n' +
+                '</xliff>'
+        });
     });
 
     test('should auto create new target files for xlf 1.2', async () => {
@@ -236,6 +288,41 @@ describe('Builder', () => {
                 '      <trans-unit id="ID1" datatype="html">\n' +
                 '        <source>source val</source>\n' +
                 '        <target state="new">source val</target>\n' +
+                '      </trans-unit>\n' +
+                '    </body>\n' +
+                '  </file>\n' +
+                '</xliff>'
+        });
+    });
+    test('should handle missing target node for changed id', async () => {
+        await runTest({
+            messagesFrBefore:  '<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+                '  <file source-language="de" target-language="fr" datatype="plaintext" original="ng2.template">\n' +
+                '    <body>\n' +
+                '      <trans-unit id="ID2" datatype="html">\n' +
+                '        <source>source val</source>\n' +
+                '      </trans-unit>\n' +
+                '    </body>\n' +
+                '  </file>\n' +
+                '</xliff>',
+            messagesBefore: '<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+                '  <file source-language="de" datatype="plaintext" original="ng2.template">\n' +
+                '    <body>\n' +
+                '      <trans-unit id="ID1" datatype="html">\n' +
+                '        <source>new source val</source>\n' +
+                '      </trans-unit>\n' +
+                '    </body>\n' +
+                '  </file>\n' +
+                '</xliff>',
+            options: {
+                format: 'xlf',
+            },
+            messagesFrExpected: '<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+                '  <file source-language="de" target-language="fr" datatype="plaintext" original="ng2.template">\n' +
+                '    <body>\n' +
+                '      <trans-unit id="ID1" datatype="html">\n' +
+                '        <source>new source val</source>\n' +
+                '        <target state="new">new source val</target>\n' +
                 '      </trans-unit>\n' +
                 '    </body>\n' +
                 '  </file>\n' +
