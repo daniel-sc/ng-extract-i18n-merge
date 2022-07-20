@@ -19,7 +19,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/daniel-sc/ng-extract-i18n-merge.git"
+    "url": "https://github.com/daniel-sc/ng-extract-i18n-merge.git"
   },
   "keywords": [
     "angular",
