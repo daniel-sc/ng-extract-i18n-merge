@@ -675,6 +675,55 @@ describe('Builder', () => {
             });
     });
 
+    test('extract-and-merge xlf 1.2 with newTranslationTargetsBlank=omit', async () => {
+        await runTest(
+            {
+                messagesBefore: '<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+                    '  <file source-language="de" datatype="plaintext" original="ng2.template">\n' +
+                    '    <body>\n' +
+                    '      <trans-unit id="ID1" datatype="html">\n' +
+                    '        <source>source val</source>\n' +
+                    '      </trans-unit>\n' +
+                    '      <trans-unit id="ID2" datatype="html">\n' +
+                    '        <source>source val2</source>\n' +
+                    '      </trans-unit>\n' +
+                    '    </body>\n' +
+                    '  </file>\n' +
+                    '</xliff>',
+                messagesFrBefore: '<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+                    '  <file source-language="de" target-language="fr-ch" datatype="plaintext" original="ng2.template">\n' +
+                    '    <body>\n' +
+                    '      <trans-unit id="ID1" datatype="html">\n' +
+                    '        <source>source val</source>\n' +
+                    '        <target state="translated">target val</target>\n' +
+                    '      </trans-unit>\n' +
+                    '    </body>\n' +
+                    '  </file>\n' +
+                    '</xliff>',
+                options: {
+                    format: 'xlf',
+                    targetFiles: ['messages.fr.xlf'],
+                    sourceLanguageTargetFile: "messages.fr.xlf",
+                    outputPath: 'builder-test',
+                    removeIdsWithPrefix: ['removeMe'],
+                    newTranslationTargetsBlank: 'omit'
+                },
+                messagesFrExpected: '<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+                    '  <file source-language="de" target-language="fr-ch" datatype="plaintext" original="ng2.template">\n' +
+                    '    <body>\n' +
+                    '      <trans-unit id="ID1" datatype="html">\n' +
+                    '        <source>source val</source>\n' +
+                    '        <target state="translated">target val</target>\n' +
+                    '      </trans-unit>\n' +
+                    '      <trans-unit id="ID2" datatype="html">\n' +
+                    '        <source>source val2</source>\n' +
+                    '      </trans-unit>\n' +
+                    '    </body>\n' +
+                    '  </file>\n' +
+                    '</xliff>'
+            });
+    });
+
     test('extract-and-merge with xml definition without newline', async () => {
         await runTest(
             {
@@ -1102,7 +1151,7 @@ describe('Builder', () => {
             '      </trans-unit>\n' +
             '    </body>\n' +
             '  </file>\n' +
-            '</xliff>'
+            '</xliff>';
         test('add new context groups', async () => {
             await runTest(
                 {
@@ -1241,6 +1290,69 @@ describe('Builder', () => {
                 }
             );
         });
+    });
+
+    test('retain context in sourceFile only, when includeContext=sourceFileOnly', async () => {
+        const messagesBefore = '<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+            '  <file source-language="de" datatype="plaintext" original="ng2.template">\n' +
+            '    <body>\n' +
+            '      <trans-unit id="ID1" datatype="html">\n' +
+            '        <source>Some text</source>\n' +
+            '        <context-group purpose="location">\n' +
+            '          <context context-type="sourcefile">src/app/app-routing.module.ts</context>\n' +
+            '          <context context-type="linenumber">12</context>\n' +
+            '        </context-group>\n' +
+            '      </trans-unit>\n' +
+            '      <trans-unit id="ID2" datatype="html">\n' +
+            '        <source>Some text2</source>\n' +
+            '        <context-group purpose="location">\n' +
+            '          <context context-type="sourcefile">src/app/app.component.html</context>\n' +
+            '          <context context-type="linenumber">4</context>\n' +
+            '        </context-group>\n' +
+            '      </trans-unit>\n' +
+            '    </body>\n' +
+            '  </file>\n' +
+            '</xliff>';
+        await runTest(
+            {
+                messagesBefore: messagesBefore,
+                messagesFrBefore: '<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+                    '  <file source-language="de" target-language="fr-ch" datatype="plaintext" original="ng2.template">\n' +
+                    '    <body>\n' +
+                    '      <trans-unit id="ID1" datatype="html">\n' +
+                    '        <source>Some text</source>\n' +
+                    '        <target state="new">Some text</target>\n' +
+                    '        <context-group purpose="location">\n' +
+                    '          <context context-type="sourcefile">src/app/app-routing.module.ts</context>\n' +
+                    '          <context context-type="linenumber">12</context>\n' +
+                    '        </context-group>\n' +
+                    '      </trans-unit>\n' +
+                    '    </body>\n' +
+                    '  </file>\n' +
+                    '</xliff>',
+                options: {
+                    format: 'xlf',
+                    targetFiles: ['messages.fr.xlf'],
+                    includeContext: 'sourceFileOnly',
+                    outputPath: 'builder-test'
+                },
+                messagesExpected: messagesBefore,
+                messagesFrExpected: '<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+                    '  <file source-language="de" target-language="fr-ch" datatype="plaintext" original="ng2.template">\n' +
+                    '    <body>\n' +
+                    '      <trans-unit id="ID1" datatype="html">\n' +
+                    '        <source>Some text</source>\n' +
+                    '        <target state="new">Some text</target>\n' +
+                    '      </trans-unit>\n' +
+                    '      <trans-unit id="ID2" datatype="html">\n' +
+                    '        <source>Some text2</source>\n' +
+                    '        <target state="new">Some text2</target>\n' +
+                    '      </trans-unit>\n' +
+                    '    </body>\n' +
+                    '  </file>\n' +
+                    '</xliff>'
+            }
+        );
     });
 
     test('retain whitespace between interpolations', async () => {
