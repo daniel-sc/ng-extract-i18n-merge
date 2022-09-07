@@ -18,7 +18,7 @@ export interface Options extends JsonObject {
     resetTranslationState: boolean,
     collapseWhitespace: boolean,
     trim: boolean,
-    includeContext: boolean,
+    includeContext: boolean | 'sourceFileOnly',
     newTranslationTargetsBlank: boolean | 'omit',
     sort: 'idAsc' | 'stableAppendNew',
     browserTarget: string
@@ -92,9 +92,17 @@ async function extractI18nMergeBuilder(options: Options, context: BuilderContext
 
     context.logger.info(`normalize ${sourcePath} ...`);
     const translationSourceFile = await fs.readFile(sourcePath, 'utf8');
-    const removePaths = [
-        ...(options.includeContext ? [] : [isXliffV2 ? '/xliff/file/unit/notes' : '/xliff/file/body/trans-unit/context-group']),
-        ...(options.removeIdsWithPrefix ?? []).map(removePrefix => isXliffV2 ? `/xliff/file/unit[starts-with(@id,"${removePrefix}")]` : `/xliff/file/body/trans-unit[starts-with(@id,"${removePrefix}")]`)
+
+    const removeIdsWithPrefixPaths = (options.removeIdsWithPrefix ?? []).map(removePrefix => isXliffV2 ? `/xliff/file/unit[starts-with(@id,"${removePrefix}")]` : `/xliff/file/body/trans-unit[starts-with(@id,"${removePrefix}")]`);
+    const removeContextPaths = (includeContext: boolean) => includeContext ? [] : [isXliffV2 ? '/xliff/file/unit/notes' : '/xliff/file/body/trans-unit/context-group'];
+
+    const removePathsSourceFile = [
+        ...(removeContextPaths(options.includeContext === true || options.includeContext === 'sourceFileOnly')),
+        ...removeIdsWithPrefixPaths
+    ];
+    const removePathsTargetFiles = [
+        ...(removeContextPaths(options.includeContext === true)),
+        ...removeIdsWithPrefixPaths
     ];
     const idPath = isXliffV2 ? '/xliff/file/unit/@id' : '/xliff/file/body/trans-unit/@id';
     const sort: Options['sort'] = options.sort ?? 'stableAppendNew';
@@ -103,7 +111,7 @@ async function extractI18nMergeBuilder(options: Options, context: BuilderContext
         trim: options.trim ?? false,
         normalizeWhitespace: options.collapseWhitespace ?? true,
         sortPath: sort === 'idAsc' ? idPath : undefined,
-        removePath: removePaths
+        removePath: removePathsSourceFile
     });
 
     let idMapping: { [id: string]: string } = {};
@@ -123,7 +131,7 @@ async function extractI18nMergeBuilder(options: Options, context: BuilderContext
             normalizeWhitespace: options.collapseWhitespace,
             // no sorting for 'stableAppendNew' as this is the default merge behaviour:
             sortPath: sort === 'idAsc' ? idPath : undefined,
-            removePath: removePaths
+            removePath: removePathsTargetFiles
         });
         await fs.writeFile(targetPath, normalizedTarget);
         idMapping = {...idMapping, ...mapping};

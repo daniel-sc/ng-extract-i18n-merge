@@ -84,9 +84,18 @@
       "description": "Trim translation sources and targets."
     },
     "includeContext": {
-      "type": "boolean",
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "enum": [
+            "sourceFileOnly"
+          ]
+        }
+      ],
       "default": false,
-      "description": "Whether to include the context information (like notes) in the translation files. This is useful for sending the target translation files to translation agencies/services."
+      "description": "Whether to include the context information (like notes) in the translation files. This is useful for sending the target translation files to translation agencies/services. When `sourceFileOnly` the context is retained only in the `sourceFile`."
     },
     "browserTarget": {
       "type": "string",
