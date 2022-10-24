@@ -626,6 +626,52 @@ describe('Builder', () => {
                     '</xliff>'
             });
     });
+
+    test('extract-and-merge xlf 1.2 with updated note', async () => {
+        await runTest(
+            {
+                messagesBefore: '<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+                    '  <file source-language="de" datatype="plaintext" original="ng2.template">\n' +
+                    '    <body>\n' +
+                    '      <trans-unit id="ID1" datatype="html">\n' +
+                    '        <source>source val</source>\n' +
+                    '        <note priority="1" from="description">An introduction header for this sample</note>\n' +
+                    '        <note priority="1" from="meaning">User welcome</note>\n' +
+                    '      </trans-unit>\n' +
+                    '    </body>\n' +
+                    '  </file>\n' +
+                    '</xliff>',
+                messagesFrBefore: '<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+                    '  <file source-language="de" target-language="fr-ch" datatype="plaintext" original="ng2.template">\n' +
+                    '    <body>\n' +
+                    '      <trans-unit id="ID1" datatype="html">\n' +
+                    '        <source>source val</source>\n' +
+                    '        <target state="translated">target val</target>\n' +
+                    '        <note priority="1" from="description">old note</note>\n' +
+                    '      </trans-unit>\n' +
+                    '    </body>\n' +
+                    '  </file>\n' +
+                    '</xliff>',
+                options: {
+                    format: 'xlf',
+                    targetFiles: ['messages.fr.xlf'],
+                    outputPath: 'builder-test',
+                    removeIdsWithPrefix: ['removeMe']
+                },
+                messagesFrExpected: '<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+                    '  <file source-language="de" target-language="fr-ch" datatype="plaintext" original="ng2.template">\n' +
+                    '    <body>\n' +
+                    '      <trans-unit id="ID1" datatype="html">\n' +
+                    '        <source>source val</source>\n' +
+                    '        <target state="translated">target val</target>\n' +
+                    '        <note priority="1" from="description">An introduction header for this sample</note>\n' +
+                    '        <note priority="1" from="meaning">User welcome</note>\n' +
+                    '      </trans-unit>\n' +
+                    '    </body>\n' +
+                    '  </file>\n' +
+                    '</xliff>'
+            });
+    });
     test('extract-and-merge xlf 1.2 with newTranslationTargetsBlank', async () => {
         await runTest(
             {
