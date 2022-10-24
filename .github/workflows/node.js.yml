@@ -16,15 +16,19 @@ jobs:
     strategy:
       matrix:
         node-version: [12.x, 14.x, 16.x]
-        angular-version: [13.1.4, 14.0.2]
+        angular-version: [13.1.4, 14.0.2, v15.0.0-rc.0]
         exclude:
           - node-version: 12.x
             angular-version: 14.0.2
+          - node-version: 12.x
+            angular-version: v15.0.0-rc.0
         include:
           - angular-version: 13.1.4
             devkit-version: 0.1301.4
           - angular-version: 14.0.2
             devkit-version: 0.1400.2
+          - angular-version: v15.0.0-rc.0
+            devkit-version: 0.1500.0-rc.0
 
     steps:
     - uses: actions/checkout@v2
