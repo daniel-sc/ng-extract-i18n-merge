@@ -1,6 +1,6 @@
 {
   "name": "ng-extract-i18n-merge",
-  "version": "2.3.0",
+  "version": "2.4.0",
   "description": "Extract and merge i18n xliff translation files for angular projects.",
   "main": "index.js",
   "builders": "builders.json",
