@@ -54,6 +54,7 @@ In your `angular.json` the target `extract-i18n` that can be configured with the
 | `includeContext`             | `false`                                                     | Whether to include the context information (like notes) in the translation files. This is useful for sending the target translation files to translation agencies/services. When `sourceFileOnly` the context is retained only in the `sourceFile`. |
 | `newTranslationTargetsBlank` | `false`                                                     | When `false` (default) the "target" of new translation units is set to the "source" value. When `true`, an empty string is used. When `'omit'`, no target element is created.                                                                       |
 | `sort`                       | `"stableAppendNew"`                                         | Sorting of all translation units in source and target translation files. Supported: `"idAsc"` (sort by translation IDs), `"stableAppendNew"` (keep existing sorting, append new translations at the end)                                            |
+| `verbose`                    | `false`                                                     | Extended/debug output - it is recommended to use this only for manual debugging.                                                                                                                                                                    |
 
 ## Contribute
 

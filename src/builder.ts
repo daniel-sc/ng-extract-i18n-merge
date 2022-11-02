@@ -21,7 +21,8 @@ export interface Options extends JsonObject {
     includeContext: boolean | 'sourceFileOnly',
     newTranslationTargetsBlank: boolean | 'omit',
     sort: 'idAsc' | 'stableAppendNew',
-    browserTarget: string
+    browserTarget: string,
+    verbose: boolean
 }
 
 export default createBuilder(extractI18nMergeBuilder);
@@ -67,7 +68,9 @@ function resetSortOrder(originalTranslationSourceFile: string, updatedTranslatio
 async function extractI18nMergeBuilder(options: Options, context: BuilderContext): Promise<BuilderOutput> {
     context.logger.info(`Running ng-extract-i18n-merge for project ${context.target?.project}`);
 
-    console.debug = () => null; // prevent debug output from xml_normalize and xliff-simple-merge
+    if (!options.verbose) {
+        console.debug = () => null; // prevent debug output from xml_normalize and xliff-simple-merge
+    }
     context.logger.debug(`options: ${JSON.stringify(options)}`);
     const outputPath = options.outputPath as string || '.';
     const format = options.format as string || 'xlf';
