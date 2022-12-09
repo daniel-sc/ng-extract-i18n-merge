@@ -25,7 +25,8 @@ export interface Options extends JsonObject {
     verbose: boolean
 }
 
-export default createBuilder(extractI18nMergeBuilder);
+const builder: ReturnType<typeof createBuilder> = createBuilder(extractI18nMergeBuilder);
+export default builder;
 
 function resetSortOrder(originalTranslationSourceFile: string, updatedTranslationSourceFile: string, idPath: string, idMapping: { [oldId: string]: string }, options: Options): string {
     const originalDocEval = new Evaluator(new XmlDocument(originalTranslationSourceFile));
