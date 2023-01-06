@@ -102,6 +102,11 @@
       "description": "A browser builder target use for rendering the app shell in the format of `project:target[:configuration]`. You can also pass in more than one configuration name as a comma-separated list. Example: `project:target:production,staging`.",
       "pattern": "^[^:\\s]+:[^:\\s]+(:[^\\s]+)?$"
     },
+    "builderI18n": {
+      "type": "string",
+      "description": "The builder to use for i18n extraction. By default, this is `@angular-devkit/build-angular:extract-i18n`. Any custom builder should handle the same options as the default builder (browserTarget, outputPath, outFile, format, progress).",
+      "default": "@angular-devkit/build-angular:extract-i18n"
+    },
     "verbose": {
       "type": "boolean",
       "default": false,
