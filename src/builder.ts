@@ -82,7 +82,7 @@ async function extractI18nMergeBuilder(options: Options, context: BuilderContext
     const sourcePath = join(normalize(outputPath), options.sourceFile ?? 'messages.xlf');
     const translationSourceFileOriginal = await readFileIfExists(sourcePath);
 
-    const extractI18nRun = await context.scheduleBuilder(options.builderI18n, {
+    const extractI18nRun = await context.scheduleBuilder(options.builderI18n ?? '@angular-devkit/build-angular:extract-i18n', {
         browserTarget: options.browserTarget,
         outputPath: dirname(sourcePath),
         outFile: basename(sourcePath),
