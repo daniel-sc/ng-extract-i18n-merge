@@ -99,6 +99,27 @@ describe('Builder', () => {
         await run.stop();
     });
 
+    test('should use custom builder for i18n extraction when configured', async () => {
+        const dummyContent = '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">\n  <file original="ng.template" id="ngi18n">\n  </file>\n</xliff>';
+        await fs.writeFile(MESSAGES_XLF_PATH, dummyContent, 'utf8');
+        const builderFn = jest.fn(() => ({success: true}));
+        architectHost.addBuilder('@my/custom:builder', createBuilder(builderFn)); // custom builder
+
+        const run = await architect.scheduleTarget({project: 'builder-test', target: 'extract-i18n-merge'}, {
+            format: 'xlf2',
+            targetFiles: ['messages.fr.xlf'],
+            outputPath: 'builder-test',
+            builderI18n: '@my/custom:builder'
+        });
+        const result = await run.result;
+
+        expect(result.success).toBeTruthy();
+        expect(builderFn).toHaveBeenCalled();
+        expect(extractI18nBuilderMock).not.toHaveBeenCalled();
+
+        await run.stop();
+    });
+
     test('should succeed without a source file', async () => {
         const dummyContent = '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">\n' +
             '  <file original="ng.template" id="ngi18n">\n' +

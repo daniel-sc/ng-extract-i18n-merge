@@ -22,6 +22,7 @@ export interface Options extends JsonObject {
     newTranslationTargetsBlank: boolean | 'omit',
     sort: 'idAsc' | 'stableAppendNew',
     browserTarget: string,
+    builderI18n: string,
     verbose: boolean
 }
 
@@ -81,7 +82,7 @@ async function extractI18nMergeBuilder(options: Options, context: BuilderContext
     const sourcePath = join(normalize(outputPath), options.sourceFile ?? 'messages.xlf');
     const translationSourceFileOriginal = await readFileIfExists(sourcePath);
 
-    const extractI18nRun = await context.scheduleBuilder('@angular-devkit/build-angular:extract-i18n', {
+    const extractI18nRun = await context.scheduleBuilder(options.builderI18n ?? '@angular-devkit/build-angular:extract-i18n', {
         browserTarget: options.browserTarget,
         outputPath: dirname(sourcePath),
         outFile: basename(sourcePath),
