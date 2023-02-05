@@ -36,6 +36,7 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: ${{ matrix.node-version }}
+    - run: rm -rf node_modules
     - run: npm i --package-lock-only "@angular-devkit/build-angular@${{ matrix.angular-version }}" "@angular-devkit/architect@${{ matrix.devkit-version }}" "@angular-devkit/core@${{ matrix.angular-version }}" "@angular-devkit/schematics@${{ matrix.angular-version }}" "@schematics/angular@${{ matrix.angular-version }}"
     - run: npm ci
     - run: npm run build
