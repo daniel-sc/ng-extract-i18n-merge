@@ -11,6 +11,7 @@ export interface Options extends JsonObject {
     format: 'xlf' | 'xlif' | 'xliff' | 'xlf2' | 'xliff2' | null
     outputPath: string | null,
     sourceFile: string | null,
+    divideTarget: boolean,
     targetFiles: string[],
     sourceLanguageTargetFile: string | null,
     removeIdsWithPrefix: string[] | null,
@@ -120,26 +121,50 @@ async function extractI18nMergeBuilder(options: Options, context: BuilderContext
     });
 
     let idMapping: { [id: string]: string } = {};
-
-    for (const targetFile of options.targetFiles) {
-        const targetPath = join(normalize(outputPath), targetFile);
-        context.logger.info(`merge and normalize ${targetPath} ...`);
-        const translationTargetFile = await readFileIfExists(targetPath) ?? '';
-        const [mergedTarget, mapping] = mergeWithMapping(normalizedTranslationSourceFile, translationTargetFile, {
-            ...options,
-            syncTargetsWithInitialState: true,
-            sourceLanguage: targetFile === options.sourceLanguageTargetFile
-        }, targetPath);
-        const normalizedTarget = xmlNormalize({
-            in: mergedTarget,
-            trim: options.trim ?? false,
-            normalizeWhitespace: options.collapseWhitespace,
-            // no sorting for 'stableAppendNew' as this is the default merge behaviour:
-            sortPath: sort === 'idAsc' ? idPath : undefined,
-            removePath: removePathsTargetFiles
-        });
-        await fs.writeFile(targetPath, normalizedTarget);
-        idMapping = {...idMapping, ...mapping};
+    if (!options.divideTarget) {
+        for (const targetFile of options.targetFiles) {
+            const targetPath = join(normalize(outputPath), targetFile);
+            context.logger.info(`merge and normalize ${targetPath} ...`);
+            const translationTargetFile = await readFileIfExists(targetPath) ?? '';
+            const [mergedTarget, mapping] = mergeWithMapping(normalizedTranslationSourceFile, translationTargetFile, {
+                ...options,
+                syncTargetsWithInitialState: true,
+                sourceLanguage: targetFile === options.sourceLanguageTargetFile
+            }, targetPath);
+            const normalizedTarget = xmlNormalize({
+                in: mergedTarget,
+                trim: options.trim ?? false,
+                normalizeWhitespace: options.collapseWhitespace,
+                // no sorting for 'stableAppendNew' as this is the default merge behaviour:
+                sortPath: sort === 'idAsc' ? idPath : undefined,
+                removePath: removePathsTargetFiles
+            });
+            await fs.writeFile(targetPath, normalizedTarget);
+            idMapping = {...idMapping, ...mapping};
+        }
+    } else {
+        for (const targetFile of options.targetFiles) {
+            const targetPath = join(normalize(outputPath), targetFile);
+            context.logger.info(`merge and normalize ${targetPath} ...`);
+            const translationTargetFile = await readFileIfExists(targetPath) ?? '';
+            const [mergedTarget, mapping] = mergeWithMapping(normalizedTranslationSourceFile, translationTargetFile, {
+                ...options,
+                syncTargetsWithInitialState: true,
+                sourceLanguage: targetFile === options.sourceLanguageTargetFile
+            }, targetPath);
+            console.log("mergedTarget", mergedTarget);
+            const normalizedTarget = xmlNormalize({
+                in: mergedTarget,
+                trim: options.trim ?? false,
+                normalizeWhitespace: options.collapseWhitespace,
+                // no sorting for 'stableAppendNew' as this is the default merge behaviour:
+                sortPath: sort === 'idAsc' ? idPath : undefined,
+                removePath: removePathsTargetFiles
+            });
+            console.log("normalizedTarget", normalizedTarget);
+            await fs.writeFile(targetPath, normalizedTarget);
+            idMapping = {...idMapping, ...mapping};
+        }
     }
 
     if (sort === 'stableAppendNew' && translationSourceFileOriginal) {
