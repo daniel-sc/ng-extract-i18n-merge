@@ -68,7 +68,8 @@
     "sort": {
       "enum": [
         "idAsc",
-        "stableAppendNew"
+        "stableAppendNew",
+        "stableAlphabetNew"
       ],
       "default": "stableAppendNew",
       "description": "Sorting of all translation units in source and target translation files."
