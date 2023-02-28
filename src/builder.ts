@@ -1,9 +1,9 @@
 import {BuilderContext, BuilderOutput, createBuilder} from '@angular-devkit/architect';
 import {basename, dirname, join, JsonObject, normalize} from '@angular-devkit/core';
 import {mergeWithMapping} from 'xliff-simple-merge/dist/src/merge';
-import {promises as fs} from 'fs';
+import {promises as fs, existsSync } from 'fs';
 import {xmlNormalize} from 'xml_normalize/dist/src/xmlNormalize';
-import {XmlDocument, XmlElement} from 'xmldoc';
+import {XmlDocument, XmlElement, XmlNode} from 'xmldoc';
 import {Evaluator} from 'xml_normalize/dist/src/xpath/simpleXPath';
 import {readFileIfExists} from './fileUtils';
 
@@ -11,7 +11,7 @@ export interface Options extends JsonObject {
     format: 'xlf' | 'xlif' | 'xliff' | 'xlf2' | 'xliff2' | null
     outputPath: string | null,
     sourceFile: string | null,
-    divideTarget: boolean,
+    manageModules: boolean,
     targetFiles: string[],
     sourceLanguageTargetFile: string | null,
     removeIdsWithPrefix: string[] | null,
@@ -82,7 +82,19 @@ async function extractI18nMergeBuilder(options: Options, context: BuilderContext
     context.logger.info('running "extract-i18n" ...');
     const sourcePath = join(normalize(outputPath), options.sourceFile ?? 'messages.xlf');
     const translationSourceFileOriginal = await readFileIfExists(sourcePath);
-
+    /**
+     * If manage by modules, merge children files to root files before extract
+     */
+    if (options.manageModules) {
+        const assembleI18nRun = await context.scheduleBuilder('ng-extract-i18n-merge:ng-extract-i18n-assemble', options, {target: context.target, logger: context.logger.createChild('ng-extract-i18n-merge:ng-extract-i18n-assemble')});
+        const assembleI18nResult = await assembleI18nRun.result;
+        if (!assembleI18nResult.success) {
+            return {success: false, error: `"ng-extract-i18n-merge:ng-extract-i18n-assemble" failed: ${assembleI18nResult.error}`};
+        }
+    }
+    /**
+     * Run extract-i18n
+     */
     const extractI18nRun = await context.scheduleBuilder(options.builderI18n ?? '@angular-devkit/build-angular:extract-i18n', {
         browserTarget: options.browserTarget,
         outputPath: dirname(sourcePath),
@@ -94,8 +106,8 @@ async function extractI18nMergeBuilder(options: Options, context: BuilderContext
     if (!extractI18nResult.success) {
         return {success: false, error: `"extract-i18n" failed: ${extractI18nResult.error}`};
     }
-    context.logger.info(`extracted translations successfully`);
 
+    context.logger.info(`extracted translations successfully`);
     context.logger.info(`normalize ${sourcePath} ...`);
     const translationSourceFile = await fs.readFile(sourcePath, 'utf8');
 
@@ -121,50 +133,62 @@ async function extractI18nMergeBuilder(options: Options, context: BuilderContext
     });
 
     let idMapping: { [id: string]: string } = {};
-    if (!options.divideTarget) {
-        for (const targetFile of options.targetFiles) {
-            const targetPath = join(normalize(outputPath), targetFile);
-            context.logger.info(`merge and normalize ${targetPath} ...`);
-            const translationTargetFile = await readFileIfExists(targetPath) ?? '';
-            const [mergedTarget, mapping] = mergeWithMapping(normalizedTranslationSourceFile, translationTargetFile, {
-                ...options,
-                syncTargetsWithInitialState: true,
-                sourceLanguage: targetFile === options.sourceLanguageTargetFile
-            }, targetPath);
-            const normalizedTarget = xmlNormalize({
-                in: mergedTarget,
-                trim: options.trim ?? false,
-                normalizeWhitespace: options.collapseWhitespace,
-                // no sorting for 'stableAppendNew' as this is the default merge behaviour:
-                sortPath: sort === 'idAsc' ? idPath : undefined,
-                removePath: removePathsTargetFiles
+    for (const targetFile of options.targetFiles) {
+        const targetPath = join(normalize(outputPath), targetFile);
+        context.logger.info(`merge and normalize ${targetPath} ...`);
+        const translationTargetFile = await readFileIfExists(targetPath) ?? '';
+        const [mergedTarget, mapping] = mergeWithMapping(normalizedTranslationSourceFile, translationTargetFile, {
+            ...options,
+            syncTargetsWithInitialState: true,
+            sourceLanguage: targetFile === options.sourceLanguageTargetFile
+        }, targetPath);
+        const normalizedTarget = xmlNormalize({
+            in: mergedTarget,
+            trim: options.trim ?? false,
+            normalizeWhitespace: options.collapseWhitespace,
+            // no sorting for 'stableAppendNew' as this is the default merge behaviour:
+            sortPath: sort === 'idAsc' ? idPath : undefined,
+            removePath: removePathsTargetFiles
+        });
+
+        /**
+         * If manage by modules, divide message.xlf to multiple file => module/module.en.xlf
+        */
+        if (options.manageModules) {
+            const normalizedDoc = new XmlDocument(normalizedTarget);
+            const normalizedUnitsParentPath = idPath.replace(new RegExp('/[^/]*/@id$'), '');
+            const normalizedUnitsParent = new Evaluator(normalizedDoc).evalNodeSet(normalizedUnitsParentPath)[0];
+            const nodeMap = new Map<string, XmlNode[]>();
+            normalizedUnitsParent.children.filter((n): n is XmlElement => n.type === 'element').forEach(element => {
+                const id = element.attr['id'];
+                const matcher = id.match(/([a-zA-Z]+)\_{0,1}/);
+                if (matcher && matcher[1]) {
+                    const moduleId = matcher[1].toLowerCase();
+                    const listNode: XmlNode[] = nodeMap.get(moduleId) || []
+                    listNode.push(element);
+                    nodeMap.set(moduleId, listNode);
+                }
             });
-            await fs.writeFile(targetPath, normalizedTarget);
-            idMapping = {...idMapping, ...mapping};
+            for (let entry of Array.from(nodeMap.entries())) {
+                let moduleId = entry[0];
+                let value = entry[1];
+                const filePath = join(normalize(outputPath), moduleId, targetFile.replace(/(\S+)(\.[a-zA-Z]{2}\.xlf)$/, moduleId + "$2"));
+                normalizedUnitsParent.children = value ? value : [];
+
+                const content = xmlNormalize({
+                    in: normalizedDoc.toString({preserveWhitespace: true, compressed: true}),
+                    trim: options.trim ?? false,
+                    normalizeWhitespace: options.collapseWhitespace ?? true
+                });
+                if (!existsSync(join(normalize(outputPath), moduleId))){
+                    await fs.mkdir(join(normalize(outputPath), moduleId));
+                }
+                await fs.writeFile(filePath, content);
+            }
         }
-    } else {
-        for (const targetFile of options.targetFiles) {
-            const targetPath = join(normalize(outputPath), targetFile);
-            context.logger.info(`merge and normalize ${targetPath} ...`);
-            const translationTargetFile = await readFileIfExists(targetPath) ?? '';
-            const [mergedTarget, mapping] = mergeWithMapping(normalizedTranslationSourceFile, translationTargetFile, {
-                ...options,
-                syncTargetsWithInitialState: true,
-                sourceLanguage: targetFile === options.sourceLanguageTargetFile
-            }, targetPath);
-            console.log("mergedTarget", mergedTarget);
-            const normalizedTarget = xmlNormalize({
-                in: mergedTarget,
-                trim: options.trim ?? false,
-                normalizeWhitespace: options.collapseWhitespace,
-                // no sorting for 'stableAppendNew' as this is the default merge behaviour:
-                sortPath: sort === 'idAsc' ? idPath : undefined,
-                removePath: removePathsTargetFiles
-            });
-            console.log("normalizedTarget", normalizedTarget);
-            await fs.writeFile(targetPath, normalizedTarget);
-            idMapping = {...idMapping, ...mapping};
-        }
+
+        await fs.writeFile(targetPath, normalizedTarget);
+        idMapping = {...idMapping, ...mapping};
     }
 
     if (sort === 'stableAppendNew' && translationSourceFileOriginal) {

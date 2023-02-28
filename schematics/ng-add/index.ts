@@ -114,6 +114,19 @@ export function ngAdd(_options: Schema): Rule {
                     options: builderOptions,
                 });
             }
+
+            const target2 = projectWorkspace.targets.get('assemble-i18n');
+            if (target2) {
+                context.logger.info(`Overwriting previous assemble-i18n entry in project ${projectName}.`);
+                target2.builder = 'ng-extract-i18n-merge:ng-extract-i18n-assemble';
+                target2.options = builderOptions;
+            } else {
+                projectWorkspace.targets.add({
+                    name: 'assemble-i18n',
+                    builder: 'ng-extract-i18n-merge:ng-extract-i18n-assemble',
+                    options: builderOptions,
+                });
+            }
         });
     };
 }

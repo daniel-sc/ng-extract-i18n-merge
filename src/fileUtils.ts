@@ -1,4 +1,5 @@
-import {promises as fs} from 'fs';
+import {promises as fs, readdirSync, statSync} from 'fs';
+import path from "path";
 
 export async function readFileIfExists(path: string): Promise<string | null> {
     try {
@@ -10,4 +11,17 @@ export async function readFileIfExists(path: string): Promise<string | null> {
         }
     }
     return null;
+}
+
+export function getAllFileInDir(directory: string) {
+    const _files: string[]  = [];
+    function throughDirectory(directory: string): void {
+        readdirSync(directory).forEach((file: string) => {
+            const absolutePath = path.join(directory, file);
+            if (statSync(absolutePath).isDirectory()) return throughDirectory(absolutePath);
+            else return _files.push(absolutePath);
+        });
+    }
+    throughDirectory(directory);
+    return _files;
 }
