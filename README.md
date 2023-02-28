@@ -27,12 +27,80 @@ Breaking changes:
 * Default sort is now "stableAppendNew" (was: "idAsc") (#26).
 * Leading/trailing whitespaces are normalized (i.e. collapsed to one space) but not completely trimmed (#28).
 * Npm run script is removed (you can create a manual npm run script of course).
+* Now you can manage big translation file by modules
 
 ## Usage
 
 ```shell
 ng extract-i18n # yes, same as before - this replaces the original builder
 ```
+
+### Manage by module
+
+Assume this is an international project, and we need support in multiple languages. 
+By then, the translation files had scaled up the size and were hard to manage. This is the translation management by 
+modules that show its power.
+
+```shell
+ng assemble-i18n
+```
+
+In your project.json or angular.json, add `manageModules` and `assemble-i18n` if they does not exist
+```json
+ "assemble-i18n": {
+      "executor": "ng-extract-i18n-merge:ng-extract-i18n-assemble",
+      "options": {
+        "browserTarget": "item-portal:build",
+        "format": "xlf2",
+        "outputPath": "src/assets/i18n",
+        "sourceFile": "messages.xlf",
+        "manageModules": true,
+        "targetFiles": [
+          "messages.en.xlf",
+          "messages.da.xlf"
+        ]
+      }
+    },
+    "extract-i18n": {
+      "executor": "ng-extract-i18n-merge:ng-extract-i18n-merge",
+      "options": {
+        "browserTarget": "item-portal:build",
+        "format": "xlf2",
+        "outputPath": "src/assets/i18n",
+        "sourceFile": "messages.xlf",
+        "manageModules": true,
+        "targetFiles": [
+          "messages.en.xlf",
+          "messages.da.xlf"
+        ]
+      }
+    },
+```
+
+When you run `nx extract-i18n`, base on your `@@moduleId_UnitId`
+For example: If the unit id in html is `@@Frame_FrameDetails`, `@@Setting_Location` and `@@Common_Delete` you will got files like this
+```
+.
+├── message.xlf
+├── message.en.xlf
+├── message.da.xlf
+├── frame/
+│   ├── frame.en.xlf
+│   └── frame.da.xlf
+├── setting/
+│   ├── setting.en.xlf
+│   └── setting.da.xlf
+└── common/
+    ├── common.en.xlf
+    └── common.da.xlf
+```
+
+Send your parts to the translation department, then execute combine them by command
+to assemble only
+```shell
+nx assemble-i18n
+```
+Or ```nx extract-i18n``` to extract and assemble at the same time.
 
 ### Configuration
 
@@ -43,6 +111,7 @@ In your `angular.json` the target `extract-i18n` that can be configured with the
 | `browserTarget`              | Inferred from current setup by `ng add`                     | A browser builder target to extract i18n messages in the format of `project:target[:configuration]`. See https://angular.io/cli/extract-i18n#options                                                                                                |
 | `format`                     | Inferred from current setup by `ng add`                     | Any of `xlf`, `xlif`, `xliff`, `xlf2`, `xliff2`                                                                                                                                                                                                     |
 | `outputPath`                 | Inferred from current setup by `ng add`                     | Path to folder containing all (source and target) translation files.                                                                                                                                                                                |
+| `manageModules`              | `false`                                                     | Divide translation files to multiple file base on id. (e.g. `["/module1/module1.fr.xlf", "module2/module2.fr.xlf"]`).                                                                                                                               |
 | `targetFiles`                | Inferred from current setup by `ng add`                     | Filenames (relative to `outputPath` of all target translation files (e.g. `["messages.fr.xlf", "messages.de.xlf"]`).                                                                                                                                |
 | `sourceLanguageTargetFile`   | Unused                                                      | If this is set (to one of the `targetFiles`), new translations in that target file will be set to `state="final"` (instead of default `state="new"`).                                                                                               |
 | `sourceFile`                 | `messages.xlf`. `ng add` tries to infer non default setups. | Filename (relative to `outputPath` of source translation file (e.g. `"translations-source.xlf"`).                                                                                                                                                   |

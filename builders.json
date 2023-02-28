@@ -4,6 +4,11 @@
       "implementation": "./dist/src/builder.js",
       "schema": "./src/schema.json",
       "description": "Extract and merge i18n translation units"
+    },
+    "ng-extract-i18n-assemble": {
+      "implementation": "./dist/src/assemble.js",
+      "schema": "./src/schema.json",
+      "description": "Assemble modules file to target file"
     }
   }
 }

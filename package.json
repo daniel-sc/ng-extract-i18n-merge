@@ -14,6 +14,7 @@
   "scripts": {
     "build": "tsc",
     "prepack": "tsc",
+    "pack": "npm run prepack && node packer.js",
     "test": "jest",
     "test-coverage": "jest --coverage"
   },

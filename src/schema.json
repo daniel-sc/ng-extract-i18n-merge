@@ -23,6 +23,11 @@
       "description": "Translation source file. Path is assumed to be relative to 'outputPath'.",
       "default": "messages.xlf"
     },
+    "manageModules": {
+      "type": "boolean",
+      "default": false,
+      "description": "Divide translation files to multiple file base on id."
+    },
     "targetFiles": {
       "type": "array",
       "items": {
