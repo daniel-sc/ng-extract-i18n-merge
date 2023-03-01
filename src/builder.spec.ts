@@ -47,7 +47,11 @@ describe('Builder', () => {
             if (p.messagesBefore !== undefined) {
                 await fs.writeFile(p.sourceFilename ?? MESSAGES_XLF_PATH, p.messagesBefore, 'utf8');
             } else {
-                await rmSafe(p.sourceFilename ?? MESSAGES_XLF_PATH);
+                try {
+                    await rmSafe(p.sourceFilename ?? MESSAGES_XLF_PATH);
+                } catch (e) {
+                    // ignore error - file might have not existed
+                }
             }
             if (p.messagesFrBefore !== undefined) {
                 await fs.writeFile(MESSAGES_FR_XLF_PATH, p.messagesFrBefore, 'utf8');
