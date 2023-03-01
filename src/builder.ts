@@ -6,7 +6,7 @@ import {xmlNormalize} from 'xml_normalize/dist/src/xmlNormalize';
 import {XmlDocument, XmlElement} from 'xmldoc';
 import {Evaluator} from 'xml_normalize/dist/src/xpath/simpleXPath';
 import {readFileIfExists} from './fileUtils';
-import {findLexClosestIndex} from './lexUitls';
+import {findLexClosestIndex} from './lexUtils';
 
 export interface Options extends JsonObject {
     format: 'xlf' | 'xlif' | 'xliff' | 'xlf2' | 'xliff2' | null

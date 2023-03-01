@@ -1,4 +1,4 @@
-import {findLexClosestIndex, LexDist} from './lexUitls';
+import {findLexClosestIndex, LexDist} from './lexUtils';
 
 describe('lexUtils', () => {
     describe('LexDist', () => {
