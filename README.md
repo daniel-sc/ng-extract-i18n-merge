@@ -17,7 +17,7 @@ documented [here](https://angular.io/guide/i18n-common-merge).
 ng add ng-extract-i18n-merge
 ```
 
-## Upgrade from 1.x.x to 2.0.0
+### Upgrade from 1.x.x to 2.0.0
 
 To upgrade use `ng update ng-extract-i18n-merge` - this will perform all necessary migrations.
 
@@ -60,3 +60,5 @@ In your `angular.json` the target `extract-i18n` that can be configured with the
 ## Contribute
 
 Feedback and PRs always welcome :-)
+
+Before developing complex changes, I'd recommend opening an issue to discuss whether the indented goals match the scope of this package.
