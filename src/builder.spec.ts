@@ -37,14 +37,18 @@ describe('Builder', () => {
 
     async function runTest(p: {
         sourceFilename?: string;
-        messagesBefore: string;
+        messagesBefore?: string;
         messagesFrBefore?: string;
         options: Partial<Options>;
         messagesExpected?: string;
         messagesFrExpected?: string;
     }) {
         try {
-            await fs.writeFile(p.sourceFilename ?? MESSAGES_XLF_PATH, p.messagesBefore, 'utf8');
+            if (p.messagesBefore !== undefined) {
+                await fs.writeFile(p.sourceFilename ?? MESSAGES_XLF_PATH, p.messagesBefore, 'utf8');
+            } else {
+                await rmSafe(p.sourceFilename ?? MESSAGES_XLF_PATH);
+            }
             if (p.messagesFrBefore !== undefined) {
                 await fs.writeFile(MESSAGES_FR_XLF_PATH, p.messagesFrBefore, 'utf8');
             }
@@ -1645,6 +1649,123 @@ describe('Builder', () => {
         });
 
         describe('stableAlphabetNew', () => {
+            test('should sort IDs alphabetically if original file was empty', async () => {
+                extractI18nBuilderMock = jest.fn(async () => {
+                    // update messages.xlf:
+                    await fs.writeFile(MESSAGES_XLF_PATH, '<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+                        '  <file source-language="de" datatype="plaintext" original="ng2.template">\n' +
+                        '    <body>\n' +
+                        '      <trans-unit id="IA" datatype="html">\n' +
+                        '        <source>text1</source>\n' + // fuzzy matches old-id-1
+                        '      </trans-unit>\n' +
+                        '      <trans-unit id="IDb" datatype="html">\n' +
+                        '        <source>text4</source>\n' +
+                        '      </trans-unit>\n' +
+                        '      <trans-unit id="IDa" datatype="html">\n' +
+                        '        <source>text2</source>\n' +
+                        '      </trans-unit>\n' +
+                        '      <trans-unit id="IDc0" datatype="html">\n' +
+                        '        <source>text2</source>\n' +
+                        '      </trans-unit>\n' +
+                        '      <trans-unit id="IDc1" datatype="html">\n' +
+                        '        <source>text2</source>\n' +
+                        '      </trans-unit>\n' +
+                        '      <trans-unit id="IDd" datatype="html">\n' +
+                        '        <source>text2</source>\n' +
+                        '      </trans-unit>\n' +
+                        '      <trans-unit id="IDf" datatype="html">\n' +
+                        '        <source>text2</source>\n' +
+                        '      </trans-unit>\n' +
+                        '      <trans-unit id="IDg" datatype="html">\n' +
+                        '        <source>text2</source>\n' +
+                        '      </trans-unit>\n' +
+                        '    </body>\n' +
+                        '  </file>\n' +
+                        '</xliff>', 'utf8');
+                    return ({success: true});
+                });
+                await architectHost.addBuilder('@angular-devkit/build-angular:extract-i18n', createBuilder(extractI18nBuilderMock));
+                await runTest(
+                    {
+                        messagesBefore: undefined,
+                        messagesFrBefore: undefined,
+                        options: {
+                            format: 'xlf',
+                            targetFiles: ['messages.fr.xlf'],
+                            outputPath: 'builder-test',
+                            sort: 'stableAlphabetNew'
+                        },
+                        messagesExpected: '<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+                            '  <file source-language="de" datatype="plaintext" original="ng2.template">\n' +
+                            '    <body>\n' +
+                            '      <trans-unit id="IA" datatype="html">\n' +
+                            '        <source>text1</source>\n' + // fuzzy matched old-id-1
+                            '      </trans-unit>\n' +
+                            '      <trans-unit id="IDa" datatype="html">\n' +
+                            '        <source>text2</source>\n' +
+                            '      </trans-unit>\n' +
+                            '      <trans-unit id="IDb" datatype="html">\n' +
+                            '        <source>text4</source>\n' +
+                            '      </trans-unit>\n' +
+                            '      <trans-unit id="IDc0" datatype="html">\n' +
+                            '        <source>text2</source>\n' +
+                            '      </trans-unit>\n' +
+                            '      <trans-unit id="IDc1" datatype="html">\n' +
+                            '        <source>text2</source>\n' +
+                            '      </trans-unit>\n' +
+                            '      <trans-unit id="IDd" datatype="html">\n' +
+                            '        <source>text2</source>\n' +
+                            '      </trans-unit>\n' +
+                            '      <trans-unit id="IDf" datatype="html">\n' +
+                            '        <source>text2</source>\n' +
+                            '      </trans-unit>\n' +
+                            '      <trans-unit id="IDg" datatype="html">\n' +
+                            '        <source>text2</source>\n' +
+                            '      </trans-unit>\n' +
+                            '    </body>\n' +
+                            '  </file>\n' +
+                            '</xliff>',
+                        messagesFrExpected: '<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+                            '  <file source-language="de" target-language="fr" datatype="plaintext" original="ng2.template">\n' +
+                            '    <body>\n' +
+                            '      <trans-unit id="IA" datatype="html">\n' +
+                            '        <source>text1</source>\n' +
+                            '        <target state="new">text1</target>\n' +
+                            '      </trans-unit>\n' +
+                            '      <trans-unit id="IDa" datatype="html">\n' +
+                            '        <source>text2</source>\n' +
+                            '        <target state="new">text2</target>\n' +
+                            '      </trans-unit>\n' +
+                            '      <trans-unit id="IDb" datatype="html">\n' +
+                            '        <source>text4</source>\n' +
+                            '        <target state="new">text4</target>\n' +
+                            '      </trans-unit>\n' +
+                            '      <trans-unit id="IDc0" datatype="html">\n' +
+                            '        <source>text2</source>\n' +
+                            '        <target state="new">text2</target>\n' +
+                            '      </trans-unit>\n' +
+                            '      <trans-unit id="IDc1" datatype="html">\n' +
+                            '        <source>text2</source>\n' +
+                            '        <target state="new">text2</target>\n' +
+                            '      </trans-unit>\n' +
+                            '      <trans-unit id="IDd" datatype="html">\n' +
+                            '        <source>text2</source>\n' +
+                            '        <target state="new">text2</target>\n' +
+                            '      </trans-unit>\n' +
+                            '      <trans-unit id="IDf" datatype="html">\n' +
+                            '        <source>text2</source>\n' +
+                            '        <target state="new">text2</target>\n' +
+                            '      </trans-unit>\n' +
+                            '      <trans-unit id="IDg" datatype="html">\n' +
+                            '        <source>text2</source>\n' +
+                            '        <target state="new">text2</target>\n' +
+                            '      </trans-unit>\n' +
+                            '    </body>\n' +
+                            '  </file>\n' +
+                            '</xliff>',
+                    }
+                );
+            });
             test('should keep existing order in source and target file and add new translation to closes ID alphabetically', async () => {
                 extractI18nBuilderMock = jest.fn(async () => {
                     // update messages.xlf:

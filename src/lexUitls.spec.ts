@@ -2,6 +2,20 @@ import {findLexClosestIndex, LexDist} from './lexUtils';
 
 describe('lexUtils', () => {
     describe('LexDist', () => {
+        describe('isNegative', () => {
+            it('should return false for 0', () => {
+                expect(new LexDist([]).isNegative()).toBeFalsy();
+                expect(new LexDist([0]).isNegative()).toBeFalsy();
+            });
+            it('should return false for positive distance', () => {
+                expect(new LexDist([1, 2]).isNegative()).toBeFalsy();
+                expect(new LexDist([1, -2]).isNegative()).toBeFalsy();
+            });
+            it('should return true for neg distance', () => {
+                expect(new LexDist([-1, 2]).isNegative()).toBeTruthy();
+                expect(new LexDist([-1, -2]).isNegative()).toBeTruthy();
+            });
+        });
         describe('smallerThan', () => {
             it('should use natural order', () => {
                 expect(new LexDist([1]).smallerThan(new LexDist([2]))).toEqual(true);
@@ -19,6 +33,13 @@ describe('lexUtils', () => {
                 expect(new LexDist([-1, -1]).smallerThan(new LexDist([1, 2]))).toEqual(true);
                 expect(new LexDist([-1, 2]).smallerThan(new LexDist([1, 2]))).toEqual(true);
                 expect(new LexDist([-1, -2]).smallerThan(new LexDist([1, 1]))).toEqual(false);
+            });
+            it('should return false for same distance', () => {
+                expect(new LexDist([1, 2]).smallerThan(new LexDist([1, 2]))).toBeFalsy();
+                expect(new LexDist([1, 2]).smallerThan(new LexDist([1, 2, 0]))).toBeFalsy();
+                expect(new LexDist([1, 2, 0]).smallerThan(new LexDist([1, 2]))).toBeFalsy();
+                expect(new LexDist([]).smallerThan(new LexDist([0]))).toBeFalsy();
+                expect(new LexDist([0]).smallerThan(new LexDist([]))).toBeFalsy();
             });
         });
         const zero = new LexDist([]);

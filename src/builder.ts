@@ -39,7 +39,7 @@ function resetSortOrderStable(originalTranslationSourceFile: string | null, upda
     translationUnitsParent: XmlElement,
     newUnits: XmlElement[]
 } {
-    const originalDocEval = new Evaluator(new XmlDocument(originalTranslationSourceFile ?? ''));
+    const originalDocEval = new Evaluator(new XmlDocument(originalTranslationSourceFile ?? '<xliff></xliff>'));
     const originalIdsOrder = originalDocEval.evalValues(idPath).map(id => idMapping[id] ?? id);
     const originalIds = new Set(originalIdsOrder);
 
@@ -173,7 +173,7 @@ async function extractI18nMergeBuilder(options: Options, context: BuilderContext
             sourceLanguage: targetFile === options.sourceLanguageTargetFile
         }, targetPath);
         const normalizedTarget = xmlNormalize({
-            in: sort === 'stableAlphabetNew' ? resetSortOrderStableAlphabetNew(translationTargetFile, mergedTarget, idPath, mapping, options) : mergedTarget,
+            in: sort === 'stableAlphabetNew' ? resetSortOrderStableAlphabetNew(translationTargetFile || null, mergedTarget, idPath, mapping, options) : mergedTarget,
             trim: options.trim ?? false,
             normalizeWhitespace: options.collapseWhitespace,
             // no sorting for 'stableAppendNew' as this is the default merge behaviour:
