@@ -6,6 +6,7 @@ import {xmlNormalize} from 'xml_normalize/dist/src/xmlNormalize';
 import {XmlDocument, XmlElement} from 'xmldoc';
 import {Evaluator} from 'xml_normalize/dist/src/xpath/simpleXPath';
 import {readFileIfExists} from './fileUtils';
+import {findLexClosestIndex} from './lexUtils';
 
 export interface Options extends JsonObject {
     format: 'xlf' | 'xlif' | 'xliff' | 'xlf2' | 'xliff2' | null
@@ -20,7 +21,7 @@ export interface Options extends JsonObject {
     trim: boolean,
     includeContext: boolean | 'sourceFileOnly',
     newTranslationTargetsBlank: boolean | 'omit',
-    sort: 'idAsc' | 'stableAppendNew',
+    sort: 'idAsc' | 'stableAppendNew' | 'stableAlphabetNew',
     browserTarget: string,
     builderI18n: string,
     verbose: boolean
@@ -29,31 +30,47 @@ export interface Options extends JsonObject {
 const builder: ReturnType<typeof createBuilder> = createBuilder(extractI18nMergeBuilder);
 export default builder;
 
-function resetSortOrder(originalTranslationSourceFile: string, updatedTranslationSourceFile: string, idPath: string, idMapping: { [oldId: string]: string }, options: Options): string {
-    const originalDocEval = new Evaluator(new XmlDocument(originalTranslationSourceFile));
+/**
+ * Sorts translation units of `updatedTranslationSourceFile` by the order of their appearance in `originalTranslationSourceFile` (returned as children of `translationUnitsParent`).
+ * If an id is not found in `originalTranslationSourceFile`, it is returned in `newUnits`.
+ */
+function resetSortOrderStable(originalTranslationSourceFile: string | null, updatedTranslationSourceFile: string, idPath: string, idMapping: { [oldId: string]: string }): {
+    updatedTranslationSourceDoc: XmlDocument,
+    translationUnitsParent: XmlElement,
+    newUnits: XmlElement[]
+} {
+    const originalDocEval = new Evaluator(new XmlDocument(originalTranslationSourceFile ?? '<xliff></xliff>'));
     const originalIdsOrder = originalDocEval.evalValues(idPath).map(id => idMapping[id] ?? id);
+    const originalIds = new Set(originalIdsOrder);
 
     const updatedTranslationSourceDoc = new XmlDocument(updatedTranslationSourceFile);
     const translationUnitsParentPath = idPath.replace(new RegExp('/[^/]*/@id$'), '');
     const translationUnitsParent = new Evaluator(updatedTranslationSourceDoc).evalNodeSet(translationUnitsParentPath)[0];
 
-    translationUnitsParent.children = translationUnitsParent.children
-        .filter((n): n is XmlElement => n.type === 'element') // filter out text (white space)
+    const translationUnitsElements = translationUnitsParent.children
+        .filter((n): n is XmlElement => n.type === 'element'); // filter out text (white space)
+    translationUnitsParent.children = translationUnitsElements
+        .filter(n => originalIds.has(n.attr.id))
         .sort((a, b) => {
             const indexA = originalIdsOrder.indexOf(a.attr.id);
             const indexB = originalIdsOrder.indexOf(b.attr.id);
-            if (indexA === -1 && indexB === -1) {
-                return a.attr.id.toLowerCase().localeCompare(b.attr.id.toLowerCase());
-            } else if (indexA === -1) {
-                return 1;
-            } else if (indexB === -1) {
-                return -1;
-            } else {
-                return indexA - indexB;
-            }
+            return indexA - indexB;
         });
     translationUnitsParent.firstChild = translationUnitsParent.children[0];
     translationUnitsParent.lastChild = translationUnitsParent.children[translationUnitsParent.children.length - 1];
+    return {
+        updatedTranslationSourceDoc,
+        translationUnitsParent,
+        newUnits: translationUnitsElements.filter(n => !originalIds.has(n.attr.id))
+    };
+}
+function resetSortOrderStableAppendNew(originalTranslationSourceFile: string | null, updatedTranslationSourceFile: string, idPath: string, idMapping: { [oldId: string]: string }, options: Options): string {
+    const resetStable = resetSortOrderStable(originalTranslationSourceFile, updatedTranslationSourceFile, idPath, idMapping);
+
+    const newUnitsSorted = resetStable.newUnits.sort((a, b) => a.attr.id.toLowerCase().localeCompare(b.attr.id.toLowerCase()));
+    resetStable.translationUnitsParent.children.push(...newUnitsSorted);
+    resetStable.translationUnitsParent.firstChild = resetStable.translationUnitsParent.children[0];
+    resetStable.translationUnitsParent.lastChild = resetStable.translationUnitsParent.children[resetStable.translationUnitsParent.children.length - 1];
 
     // retain xml declaration:
     const xmlDecMatch = updatedTranslationSourceFile.match(/^<\?xml [^>]*>\s*/i);
@@ -61,7 +78,32 @@ function resetSortOrder(originalTranslationSourceFile: string, updatedTranslatio
 
     // we need to reformat the xml (whitespaces are messed up by the sort):
     return xmlNormalize({
-        in: xmlDeclaration + updatedTranslationSourceDoc.toString({preserveWhitespace: true, compressed: true}),
+        in: xmlDeclaration + resetStable.updatedTranslationSourceDoc.toString({preserveWhitespace: true, compressed: true}),
+        trim: options.trim ?? false,
+        normalizeWhitespace: options.collapseWhitespace ?? true
+    });
+}
+
+
+function resetSortOrderStableAlphabetNew(originalTranslationSourceFile: string | null, updatedTranslationSourceFile: string, idPath: string, idMapping: { [oldId: string]: string }, options: Options): string {
+    const resetStable = resetSortOrderStable(originalTranslationSourceFile, updatedTranslationSourceFile, idPath, idMapping);
+    resetStable.newUnits
+        .sort((a, b) => a.attr.id.toLowerCase().localeCompare(b.attr.id.toLowerCase()))
+        .forEach(newUnit => {
+            const [index, before] = findLexClosestIndex(newUnit.attr.id.toLowerCase(), resetStable.translationUnitsParent.children as XmlElement[], unit => unit.attr.id.toLowerCase());
+            resetStable.translationUnitsParent.children.splice(index + (before ? 0 : 1), 0, newUnit);
+        });
+    resetStable.translationUnitsParent.firstChild = resetStable.translationUnitsParent.children[0];
+    resetStable.translationUnitsParent.lastChild = resetStable.translationUnitsParent.children[resetStable.translationUnitsParent.children.length - 1];
+
+
+    // retain xml declaration:
+    const xmlDecMatch = updatedTranslationSourceFile.match(/^<\?xml [^>]*>\s*/i);
+    const xmlDeclaration = xmlDecMatch ? xmlDecMatch[0] : '';
+
+    // we need to reformat the xml (whitespaces are messed up by the sort):
+    return xmlNormalize({
+        in: xmlDeclaration + resetStable.updatedTranslationSourceDoc.toString({preserveWhitespace: true, compressed: true}),
         trim: options.trim ?? false,
         normalizeWhitespace: options.collapseWhitespace ?? true
     });
@@ -131,7 +173,7 @@ async function extractI18nMergeBuilder(options: Options, context: BuilderContext
             sourceLanguage: targetFile === options.sourceLanguageTargetFile
         }, targetPath);
         const normalizedTarget = xmlNormalize({
-            in: mergedTarget,
+            in: sort === 'stableAlphabetNew' ? resetSortOrderStableAlphabetNew(translationTargetFile || null, mergedTarget, idPath, mapping, options) : mergedTarget,
             trim: options.trim ?? false,
             normalizeWhitespace: options.collapseWhitespace,
             // no sorting for 'stableAppendNew' as this is the default merge behaviour:
@@ -142,8 +184,11 @@ async function extractI18nMergeBuilder(options: Options, context: BuilderContext
         idMapping = {...idMapping, ...mapping};
     }
 
-    if (sort === 'stableAppendNew' && translationSourceFileOriginal) {
-        const normalizedTranslationSourceFileWithStableSorting = resetSortOrder(translationSourceFileOriginal, normalizedTranslationSourceFile, idPath, idMapping, options);
+    if (sort === 'stableAppendNew') {
+        const normalizedTranslationSourceFileWithStableSorting = resetSortOrderStableAppendNew(translationSourceFileOriginal, normalizedTranslationSourceFile, idPath, idMapping, options);
+        await fs.writeFile(sourcePath, normalizedTranslationSourceFileWithStableSorting);
+    } else if (sort === 'stableAlphabetNew') {
+        const normalizedTranslationSourceFileWithStableSorting = resetSortOrderStableAlphabetNew(translationSourceFileOriginal, normalizedTranslationSourceFile, idPath, idMapping, options);
         await fs.writeFile(sourcePath, normalizedTranslationSourceFileWithStableSorting);
     } else {
         await fs.writeFile(sourcePath, normalizedTranslationSourceFile);
