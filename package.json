@@ -33,16 +33,16 @@
   },
   "homepage": "https://github.com/daniel-sc/ng-extract-i18n-merge#readme",
   "dependencies": {
-    "@angular-devkit/architect": "^0.1301.0 || ^0.1401.0 || ^0.1501.0",
-    "@angular-devkit/core": "^13.0.0 || ^14.0.0 || ^15.0.0",
-    "@angular-devkit/schematics": "^13.0.0 || ^14.0.0 || ^15.0.0",
-    "@schematics/angular": "^13.0.0 || ^14.0.0 || ^15.0.0",
+    "@angular-devkit/architect": "^0.1600.0-next.6",
+    "@angular-devkit/core": "^16.0.0-next.6",
+    "@angular-devkit/schematics": "^16.0.0-next.6",
+    "@schematics/angular": "^16.0.0-next.6",
     "xliff-simple-merge": "~1.0.1",
     "xml_normalize": "^1.0.0",
     "xmldoc": "~1.1.2"
   },
   "peerDependencies": {
-    "@angular-devkit/build-angular": "^13.0.0 || ^14.0.0 || ^15.0.0"
+    "@angular-devkit/build-angular": "^13.0.0 || ^14.0.0 || ^15.0.0 || ^16.0.0"
   },
   "devDependencies": {
     "@types/jest": "~28.1.8",
