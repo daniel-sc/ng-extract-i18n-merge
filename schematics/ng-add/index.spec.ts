@@ -3,6 +3,7 @@ import * as path from 'path';
 
 import {Schema as WorkspaceOptions} from '@schematics/angular/workspace/schema';
 import {Schema as ApplicationOptions, Style} from '@schematics/angular/application/schema';
+import {Tree} from '@angular-devkit/schematics';
 
 const collectionPath = path.join(__dirname, '../collection.json');
 
@@ -40,12 +41,12 @@ describe('ngAdd', () => {
     let appTree: UnitTestTree;
 
     beforeEach(async () => {
-        appTree = await runner.runExternalSchematic('@schematics/angular', 'workspace', workspaceOptions);
-        appTree = await runner.runExternalSchematic('@schematics/angular', 'application', appOptions, appTree);
+        appTree = await runExternalSchematic(runner, '@schematics/angular', 'workspace', workspaceOptions);
+        appTree = await runExternalSchematic(runner, '@schematics/angular', 'application', appOptions, appTree);
     });
 
     it('works', async () => {
-        const tree = await runner.runSchematic('ng-add', {}, appTree);
+        const tree = await runSchematic(runner, 'ng-add', {}, appTree);
         expect(norm(tree.readContent('/angular.json'))).toContain(norm('"extract-i18n": {\n' +
             '          "builder": "ng-extract-i18n-merge:ng-extract-i18n-merge",\n' +
             '          "options": {\n' +
@@ -70,7 +71,7 @@ describe('ngAdd', () => {
         };
         appTree.overwrite('/angular.json', JSON.stringify(angularJson));
 
-        const tree = await runner.runSchematic('ng-add', {}, appTree);
+        const tree = await runSchematic(runner, 'ng-add', {}, appTree);
 
         expect(norm(tree.readContent('/angular.json'))).toContain(norm('"extract-i18n": {\n' +
             '          "builder": "ng-extract-i18n-merge:ng-extract-i18n-merge",\n' +
@@ -103,7 +104,7 @@ describe('ngAdd', () => {
         appTree.overwrite('/angular.json', JSON.stringify(angularJson));
         appTree.create('/src/some-path/my-messages.xlf', '<>');
 
-        const tree = await runner.runSchematic('ng-add', {}, appTree);
+        const tree = await runSchematic(runner, 'ng-add', {}, appTree);
 
         expect(norm(tree.readContent('/angular.json'))).toContain(norm('"extract-i18n": {\n' +
             '          "builder": "ng-extract-i18n-merge:ng-extract-i18n-merge",\n' +
@@ -129,7 +130,7 @@ describe('ngAdd', () => {
         };
         appTree.overwrite('/angular.json', JSON.stringify(angularJson));
 
-        const tree = await runner.runSchematic('ng-add', {}, appTree);
+        const tree = await runSchematic(runner, 'ng-add', {}, appTree);
 
         expect(norm(tree.readContent('/angular.json'))).toContain(norm('"extract-i18n": {\n' +
             '          "builder": "ng-extract-i18n-merge:ng-extract-i18n-merge",\n' +
@@ -151,7 +152,7 @@ describe('ngAdd', () => {
         };
         appTree.overwrite('/angular.json', JSON.stringify(angularJson));
 
-        const tree = await runner.runSchematic('ng-add', {}, appTree);
+        const tree = await runSchematic(runner, 'ng-add', {}, appTree);
 
         expect(norm(tree.readContent('/angular.json'))).toContain(norm('"extract-i18n": {\n' +
             '          "builder": "ng-extract-i18n-merge:ng-extract-i18n-merge",\n' +
@@ -179,7 +180,7 @@ describe('ngAdd', () => {
         };
         appTree.overwrite('/angular.json', JSON.stringify(angularJson));
 
-        const tree = await runner.runSchematic('ng-add', {}, appTree);
+        const tree = await runSchematic(runner, 'ng-add', {}, appTree);
 
         expect(norm(tree.readContent('/angular.json'))).toContain(norm('"extract-i18n": {\n' +
             '          "builder": "ng-extract-i18n-merge:ng-extract-i18n-merge",\n' +
@@ -208,7 +209,7 @@ describe('ngAdd', () => {
         };
         appTree.overwrite('/angular.json', JSON.stringify(angularJson));
 
-        const tree = await runner.runSchematic('ng-add', {}, appTree);
+        const tree = await runSchematic(runner, 'ng-add', {}, appTree);
 
         expect(norm(tree.readContent('/angular.json'))).toContain(norm('"extract-i18n": {\n' +
             '          "builder": "ng-extract-i18n-merge:ng-extract-i18n-merge",\n' +
@@ -220,5 +221,24 @@ describe('ngAdd', () => {
             '          }\n' +
             '        }'));
     });
-})
-;
+});
+
+function runSchematic<SchematicSchemaT extends object>(runner: SchematicTestRunner, schematicName: string, opts?: SchematicSchemaT, tree?: Tree): Promise<UnitTestTree> {
+    if (runner['runSchematic']) {
+        return runner['runSchematic'](schematicName, opts, tree);
+    } else if (runner['runSchematicAsync']) { // legacy version (pre v16)
+        return runner['runSchematicAsync'](schematicName, opts, tree).toPromise() as Promise<UnitTestTree>;
+    } else {
+        throw new Error('Unsupported version of SchematicTestRunner');
+    }
+}
+
+function runExternalSchematic<SchematicSchemaT extends object>(runner: SchematicTestRunner, collectionName: string, schematicName: string, opts?: SchematicSchemaT, tree?: Tree): Promise<UnitTestTree> {
+    if (runner['runExternalSchematic']) {
+        return runner['runExternalSchematic'](collectionName, schematicName, opts, tree);
+    } else if (runner['runExternalSchematicAsync']) { // legacy version (pre v16)
+        return runner['runExternalSchematicAsync'](collectionName, schematicName, opts, tree).toPromise() as Promise<UnitTestTree>;
+    } else {
+        throw new Error('Unsupported version of SchematicTestRunner');
+    }
+}
