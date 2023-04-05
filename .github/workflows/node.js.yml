@@ -21,7 +21,9 @@ jobs:
           - node-version: 12.x
             angular-version: 14.0.2
           - node-version: 12.x
-            angular-version: v15.0.3
+            angular-version: 15.0.3
+          - node-version: 12.x
+            angular-version: 16.0.0-next.6
           - node-version: 18.x
         include:
           - angular-version: 13.1.4
