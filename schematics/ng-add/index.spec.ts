@@ -224,20 +224,20 @@ describe('ngAdd', () => {
 });
 
 function runSchematic<SchematicSchemaT extends object>(runner: SchematicTestRunner, schematicName: string, opts?: SchematicSchemaT, tree?: Tree): Promise<UnitTestTree> {
-    if (runner['runSchematic']) {
-        return runner['runSchematic'](schematicName, opts, tree);
-    } else if (runner['runSchematicAsync']) { // legacy version (pre v16)
-        return runner['runSchematicAsync'](schematicName, opts, tree).toPromise() as Promise<UnitTestTree>;
+    if ('runSchematic' in runner) {
+        return (runner as any).runSchematic(schematicName, opts, tree);
+    } else if ('runSchematicAsync' in runner) { // legacy version (pre v16)
+        return (runner as any).runSchematicAsync(schematicName, opts, tree).toPromise();
     } else {
         throw new Error('Unsupported version of SchematicTestRunner');
     }
 }
 
 function runExternalSchematic<SchematicSchemaT extends object>(runner: SchematicTestRunner, collectionName: string, schematicName: string, opts?: SchematicSchemaT, tree?: Tree): Promise<UnitTestTree> {
-    if (runner['runExternalSchematic']) {
-        return runner['runExternalSchematic'](collectionName, schematicName, opts, tree);
-    } else if (runner['runExternalSchematicAsync']) { // legacy version (pre v16)
-        return runner['runExternalSchematicAsync'](collectionName, schematicName, opts, tree).toPromise() as Promise<UnitTestTree>;
+    if ('runExternalSchematic' in runner) {
+        return (runner as any).runExternalSchematic(collectionName, schematicName, opts, tree);
+    } else if ('runExternalSchematicAsync' in runner) { // legacy version (pre v16)
+        return (runner as any).runExternalSchematicAsync(collectionName, schematicName, opts, tree).toPromise();
     } else {
         throw new Error('Unsupported version of SchematicTestRunner');
     }
