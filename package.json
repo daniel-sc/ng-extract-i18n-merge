@@ -21,12 +21,16 @@
     "type": "git",
     "url": "https://github.com/daniel-sc/ng-extract-i18n-merge.git"
   },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
   "keywords": [
     "angular",
     "i18n",
     "xliff"
   ],
-  "author": "Daniel Schreiber",
+  "author": "daniel-schreiber@gmx.de",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/daniel-sc/ng-extract-i18n-merge/issues"
