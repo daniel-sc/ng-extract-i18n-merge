@@ -16,7 +16,7 @@ jobs:
     strategy:
       matrix:
         node-version: [12.x, 14.x, 16.x, 18.x]
-        angular-version: [13.1.4, 14.0.2, 15.0.3, 16.2.4, 17.0.0-next.0]
+        angular-version: [13.1.4, 14.0.2, 15.0.3, 16.2.0, 17.0.0-next.0]
         exclude:
           - node-version: 12.x
           - node-version: 18.x
