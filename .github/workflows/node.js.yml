@@ -30,9 +30,9 @@ jobs:
             devkit-version: 0.1400.2
           - angular-version: 15.0.3
             devkit-version: 0.1500.3
-          - angular-version: 16.2.4
+          - angular-version: 16.2.0
             devkit-version: 0.1602.1
-          - angular-version: 16.2.4
+          - angular-version: 16.2.0
             devkit-version: 0.1602.1
             node-version: 18.x
           - angular-version: 17.0.0-next.0
