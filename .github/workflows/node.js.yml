@@ -16,7 +16,7 @@ jobs:
     strategy:
       matrix:
         node-version: [12.x, 14.x, 16.x, 18.x]
-        angular-version: [13.1.4, 14.0.2, 15.0.3, 16.0.0-next.6]
+        angular-version: [13.1.4, 14.0.2, 15.0.3, 16.2.0, 17.0.0-next.0]
         exclude:
           - node-version: 12.x
           - node-version: 18.x
@@ -30,10 +30,15 @@ jobs:
             devkit-version: 0.1400.2
           - angular-version: 15.0.3
             devkit-version: 0.1500.3
-          - angular-version: 16.0.0-next.6
-            devkit-version: 0.1600.0-next.6
-          - angular-version: 16.0.0-next.6
-            devkit-version: 0.1600.0-next.6
+          - angular-version: 16.2.0
+            devkit-version: 0.1602.1
+          - angular-version: 16.2.0
+            devkit-version: 0.1602.1
+            node-version: 18.x
+          - angular-version: 17.0.0-next.0
+            devkit-version: 0.1700.0-next.0
+          - angular-version: 17.0.0-next.0
+            devkit-version: 0.1700.0-next.0
             node-version: 18.x
 
     steps:
