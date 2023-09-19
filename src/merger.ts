@@ -73,7 +73,8 @@ export class Merger {
             if (this.options.collapseWhitespace ?? true ? doCollapseWhitespace(destUnit.source) !== doCollapseWhitespace(unit.source) : destUnit.source !== unit.source) {
                 console.debug(`update element with id "${unit.id}" with new source: ${unit.source} (was: ${destUnit.source})`);
 
-                const syncTarget = isSourceLang || isUntranslated(destUnit, this.initialTranslationState);
+                const syncSourceLang = isSourceLang && destUnit.source === destUnit.target; // sync source language only if target is unchanged
+                const syncTarget = syncSourceLang || isUntranslated(destUnit, this.initialTranslationState);
                 updatedDestUnit = {
                     ...destUnit,
                     state: isSourceLang ? 'final' : this.initialTranslationState,
