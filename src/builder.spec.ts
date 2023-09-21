@@ -933,17 +933,20 @@ describe('Builder', () => {
                     '      </trans-unit>\n' +
                     '    </body>\n' +
                     '  </file>\n' +
-                    '</xliff>', messagesFrBefore: '<?xml version="1.0"?>\n' +
+                    '</xliff>',
+                messagesFrBefore: '<?xml version="1.0"?>\n' +
                     '<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
                     '  <file source-language="de" target-language="fr-ch" datatype="plaintext" original="ng2.template">\n' +
                     '    <body>\n' +
                     '    </body>\n' +
                     '  </file>\n' +
-                    '</xliff>', options: {
+                    '</xliff>',
+                options: {
                     format: 'xlf',
                     targetFiles: ['messages.fr.xlf'],
                     outputPath: 'builder-test'
-                }, messagesExpected: '<?xml version="1.0"?>\n' +
+                },
+                messagesExpected: '<?xml version="1.0"?>\n' +
                     '<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
                     '  <file source-language="de" datatype="plaintext" original="ng2.template">\n' +
                     '    <body>\n' +
@@ -952,7 +955,8 @@ describe('Builder', () => {
                     '      </trans-unit>\n' +
                     '    </body>\n' +
                     '  </file>\n' +
-                    '</xliff>', messagesFrExpected: '<?xml version="1.0"?>\n' +
+                    '</xliff>',
+                messagesFrExpected: '<?xml version="1.0"?>\n' +
                     '<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
                     '  <file source-language="de" target-language="fr-ch" datatype="plaintext" original="ng2.template">\n' +
                     '    <body>\n' +
@@ -1526,6 +1530,51 @@ describe('Builder', () => {
             }
         );
     });
+
+    test('should add new translation units with fuzzy=false', async () => {
+        await runTest({
+            messagesBefore: '<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+                '  <file source-language="de" datatype="plaintext" original="ng2.template">\n' +
+                '    <body>\n' +
+                '      <trans-unit id="ID2" datatype="html">\n' +
+                '        <source>text2</source>\n' +
+                '      </trans-unit>\n' +
+                '      <trans-unit id="ID3" datatype="html">\n' +
+                '        <source>text1</source>\n' +
+                '      </trans-unit>\n' +
+                '    </body>\n' +
+                '  </file>\n' +
+                '</xliff>',
+            messagesFrBefore: '<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+                '  <file source-language="de" target-language="fr" datatype="plaintext" original="ng2.template">\n' +
+                '    <body>\n' +
+                '      <trans-unit id="ID2" datatype="html">\n' +
+                '        <source>text2</source>\n' +
+                '        <target>text2</target>\n' +
+                '      </trans-unit>\n' +
+                '    </body>\n' +
+                '  </file>\n' +
+                '</xliff>',
+            options: {
+                format: 'xlf',
+                fuzzyMatch: false,
+            },
+            messagesFrExpected: '<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+                '  <file source-language="de" target-language="fr" datatype="plaintext" original="ng2.template">\n' +
+                '    <body>\n' +
+                '      <trans-unit id="ID2" datatype="html">\n' +
+                '        <source>text2</source>\n' +
+                '        <target>text2</target>\n' +
+                '      </trans-unit>\n' +
+                '      <trans-unit id="ID3" datatype="html">\n' +
+                '        <source>text1</source>\n' +
+                '        <target state="new">text1</target>\n' +
+                '      </trans-unit>\n' +
+                '    </body>\n' +
+                '  </file>\n' +
+                '</xliff>',
+        });
+    })
 
     describe('sort', () => {
         const sortDefaultMessages = '<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
