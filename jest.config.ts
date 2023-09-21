@@ -7,6 +7,8 @@ const config: Config.InitialOptions = {
     verbose: false,
     testMatch: undefined,
     testRegex: '.*\.spec\.ts$',
-    collectCoverageFrom: ['src/builder.ts', 'src/fileUtils.ts', 'src/lexUtils.ts', 'src/model/*.ts'] // exclude coverage from schematic as it only collects from js (instead of ts)..
+    collectCoverageFrom: ['src/**/*.ts'], // exclude coverage from schematic as it only collects from js (instead of ts)..
+    coveragePathIgnorePatterns: ['src/rmSafe.ts'],
+
 };
 export default config;

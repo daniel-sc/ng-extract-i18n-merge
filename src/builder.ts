@@ -1,34 +1,17 @@
 import {BuilderContext, BuilderOutput, createBuilder} from '@angular-devkit/architect';
-import {basename, dirname, join, JsonObject, normalize} from '@angular-devkit/core';
+import {basename, dirname, join, normalize} from '@angular-devkit/core';
 import {promises as fs} from 'fs';
 import {readFileIfExists} from './fileUtils';
 import {findLexClosestIndex} from './lexUtils';
 import {fromXlf1, fromXlf2, toXlf1, toXlf2} from './model/translationFileSerialization';
 import {TranslationFile, TranslationUnit} from './model/translationFileModels';
-import {levenshtein} from '@angular-devkit/core/src/utils/strings';
+import {Merger} from './merger';
+import {Options} from './options';
+import {doCollapseWhitespace} from './stringUtils';
 
-const FUZZY_THRESHOLD = 0.2;
+
 const STATE_INITIAL_XLF_2_0 = 'initial';
 const STATE_INITIAL_XLF_1_2 = 'new';
-
-export interface Options extends JsonObject {
-    format: 'xlf' | 'xlif' | 'xliff' | 'xlf2' | 'xliff2' | null
-    outputPath: string | null,
-    sourceFile: string | null,
-    targetFiles: string[],
-    sourceLanguageTargetFile: string | null,
-    removeIdsWithPrefix: string[] | null,
-    fuzzyMatch: boolean,
-    resetTranslationState: boolean,
-    collapseWhitespace: boolean,
-    trim: boolean,
-    includeContext: boolean | 'sourceFileOnly',
-    newTranslationTargetsBlank: boolean | 'omit',
-    sort: 'idAsc' | 'stableAppendNew' | 'stableAlphabetNew',
-    browserTarget: string,
-    builderI18n: string,
-    verbose: boolean
-}
 
 const builder: ReturnType<typeof createBuilder> = createBuilder(extractI18nMergeBuilder);
 export default builder;
@@ -150,14 +133,14 @@ async function extractI18nMergeBuilder(options: Options, context: BuilderContext
         return updatedUnits;
     });
 
-    let idMapping: { [id: string]: string } = {};
+    const merger = new Merger(options, normalizedTranslationSourceFile, initialTranslationState);
 
     for (const targetFile of options.targetFiles) {
         const targetPath = join(normalize(outputPath), targetFile);
         context.logger.info(`merge and normalize ${targetPath} ...`);
         const translationTargetFileContent = await readFileIfExists(targetPath);
         const translationTargetFile = translationTargetFileContent ? fromXlf(translationTargetFileContent) : new TranslationFile([], translationSourceFile.sourceLang, targetPath?.match(/\.([a-zA-Z-]+)\.xlf$/)?.[1] ?? 'en');
-        const [mergedTarget, mapping] = mergeWithMapping(normalizedTranslationSourceFile, translationTargetFile, initialTranslationState, targetFile === options.sourceLanguageTargetFile, options.collapseWhitespace, options.newTranslationTargetsBlank, options.fuzzyMatch);
+        const [mergedTarget, mapping] = merger.mergeWithMapping(translationTargetFile, targetFile === options.sourceLanguageTargetFile);
         const normalizedTarget = mergedTarget.mapUnitsList(units => {
             const updatedUnits = units.filter(unit => !options.removeIdsWithPrefix?.some(removePrefix => unit.id.startsWith(removePrefix)))
                 .map(unit => ({
@@ -175,14 +158,13 @@ async function extractI18nMergeBuilder(options: Options, context: BuilderContext
         });
 
         await fs.writeFile(targetPath, toXlf(normalizedTarget));
-        idMapping = {...idMapping, ...mapping};
     }
 
     const sortedTranslationSource = normalizedTranslationSourceFile.mapUnitsList(units => {
         if (sort === 'stableAppendNew') {
-            return resetSortOrderStableAppendNew(translationSourceFileOriginal?.units ?? null, units, idMapping);
+            return resetSortOrderStableAppendNew(translationSourceFileOriginal?.units ?? null, units, merger.idMapping);
         } else if (sort === 'stableAlphabetNew') {
-            return resetSortOrderStableAlphabetNew(translationSourceFileOriginal?.units ?? null, units, idMapping);
+            return resetSortOrderStableAlphabetNew(translationSourceFileOriginal?.units ?? null, units, merger.idMapping);
         } else {
             return units;
         }
@@ -194,147 +176,5 @@ async function extractI18nMergeBuilder(options: Options, context: BuilderContext
     return {success: true};
 }
 
-
 const pipe = <T>(...fns: ((a: T) => T)[]) =>
     fns.reduce((prevFn, nextFn) => value => nextFn(prevFn(value)), x => x);
-
-function mergeWithMapping(inFilesContent: TranslationFile, destFileContent: TranslationFile, initialTranslationState: string, isSourceLang: boolean, collapseWhitespace: boolean | undefined, newTranslationTargetsBlank: 'omit' | boolean | undefined, fuzzyMatch1: boolean | undefined): [mergedDestFileContent: TranslationFile, idMappging: {
-    [oldId: string]: string
-}] {
-
-    const inUnitsById = new Map<string, TranslationUnit>(inFilesContent.units.map(unit => [unit.id, unit]));
-    const destUnitsById = new Map<string, TranslationUnit>(destFileContent.units.map(unit => [unit.id, unit]));
-    const allInUnitsWithoutDestinationUnit = inFilesContent.units.filter(u => !destUnitsById.has(u.id));
-    const allInUnitsWithDestinationUnit = inFilesContent.units.filter(u => destUnitsById.has(u.id));
-
-    // collect (potentially) obsolete units (defer actual removal to allow for fuzzy matching..):
-    const removeNodes = destFileContent.units.filter(destUnit => !inUnitsById.has(destUnit.id));
-
-    const idMapping: { [id: string]: string } = {};
-    const result = new TranslationFile([...destFileContent.units], destFileContent.sourceLang, destFileContent.targetLang, destFileContent.xmlHeader);
-
-    /** Syncs `unit` to `destUnit` or adds `unit` as new, if `destUnit` is not given. */
-    function handle(unit: TranslationUnit, destUnit: TranslationUnit | undefined): TranslationUnit {
-        if (destUnit) {
-            let updatedDestUnit = destUnit;
-            if (collapseWhitespace ?? true ? doCollapseWhitespace(destUnit.source) !== doCollapseWhitespace(unit.source) : destUnit.source !== unit.source) {
-                console.debug(`update element with id "${unit.id}" with new source: ${unit.source} (was: ${destUnit.source})`);
-
-                const syncTarget = isSourceLang || isUntranslated(destUnit, initialTranslationState);
-                updatedDestUnit = {
-                    ...destUnit,
-                    state: isSourceLang ? 'final' : initialTranslationState,
-                    source: unit.source,
-                    target: syncTarget && !(destUnit.target === undefined && newTranslationTargetsBlank === 'omit') ? unit.source : destUnit.target
-                }
-            }
-            if (destUnit.id !== unit.id) {
-                console.debug(`matched unit with previous id "${destUnit.id}" to new id: "${unit.id}"`);
-                idMapping[destUnit.id] = unit.id;
-                removeNodes.splice(removeNodes.indexOf(destUnit), 1);
-                updatedDestUnit = {
-                    ...updatedDestUnit,
-                    id: unit.id,
-                    state: isSourceLang ? 'final' : initialTranslationState
-                };
-            }
-
-            updatedDestUnit = {
-                ...updatedDestUnit,
-                locations: unit.locations,
-                meaning: unit.meaning,
-                description: unit.description
-            };
-            return updatedDestUnit;
-        } else {
-            console.debug(`adding element with id "${unit.id}"`);
-            return {
-                ...unit,
-                target: newTranslationTargetsBlank === 'omit' ? undefined : ((newTranslationTargetsBlank ?? false) && !isSourceLang ? '' : unit.source),
-                state: isSourceLang ? 'final' : initialTranslationState
-            };
-        }
-    }
-
-    for (const unit of allInUnitsWithDestinationUnit) {
-        result.replaceUnit(unit, handle(unit, destUnitsById.get(unit.id)));
-    }
-
-    if (fuzzyMatch1 ?? true) {
-        const bestMatchesIdToUnits = new Map<string, {
-            elem: TranslationUnit,
-            score: number
-        }[]>(allInUnitsWithoutDestinationUnit.map((inUnit: TranslationUnit) => [inUnit.id, findCloseMatches(inUnit, removeNodes)]));
-        while (bestMatchesIdToUnits.size) {
-            const inUnitId: string = getMinScoreId(bestMatchesIdToUnits) ?? Array.from(bestMatchesIdToUnits.keys())[0];
-            const bestMatch: TranslationUnit | undefined = bestMatchesIdToUnits.get(inUnitId)![0]?.elem;
-            const updated = handle(inUnitsById.get(inUnitId)!, bestMatch);
-            if (bestMatch) {
-                result.replaceUnit(bestMatch, updated);
-            } else {
-                result.addUnit(updated);
-            }
-            bestMatchesIdToUnits.delete(inUnitId);
-            if (bestMatch) {
-                bestMatchesIdToUnits.forEach(x => {
-                    const i = x.findIndex(y => y.elem === bestMatch);
-                    if (i >= 0) {
-                        x.splice(i, 1);
-                    }
-                });
-            }
-
-        }
-    } else {
-        for (const unit of allInUnitsWithoutDestinationUnit) {
-            result.addUnit(handle(unit, undefined));
-        }
-    }
-
-    console.debug(`removing ${removeNodes.length} ids: ${removeNodes.map(n => n.id).join(', ')}`);
-
-    return [
-        result.mapUnitsList(units => units.filter(unit => !removeNodes.includes(unit))),
-        idMapping
-    ];
-}
-
-function doCollapseWhitespace(destSourceText: string): string {
-    return destSourceText.replace(/\s+/g, ' ');
-}
-
-function getMinScoreId(bestMatchesIdToUnits: Map<string, {
-    elem: TranslationUnit;
-    score: number
-}[]>): string | undefined {
-    let minScoreId: string | undefined;
-    let minScore = Number.MAX_VALUE;
-    bestMatchesIdToUnits.forEach((x, id) => {
-        if (x.length) {
-            const score = x[0].score;
-            if (score < minScore) {
-                minScore = score;
-                minScoreId = id;
-            }
-        }
-    });
-    return minScoreId;
-}
-
-function isUntranslated(destUnit: TranslationUnit, initialState: string): boolean {
-    return destUnit.state === initialState && (destUnit.target === undefined || destUnit.source === destUnit.target);
-}
-
-function findCloseMatches(originUnit: TranslationUnit, destUnits: TranslationUnit[]): {
-    elem: TranslationUnit,
-    score: number
-}[] {
-    const originText = originUnit.source;
-    return destUnits
-        .map(n => ({
-            elem: n,
-            score: levenshtein(originText, n.source) / originText.length
-        }))
-        .filter(x => x.score < FUZZY_THRESHOLD)
-        .sort((a, b) => a.score - b.score);
-}

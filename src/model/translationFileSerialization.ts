@@ -2,8 +2,10 @@ import {XmlDocument, XmlElement, XmlNode, XmlTextNode} from 'xmldoc';
 import {TranslationFile} from './translationFileModels';
 
 
+const XML_DECLARATION_MATCHER = /^<\?xml [^>]*>\s*/i;
+
 export function fromXlf2(xlf2: string): TranslationFile {
-    const xmlDeclaration = xlf2.match(/^<\?xml [^>]*>\s*/i)?.[0];
+    const xmlDeclaration = xlf2.match(XML_DECLARATION_MATCHER)?.[0];
     const doc = new XmlDocument(xlf2);
     const file = doc.childNamed('file')!;
     const units = file.children
@@ -30,7 +32,7 @@ export function fromXlf2(xlf2: string): TranslationFile {
 }
 
 export function fromXlf1(xlf1: string): TranslationFile {
-    const xmlDeclaration = xlf1.match(/^<\?xml [^>]*>\s*/i)?.[0];
+    const xmlDeclaration = xlf1.match(XML_DECLARATION_MATCHER)?.[0];
     const doc = new XmlDocument(xlf1);
     const file = doc.childNamed('file')!;
     const units = file.childNamed('body')!.children

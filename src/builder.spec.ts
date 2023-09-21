@@ -2,9 +2,10 @@ import {Architect, createBuilder} from '@angular-devkit/architect';
 import {TestingArchitectHost} from '@angular-devkit/architect/testing';
 import {schema} from '@angular-devkit/core';
 import {promises as fs} from 'fs';
-import builder, {Options} from './builder';
+import builder from './builder';
 import {rmSafe} from './rmSafe';
 import Mock = jest.Mock;
+import {Options} from './options';
 
 const MESSAGES_XLF_PATH = 'builder-test/messages.xlf';
 const MESSAGES_FR_XLF_PATH = 'builder-test/messages.fr.xlf';
