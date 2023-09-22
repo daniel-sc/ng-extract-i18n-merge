@@ -9,14 +9,12 @@ export class Merger {
 
     public readonly idMapping: { [id: string]: string } = {};
 
-    constructor(private readonly options: Options,
+    constructor(private readonly options: Partial<Options>,
                 private readonly normalizedTranslationSourceFile: TranslationFile,
                 private readonly initialTranslationState: string) {
     }
 
-    public mergeWithMapping(destFileContent: TranslationFile, isSourceLang: boolean): [mergedDestFileContent: TranslationFile, idMappging: {
-        [oldId: string]: string
-    }] {
+    public mergeWithMapping(destFileContent: TranslationFile, isSourceLang: boolean): TranslationFile {
 
         const inUnitsById = new Map<string, TranslationUnit>(this.normalizedTranslationSourceFile.units.map(unit => [unit.id, unit]));
         const destUnitsById = new Map<string, TranslationUnit>(destFileContent.units.map(unit => [unit.id, unit]));
@@ -65,10 +63,7 @@ export class Merger {
 
         console.debug(`removing ${removeNodes.length} ids: ${removeNodes.map(n => n.id).join(', ')}`);
 
-        return [
-            result.mapUnitsList(units => units.filter(unit => !removeNodes.includes(unit))),
-            this.idMapping
-        ];
+        return result.mapUnitsList(units => units.filter(unit => !removeNodes.includes(unit)));
     }
 
     /** Syncs `unit` to `destUnit` or adds `unit` as new, if `destUnit` is not given. */
@@ -92,8 +87,7 @@ export class Merger {
                 removeNodes.splice(removeNodes.indexOf(destUnit), 1);
                 updatedDestUnit = {
                     ...updatedDestUnit,
-                    id: unit.id,
-                    state: isSourceLang ? 'final' : this.initialTranslationState
+                    id: unit.id
                 };
             }
 

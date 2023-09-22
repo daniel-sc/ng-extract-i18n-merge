@@ -140,7 +140,7 @@ async function extractI18nMergeBuilder(options: Options, context: BuilderContext
         context.logger.info(`merge and normalize ${targetPath} ...`);
         const translationTargetFileContent = await readFileIfExists(targetPath);
         const translationTargetFile = translationTargetFileContent ? fromXlf(translationTargetFileContent) : new TranslationFile([], translationSourceFile.sourceLang, targetPath?.match(/\.([a-zA-Z-]+)\.xlf$/)?.[1] ?? 'en');
-        const [mergedTarget, mapping] = merger.mergeWithMapping(translationTargetFile, targetFile === options.sourceLanguageTargetFile);
+        const mergedTarget = merger.mergeWithMapping(translationTargetFile, targetFile === options.sourceLanguageTargetFile);
         const normalizedTarget = mergedTarget.mapUnitsList(units => {
             const updatedUnits = units.filter(unit => !options.removeIdsWithPrefix?.some(removePrefix => unit.id.startsWith(removePrefix)))
                 .map(unit => ({
@@ -152,7 +152,7 @@ async function extractI18nMergeBuilder(options: Options, context: BuilderContext
             if (sort === 'idAsc') {
                 updatedUnits.sort((a, b) => a.id.localeCompare(b.id));
             } else if (sort === 'stableAlphabetNew') {
-                return resetSortOrderStableAlphabetNew(translationTargetFile?.units || null, updatedUnits, mapping)
+                return resetSortOrderStableAlphabetNew(translationTargetFile?.units || null, updatedUnits, merger.idMapping)
             }
             return updatedUnits;
         });
