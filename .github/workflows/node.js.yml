@@ -37,8 +37,6 @@ jobs:
             node-version: 18.x
           - angular-version: 17.0.0-next.6
             devkit-version: 0.1700.0-next.6
-          - angular-version: 17.0.0-next.6
-            devkit-version: 0.1700.0-next.6
             node-version: 18.x
 
     steps:
@@ -49,6 +47,7 @@ jobs:
         node-version: ${{ matrix.node-version }}
     - run: rm package-lock.json # otherwise we cannot overwrite the peerDependencies version of @angular-devkit/build-angular below
     - run: npm i --package-lock-only "@angular-devkit/architect@${{ matrix.devkit-version }}" "@angular-devkit/core@${{ matrix.angular-version }}" "@angular-devkit/schematics@${{ matrix.angular-version }}" "@schematics/angular@${{ matrix.angular-version }}" "@angular-devkit/build-angular@${{ matrix.angular-version }}"
+    - run: npm i
     - run: npm ci
     - run: npm run build
     - run: npm run test-coverage
