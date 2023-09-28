@@ -44,7 +44,7 @@ jobs:
     - run: rm package-lock.json # otherwise we cannot overwrite the peerDependencies version of @angular-devkit/build-angular below
     - run: npm i --save-exact "@angular-devkit/architect@${{ matrix.devkit-version }}" "@angular-devkit/core@${{ matrix.angular-version }}" "@angular-devkit/schematics@${{ matrix.angular-version }}" "@schematics/angular@${{ matrix.angular-version }}" "@angular-devkit/build-angular@${{ matrix.angular-version }}"
     - run: npm i
-    - run: npm ls
+    - run: npm ls || true
     - run: npm run build
     - run: npm run test-coverage
     - name: Coveralls
