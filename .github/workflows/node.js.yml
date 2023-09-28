@@ -19,6 +19,7 @@ jobs:
         angular-version: [13.1.4, 14.0.2, 15.0.3, 16.2.1, 17.0.0-next.6]
         exclude:
           - node-version: 18.x
+          - angular-version: 17.0.0-next.6
         include:
           - angular-version: 13.1.4
             devkit-version: 0.1301.4
