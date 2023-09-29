@@ -76,8 +76,8 @@ async function extractI18nMergeBuilder(options: Options, context: BuilderContext
         console.debug = () => null; // prevent debug output from xml_normalize and xliff-simple-merge
     }
     context.logger.debug(`options: ${JSON.stringify(options)}`);
-    const outputPath = options.outputPath as string || '.';
-    const format = options.format as string || 'xlf';
+    const outputPath = options.outputPath || '.';
+    const format = options.format || 'xlf';
     const isXliffV2 = format.includes('2');
     const initialTranslationState = isXliffV2 ? STATE_INITIAL_XLF_2_0 : STATE_INITIAL_XLF_1_2;
 
@@ -135,19 +135,28 @@ async function extractI18nMergeBuilder(options: Options, context: BuilderContext
 
     const merger = new Merger(options, normalizedTranslationSourceFile, initialTranslationState);
 
-    for (const targetFile of options.targetFiles) {
+    const targetFilesSourceLangFirst = [
+        ...options.targetFiles.filter(f => f === options.sourceLanguageTargetFile),
+        ...options.targetFiles.filter(f => f !== options.sourceLanguageTargetFile)
+    ];
+    const idsOfUnitsWithSourceChangedToSourceLangTarget: Set<string> = new Set();
+    for (const targetFile of targetFilesSourceLangFirst) {
         const targetPath = join(normalize(outputPath), targetFile);
         context.logger.info(`merge and normalize ${targetPath} ...`);
         const translationTargetFileContent = await readFileIfExists(targetPath);
         const translationTargetFile = translationTargetFileContent ? fromXlf(translationTargetFileContent) : new TranslationFile([], translationSourceFile.sourceLang, targetPath?.match(/\.([a-zA-Z-]+)\.xlf$/)?.[1] ?? 'en');
-        const mergedTarget = merger.mergeWithMapping(translationTargetFile, targetFile === options.sourceLanguageTargetFile);
+        const isSourceLang = targetFile === options.sourceLanguageTargetFile;
+
+        const mergedTarget = merger.mergeWithMapping(translationTargetFile, isSourceLang);
         const normalizedTarget = mergedTarget.mapUnitsList(units => {
             const updatedUnits = units.filter(unit => !options.removeIdsWithPrefix?.some(removePrefix => unit.id.startsWith(removePrefix)))
                 .map(unit => ({
                     ...unit,
                     source: mapper(unit.source),
                     target: unit.target !== undefined ? mapper(unit.target) : undefined,
-                    locations: options.includeContext === true ? unit.locations : []
+                    locations: options.includeContext === true ? unit.locations : [],
+                    // reset to original state, if source was changed to target from sourceLangTarget:
+                    state: idsOfUnitsWithSourceChangedToSourceLangTarget.has(unit.id) ? (translationTargetFile.units.find(u => u.id === unit.id)?.state ?? unit.state) : unit.state
                 }));
             if (sort === 'idAsc') {
                 updatedUnits.sort((a, b) => a.id.localeCompare(b.id));
@@ -157,6 +166,18 @@ async function extractI18nMergeBuilder(options: Options, context: BuilderContext
             return updatedUnits;
         });
 
+        if (isSourceLang) {
+            normalizedTarget.units
+                .filter(unit => unit.target !== undefined && unit.target !== unit.source)
+                .forEach(unit => context.logger.warn(`Found manual changed target with id=${unit.id} in sourceLanguageTargetFile. Consider changing the source code occurrences from "${unit.source}" to "${unit.target}".`));
+            normalizedTarget.units
+                .filter(unit => {
+                    const oldUnit = translationTargetFile.units.find(u => u.id === unit.id);
+                    return unit.target !== undefined && unit.target === unit.source && oldUnit?.source !== oldUnit?.target && oldUnit?.target === unit.source;
+                })
+                .map(unit => unit.id)
+                .forEach(id => idsOfUnitsWithSourceChangedToSourceLangTarget.add(id));
+        }
         await fs.writeFile(targetPath, toXlf(normalizedTarget));
     }
 

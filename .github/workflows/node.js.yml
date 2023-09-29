@@ -15,30 +15,25 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [12.x, 14.x, 16.x, 18.x]
-        angular-version: [13.1.4, 14.0.2, 15.0.3, 16.2.0, 17.0.0-next.0]
+        node-version: [14.x, 16.x, 18.x]
+        angular-version: [13.1.4, 14.0.2, 15.0.3, 16.2.1, 17.0.0-next.6]
         exclude:
-          - node-version: 12.x
           - node-version: 18.x
+          - angular-version: 17.0.0-next.6
         include:
           - angular-version: 13.1.4
             devkit-version: 0.1301.4
-          - angular-version: 13.1.4
-            devkit-version: 0.1301.4
-            node-version: 12.x
           - angular-version: 14.0.2
             devkit-version: 0.1400.2
           - angular-version: 15.0.3
             devkit-version: 0.1500.3
-          - angular-version: 16.2.0
+          - angular-version: 16.2.1
             devkit-version: 0.1602.1
-          - angular-version: 16.2.0
+          - angular-version: 16.2.1
             devkit-version: 0.1602.1
             node-version: 18.x
-          - angular-version: 17.0.0-next.0
-            devkit-version: 0.1700.0-next.0
-          - angular-version: 17.0.0-next.0
-            devkit-version: 0.1700.0-next.0
+          - angular-version: 17.0.0-next.6
+            devkit-version: 0.1700.0-next.6
             node-version: 18.x
 
     steps:
@@ -47,8 +42,10 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: ${{ matrix.node-version }}
-    - run: npm i --package-lock-only "@angular-devkit/architect@${{ matrix.devkit-version }}" "@angular-devkit/core@${{ matrix.angular-version }}" "@angular-devkit/schematics@${{ matrix.angular-version }}" "@schematics/angular@${{ matrix.angular-version }}"
-    - run: npm ci
+    - run: rm package-lock.json # otherwise we cannot overwrite the peerDependencies version of @angular-devkit/build-angular below
+    - run: npm i --save-exact "@angular-devkit/architect@${{ matrix.devkit-version }}" "@angular-devkit/core@${{ matrix.angular-version }}" "@angular-devkit/schematics@${{ matrix.angular-version }}" "@schematics/angular@${{ matrix.angular-version }}" "@angular-devkit/build-angular@${{ matrix.angular-version }}"
+    - run: npm i
+    - run: npm ls || true
     - run: npm run build
     - run: npm run test-coverage
     - name: Coveralls
