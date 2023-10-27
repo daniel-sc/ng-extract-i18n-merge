@@ -1584,6 +1584,78 @@ describe('Builder', () => {
         });
     });
 
+    test('keep context in messages source file when includeContext=true and format=xlf2', async () => {
+        await runTest({
+            messagesBefore: '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">\n' +
+                '  <file original="ng.template" id="ngi18n">\n' +
+                '    <unit id="ID1">\n' +
+                '      <notes>\n' +
+                '        <note category="location">some-file.ts:281,286</note>\n' +
+                '        <note category="location">some-other-file.ts:281</note>\n' +
+                '        <note category="description">test description</note>\n' +
+                '      </notes>\n' +
+                '      <segment>\n' +
+                '        <source>source val</source>\n' +
+                '      </segment>\n' +
+                '    </unit>\n' +
+                '  </file>\n' +
+                '</xliff>',
+            options: {
+                includeContext: true,
+                format: 'xlf2'
+            },
+            messagesExpected: '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">\n' +
+                '  <file original="ng.template" id="ngi18n">\n' +
+                '    <unit id="ID1">\n' +
+                '      <notes>\n' +
+                '        <note category="location">some-file.ts:281,286</note>\n' +
+                '        <note category="location">some-other-file.ts:281</note>\n' +
+                '        <note category="description">test description</note>\n' +
+                '      </notes>\n' +
+                '      <segment>\n' +
+                '        <source>source val</source>\n' +
+                '      </segment>\n' +
+                '    </unit>\n' +
+                '  </file>\n' +
+                '</xliff>',
+        })
+
+    });
+    test('keep context in messages source file when includeContext=true and format=xlf', async () => {
+        await runTest({
+            messagesBefore: '<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+                '  <file source-language="de" datatype="plaintext" original="ng2.template">\n' +
+                '    <body>\n' +
+                '      <trans-unit id="ID1" datatype="html">\n' +
+                '        <source>Some text</source>\n' +
+                '        <context-group purpose="location">\n' +
+                '          <context context-type="sourcefile">src/app/app-routing.module.ts</context>\n' +
+                '          <context context-type="linenumber">12</context>\n' +
+                '        </context-group>\n' +
+                '      </trans-unit>\n' +
+                '    </body>\n' +
+                '  </file>\n' +
+                '</xliff>',
+            options: {
+                includeContext: true,
+                format: 'xlf'
+            },
+            messagesExpected: '<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+                '  <file source-language="de" datatype="plaintext" original="ng2.template">\n' +
+                '    <body>\n' +
+                '      <trans-unit id="ID1" datatype="html">\n' +
+                '        <source>Some text</source>\n' +
+                '        <context-group purpose="location">\n' +
+                '          <context context-type="sourcefile">src/app/app-routing.module.ts</context>\n' +
+                '          <context context-type="linenumber">12</context>\n' +
+                '        </context-group>\n' +
+                '      </trans-unit>\n' +
+                '    </body>\n' +
+                '  </file>\n' +
+                '</xliff>'
+        })
+    });
+
     test('retain context in sourceFile only, when includeContext=sourceFileOnly', async () => {
         const messagesBefore = '<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
             '  <file source-language="de" datatype="plaintext" original="ng2.template">\n' +

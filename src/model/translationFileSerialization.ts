@@ -12,7 +12,7 @@ export function fromXlf2(xlf2: string): TranslationFile {
         .filter((n): n is XmlElement => n.type === 'element')
         .map(unit => {
             const segment = unit.childNamed('segment')!;
-            const notes = segment.childNamed('notes');
+            const notes = unit.childNamed('notes');
             return {
                 id: unit.attr.id,
                 source: toString(...segment.childNamed('source')!.children),
@@ -22,10 +22,15 @@ export function fromXlf2(xlf2: string): TranslationFile {
                 description: notes?.childWithAttribute('category', 'description')?.val,
                 locations: notes?.children
                     .filter((n): n is XmlElement => n.type === 'element' && n.attr.category === 'location')
-                    .map(note => ({
-                        file: note.val.split(':')[0],
-                        line: parseInt(note.val.split(':')[1], 10)
-                    })) ?? []
+                    .map(note => {
+                        const [file, lines] = note.val.split(':', 2);
+                        const [lineStart, lineEnd] = lines.split(',', 2);
+                        return {
+                            file,
+                            lineStart: parseInt(lineStart, 10),
+                            lineEnd: lineEnd !== undefined ? parseInt(lineEnd, 10) : undefined
+                        };
+                    }) ?? []
             };
         });
     return new TranslationFile(units, doc.attr.srcLang, doc.attr.trgLang, xmlDeclaration);
@@ -50,7 +55,7 @@ export function fromXlf1(xlf1: string): TranslationFile {
                 locations: unit.childrenNamed('context-group')
                     .map(contextGroup => ({
                         file: contextGroup.childWithAttribute('context-type', 'sourcefile')!.val,
-                        line: parseInt(contextGroup.childWithAttribute('context-type', 'linenumber')!.val, 10)
+                        lineStart: parseInt(contextGroup.childWithAttribute('context-type', 'linenumber')!.val, 10)
                     })) ?? []
             };
         });
@@ -81,14 +86,14 @@ export function toXlf2(translationFile: TranslationFile): string {
         }
         if (unit.meaning !== undefined || unit.description !== undefined || unit.locations.length) {
             const notes = new XmlDocument('<notes></notes>');
-            segment.children.push(notes);
-            if (unit.meaning !== undefined) {
-                notes.children.push(new XmlDocument(`<note category="meaning">${unit.meaning}</note>`));
-            }
+            u.children.splice(0, 0, notes);
+            notes.children.push(...unit.locations.map(location => new XmlDocument(`<note category="location">${location.file}:${location.lineStart}${location.lineEnd ? ',' + location.lineEnd : ''}</note>`)));
             if (unit.description !== undefined) {
                 notes.children.push(new XmlDocument(`<note category="description">${unit.description}</note>`));
             }
-            notes.children.push(...unit.locations.map(location => new XmlDocument(`<note category="location">${location.file}:${location.line}</note>`)));
+            if (unit.meaning !== undefined) {
+                notes.children.push(new XmlDocument(`<note category="meaning">${unit.meaning}</note>`));
+            }
         }
 
         updateFirstAndLastChild(u);
@@ -135,7 +140,7 @@ export function toXlf1(translationFile: TranslationFile): string {
         if (unit.locations.length) {
             transUnit.children.push(...unit.locations.map(location => new XmlDocument(`<context-group purpose="location">
             <context context-type="sourcefile">${location.file}</context>
-            <context context-type="linenumber">${location.line}</context>
+            <context context-type="linenumber">${location.lineStart}</context>
         </context-group>`)));
         }
         updateFirstAndLastChild(body);

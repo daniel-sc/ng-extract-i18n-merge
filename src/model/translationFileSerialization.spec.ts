@@ -8,15 +8,15 @@ describe('translationFileSerialization', () => {
 <xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de" trgLang="fr">
   <file original="ng.template" id="ngi18n">
     <unit id="ID1">
+      <notes>
+        <note category="location">app/app.component.ts:11</note>
+        <note category="location">app/another.component.ts:13</note>
+        <note category="meaning">greeting</note>
+        <note category="description">Greeting message that includes the user&apos;s name.</note>
+      </notes>
       <segment state="initial">
         <source>source val</source>
         <target>target val</target>
-        <notes>
-            <note category="meaning">greeting</note>
-            <note category="description">Greeting message that includes the user&apos;s name.</note>
-            <note category="location">app/app.component.ts:11</note>
-            <note category="location">app/another.component.ts:13</note>
-        </notes>
       </segment>
     </unit>
   </file>
@@ -32,11 +32,11 @@ describe('translationFileSerialization', () => {
                 locations: [
                     {
                         file: 'app/app.component.ts',
-                        line: 11
+                        lineStart: 11
                     },
                     {
                         file: 'app/another.component.ts',
-                        line: 13
+                        lineStart: 13
                     }
                 ]
             }], 'de', 'fr', '<?xml version="1.0" encoding="UTF-8"?>\n'));
@@ -70,11 +70,11 @@ describe('translationFileSerialization', () => {
                 locations: [
                     {
                         file: 'app/app.component.ts',
-                        line: 11
+                        lineStart: 11
                     },
                     {
                         file: 'app/another.component.ts',
-                        line: 13
+                        lineStart: 13
                     }
                 ]
             }], 'de', 'fr', '<?xml version="1.0" encoding="UTF-8"?>\n');
@@ -82,15 +82,15 @@ describe('translationFileSerialization', () => {
 <xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de" trgLang="fr">
   <file original="ng.template" id="ngi18n">
     <unit id="ID1">
+      <notes>
+        <note category="location">app/app.component.ts:11</note>
+        <note category="location">app/another.component.ts:13</note>
+        <note category="description">Greeting message that includes the user&apos;s name.</note>
+        <note category="meaning">greeting</note>
+      </notes>
       <segment state="initial">
         <source>source val</source>
         <target>target val</target>
-        <notes>
-          <note category="meaning">greeting</note>
-          <note category="description">Greeting message that includes the user&apos;s name.</note>
-          <note category="location">app/app.component.ts:11</note>
-          <note category="location">app/another.component.ts:13</note>
-        </notes>
       </segment>
     </unit>
   </file>
@@ -127,7 +127,7 @@ describe('translationFileSerialization', () => {
                 description: 'An introduction header for this sample',
                 locations: [{
                     file: 'app/app.component.ts',
-                    line: 11
+                    lineStart: 11
                 }]
             }], 'de', 'fr-ch', '<?xml version="1.0" encoding="UTF-8"?>\n');
             expect(toXlf1(input)).toEqual(`<?xml version="1.0" encoding="UTF-8"?>
@@ -197,7 +197,7 @@ describe('translationFileSerialization', () => {
                 description: 'An introduction header for this sample',
                 locations: [{
                     file: 'app/app.component.ts',
-                    line: 11
+                    lineStart: 11
                 }]
             }], 'de', 'fr-ch', '<?xml version="1.0" encoding="UTF-8"?>\n'));
         });

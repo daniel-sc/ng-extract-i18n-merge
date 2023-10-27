@@ -1,6 +1,7 @@
 interface Location {
     file: string;
-    line: number;
+    lineStart: number;
+    lineEnd?: number;
 }
 
 export interface TranslationUnit {
