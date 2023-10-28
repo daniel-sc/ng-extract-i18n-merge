@@ -1191,6 +1191,43 @@ describe('Builder', () => {
                 }
             );
         });
+        test('remove newline in description of xlf2 when trim=false and collapseWhitespace=true', async () => {
+            await runTest({
+               messagesBefore:  '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">\n' +
+                   '  <file id="ngi18n" original="ng.template">\n' +
+                   '    <unit id="ID1">\n' +
+                   '      <notes>\n' +
+                   '        <note category="location">some-file.ts:281,286</note>\n' +
+                   '        <note category="location">some-other-file.ts:281</note>\n' +
+                   '        <note category="description">test description\n' +
+                   '</note>\n' +
+                   '      </notes>\n' +
+                   '      <segment>\n' +
+                   '        <source>source val</source>\n' +
+                   '      </segment>\n' +
+                   '    </unit>\n' +
+                   '  </file>\n' +
+                   '</xliff>',
+                options: {
+                    format: 'xlf2',
+                    includeContext: true
+                },
+                messagesExpected:  '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">\n' +
+                    '  <file id="ngi18n" original="ng.template">\n' +
+                    '    <unit id="ID1">\n' +
+                    '      <notes>\n' +
+                    '        <note category="location">some-file.ts:281,286</note>\n' +
+                    '        <note category="location">some-other-file.ts:281</note>\n' +
+                    '        <note category="description">test description </note>\n' +
+                    '      </notes>\n' +
+                    '      <segment>\n' +
+                    '        <source>source val</source>\n' +
+                    '      </segment>\n' +
+                    '    </unit>\n' +
+                    '  </file>\n' +
+                    '</xliff>',
+            });
+        });
         test('retain whitespaces when trim=false and collapseWhitespace=true', async () => {
             await runTest(
                 {
