@@ -857,6 +857,7 @@ describe('Builder', () => {
                     format: 'xlf',
                     targetFiles: ['messages.fr.xlf'],
                     outputPath: 'builder-test',
+                    includeContext: true,
                     removeIdsWithPrefix: ['removeMe']
                 },
                 messagesFrExpected: '<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
@@ -1612,6 +1613,37 @@ describe('Builder', () => {
                 '        <note category="location">some-other-file.ts:281</note>\n' +
                 '        <note category="description">test description</note>\n' +
                 '      </notes>\n' +
+                '      <segment>\n' +
+                '        <source>source val</source>\n' +
+                '      </segment>\n' +
+                '    </unit>\n' +
+                '  </file>\n' +
+                '</xliff>',
+        })
+
+    });
+    test('remove context in messages source file when includeContext=false and format=xlf2', async () => {
+        await runTest({
+            messagesBefore: '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">\n' +
+                '  <file id="ngi18n" original="ng.template">\n' +
+                '    <unit id="ID1">\n' +
+                '      <notes>\n' +
+                '        <note category="location">some-file.ts:281,286</note>\n' +
+                '        <note category="location">some-other-file.ts:281</note>\n' +
+                '        <note category="description">test description</note>\n' +
+                '      </notes>\n' +
+                '      <segment>\n' +
+                '        <source>source val</source>\n' +
+                '      </segment>\n' +
+                '    </unit>\n' +
+                '  </file>\n' +
+                '</xliff>',
+            options: {
+                format: 'xlf2'
+            },
+            messagesExpected: '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">\n' +
+                '  <file id="ngi18n" original="ng.template">\n' +
+                '    <unit id="ID1">\n' +
                 '      <segment>\n' +
                 '        <source>source val</source>\n' +
                 '      </segment>\n' +
