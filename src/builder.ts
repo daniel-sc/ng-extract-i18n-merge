@@ -112,10 +112,10 @@ async function extractI18nMergeBuilder(options: Options, context: BuilderContext
     const translationSourceFile = fromXlf(await fs.readFile(sourcePath, 'utf8'));
 
     const sort: Options['sort'] = options.sort ?? 'stableAppendNew';
-    const identityMapper = (x: string) => x;
+    const identityMapper = <T extends string | undefined>(x: T) => x;
     const mapper = pipe(
         (options.collapseWhitespace ?? true) ? doCollapseWhitespace : identityMapper,
-        (options.trim ?? false) ? ((text: string) => text.trim()) : identityMapper
+        options.trim ?? false ? <T extends string | undefined>(text: T): T => text?.trim() as T : identityMapper
     );
     const removeContextSource = options.includeContext !== true && options.includeContext !== 'sourceFileOnly';
     const normalizedTranslationSourceFile = translationSourceFile.mapUnitsList(units => {
@@ -125,7 +125,9 @@ async function extractI18nMergeBuilder(options: Options, context: BuilderContext
                 ...unit,
                 source: mapper(unit.source),
                 target: unit.target !== undefined ? mapper(unit.target) : undefined,
-                locations: removeContextSource ? [] : unit.locations
+                locations: removeContextSource ? [] : unit.locations,
+                description: removeContextSource ? undefined : mapper(unit.description),
+                meaning: removeContextSource ? undefined : mapper(unit.meaning)
             }));
         if (sort === 'idAsc') {
             return updatedUnits.sort((a, b) => a.id.localeCompare(b.id));
@@ -155,6 +157,8 @@ async function extractI18nMergeBuilder(options: Options, context: BuilderContext
                     source: mapper(unit.source),
                     target: unit.target !== undefined ? mapper(unit.target) : undefined,
                     locations: options.includeContext === true ? unit.locations : [],
+                    meaning: options.includeContext === true ? mapper(unit.meaning) : undefined,
+                    description: options.includeContext === true ? mapper(unit.description) : undefined,
                     // reset to original state, if source was changed to target from sourceLangTarget:
                     state: idsOfUnitsWithSourceChangedToSourceLangTarget.has(unit.id) ? (translationTargetFile.units.find(u => u.id === unit.id)?.state ?? unit.state) : unit.state
                 }));

@@ -109,7 +109,7 @@ describe('Builder', () => {
     });
 
     test('should use custom builder for i18n extraction when configured', async () => {
-        const dummyContent = '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">\n  <file original="ng.template" id="ngi18n">\n  </file>\n</xliff>';
+        const dummyContent = '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">\n  <file id="ngi18n" original="ng.template">\n  </file>\n</xliff>';
         await fs.writeFile(MESSAGES_XLF_PATH, dummyContent, 'utf8');
         const builderFn = jest.fn(() => ({success: true}));
         architectHost.addBuilder('@my/custom:builder', createBuilder(builderFn)); // custom builder
@@ -131,7 +131,7 @@ describe('Builder', () => {
 
     test('should succeed without a source file', async () => {
         const dummyContent = '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">\n' +
-            '  <file original="ng.template" id="ngi18n">\n' +
+            '  <file id="ngi18n" original="ng.template">\n' +
             '  </file>\n' +
             '</xliff>';
         architectHost.addBuilder('@angular-devkit/build-angular:extract-i18n', createBuilder(async () => {
@@ -166,7 +166,7 @@ describe('Builder', () => {
     test('should auto create new target files for xlf 2.0', async () => {
         await runTest({
             messagesBefore: '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">\n' +
-                '  <file original="ng.template" id="ngi18n">\n' +
+                '  <file id="ngi18n" original="ng.template">\n' +
                 '    <unit id="ID1">\n' +
                 '      <segment>\n' +
                 '        <source>source val</source>\n' +
@@ -178,7 +178,7 @@ describe('Builder', () => {
                 format: 'xlf2',
             },
             messagesFrExpected: '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de" trgLang="fr">\n' +
-                '  <file original="ng.template" id="ngi18n">\n' +
+                '  <file id="ngi18n" original="ng.template">\n' +
                 '    <unit id="ID1">\n' +
                 '      <segment state="initial">\n' +
                 '        <source>source val</source>\n' +
@@ -194,7 +194,7 @@ describe('Builder', () => {
         await runTest({
             messagesFrBefore: '',
             messagesBefore: '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">\n' +
-                '  <file original="ng.template" id="ngi18n">\n' +
+                '  <file id="ngi18n" original="ng.template">\n' +
                 '    <unit id="ID1">\n' +
                 '      <segment>\n' +
                 '        <source>source val</source>\n' +
@@ -206,7 +206,7 @@ describe('Builder', () => {
                 format: 'xlf2',
             },
             messagesFrExpected: '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de" trgLang="fr">\n' +
-                '  <file original="ng.template" id="ngi18n">\n' +
+                '  <file id="ngi18n" original="ng.template">\n' +
                 '    <unit id="ID1">\n' +
                 '      <segment state="initial">\n' +
                 '        <source>source val</source>\n' +
@@ -259,7 +259,7 @@ describe('Builder', () => {
     test('should handle missing target node for changed text', async () => {
         await runTest({
             messagesFrBefore: '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de" trgLang="fr">\n' +
-                '  <file original="ng.template" id="ngi18n">\n' +
+                '  <file id="ngi18n" original="ng.template">\n' +
                 '    <unit id="ID1">\n' +
                 '      <segment state="initial">\n' +
                 '        <source>source val</source>\n' +
@@ -273,7 +273,7 @@ describe('Builder', () => {
                 '  </file>\n' +
                 '</xliff>',
             messagesBefore: '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">\n' +
-                '  <file original="ng.template" id="ngi18n">\n' +
+                '  <file id="ngi18n" original="ng.template">\n' +
                 '    <unit id="ID1">\n' +
                 '      <segment>\n' +
                 '        <source>source val</source>\n' +
@@ -290,7 +290,7 @@ describe('Builder', () => {
                 format: 'xlf2',
             },
             messagesFrExpected: '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de" trgLang="fr">\n' +
-                '  <file original="ng.template" id="ngi18n">\n' +
+                '  <file id="ngi18n" original="ng.template">\n' +
                 '    <unit id="ID1">\n' +
                 '      <segment state="initial">\n' +
                 '        <source>source val</source>\n' +
@@ -402,7 +402,7 @@ describe('Builder', () => {
         await runTest(
             {
                 messagesBefore: '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">\n' +
-                    '  <file original="ng.template" id="ngi18n">\n' +
+                    '  <file id="ngi18n" original="ng.template">\n' +
                     '    <unit id="ID1">\n' +
                     '      <segment>\n' +
                     '        <source>source val</source>\n' +
@@ -421,7 +421,7 @@ describe('Builder', () => {
                     '  </file>\n' +
                     '</xliff>',
                 messagesFrBefore: '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">\n' +
-                    '  <file original="ng.template" id="ngi18n">\n' +
+                    '  <file id="ngi18n" original="ng.template">\n' +
                     '    <unit id="ID1">\n' +
                     '      <segment>\n' +
                     '        <source>source val</source>\n' +
@@ -437,7 +437,7 @@ describe('Builder', () => {
                     removeIdsWithPrefix: ['removeMe']
                 },
                 messagesFrExpected: '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">\n' +
-                    '  <file original="ng.template" id="ngi18n">\n' +
+                    '  <file id="ngi18n" original="ng.template">\n' +
                     '    <unit id="ID1">\n' +
                     '      <segment>\n' +
                     '        <source>source val</source>\n' +
@@ -456,7 +456,7 @@ describe('Builder', () => {
     });
     test('extract-and-merge xlf 2.0 with specified sourceLanguageTargetFile', async () => {
         await fs.writeFile(MESSAGES_XLF_PATH, '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="en">\n' +
-            '  <file original="ng.template" id="ngi18n">\n' +
+            '  <file id="ngi18n" original="ng.template">\n' +
             '    <unit id="ID1">\n' +
             '      <segment>\n' +
             '        <source>source val</source>\n' +
@@ -470,7 +470,7 @@ describe('Builder', () => {
             '  </file>\n' +
             '</xliff>', 'utf8');
         await fs.writeFile(MESSAGES_FR_XLF_PATH, '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="en">\n' +
-            '  <file original="ng.template" id="ngi18n">\n' +
+            '  <file id="ngi18n" original="ng.template">\n' +
             '    <unit id="ID1">\n' +
             '      <segment>\n' +
             '        <source>source val</source>\n' +
@@ -480,7 +480,7 @@ describe('Builder', () => {
             '  </file>\n' +
             '</xliff>', 'utf8');
         await fs.writeFile('builder-test/messages.en.xlf', '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="en">\n' +
-            '  <file original="ng.template" id="ngi18n">\n' +
+            '  <file id="ngi18n" original="ng.template">\n' +
             '    <unit id="ID1">\n' +
             '      <segment>\n' +
             '        <source>source val</source>\n' +
@@ -511,7 +511,7 @@ describe('Builder', () => {
         // Expect that the copied file is the same as its source.
         const targetContent1 = await fs.readFile(MESSAGES_FR_XLF_PATH, 'utf8');
         expect(targetContent1).toEqual('<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="en">\n' +
-            '  <file original="ng.template" id="ngi18n">\n' +
+            '  <file id="ngi18n" original="ng.template">\n' +
             '    <unit id="ID1">\n' +
             '      <segment>\n' +
             '        <source>source val</source>\n' +
@@ -529,7 +529,7 @@ describe('Builder', () => {
 
         const targetContent2 = await fs.readFile('builder-test/messages.en.xlf', 'utf8');
         expect(targetContent2).toEqual('<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="en">\n' +
-            '  <file original="ng.template" id="ngi18n">\n' +
+            '  <file id="ngi18n" original="ng.template">\n' +
             '    <unit id="ID1">\n' +
             '      <segment>\n' +
             '        <source>source val</source>\n' +
@@ -552,7 +552,7 @@ describe('Builder', () => {
     });
     test('extract-and-merge xlf 2.0 should keep translation state for updated source text that matches the before target text', async () => {
         await fs.writeFile(MESSAGES_XLF_PATH, '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="en">\n' +
-            '  <file original="ng.template" id="ngi18n">\n' +
+            '  <file id="ngi18n" original="ng.template">\n' +
             '    <unit id="ID1">\n' +
             '      <segment>\n' +
             '        <source>source val - new</source>\n' +
@@ -561,7 +561,7 @@ describe('Builder', () => {
             '  </file>\n' +
             '</xliff>', 'utf8');
         await fs.writeFile(MESSAGES_FR_XLF_PATH, '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="en">\n' +
-            '  <file original="ng.template" id="ngi18n">\n' +
+            '  <file id="ngi18n" original="ng.template">\n' +
             '    <unit id="ID1">\n' +
             '      <segment state="final">\n' +
             '        <source>source val - old</source>\n' +
@@ -571,7 +571,7 @@ describe('Builder', () => {
             '  </file>\n' +
             '</xliff>', 'utf8');
         await fs.writeFile('builder-test/messages.en.xlf', '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="en">\n' +
-            '  <file original="ng.template" id="ngi18n">\n' +
+            '  <file id="ngi18n" original="ng.template">\n' +
             '    <unit id="ID1">\n' +
             '      <segment state="final">\n' +
             '        <source>source val - old</source>\n' +
@@ -597,7 +597,7 @@ describe('Builder', () => {
 
         const targetContent1 = await fs.readFile(MESSAGES_FR_XLF_PATH, 'utf8');
         expect(targetContent1).toEqual('<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="en">\n' +
-            '  <file original="ng.template" id="ngi18n">\n' +
+            '  <file id="ngi18n" original="ng.template">\n' +
             '    <unit id="ID1">\n' +
             '      <segment state="final">\n' +
             '        <source>source val - new</source>\n' +
@@ -609,7 +609,7 @@ describe('Builder', () => {
 
         const targetContent2 = await fs.readFile('builder-test/messages.en.xlf', 'utf8');
         expect(targetContent2).toEqual('<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="en">\n' +
-            '  <file original="ng.template" id="ngi18n">\n' +
+            '  <file id="ngi18n" original="ng.template">\n' +
             '    <unit id="ID1">\n' +
             '      <segment state="final">\n' +
             '        <source>source val - new</source>\n' +
@@ -627,7 +627,7 @@ describe('Builder', () => {
     test('extract-and-merge xlf 2.0 with specified sourceLanguageTargetFile should update target of sourceLanguageTargetFile', async () => {
         // TODO second lang
         await fs.writeFile(MESSAGES_XLF_PATH, '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="en">\n' +
-            '  <file original="ng.template" id="ngi18n">\n' +
+            '  <file id="ngi18n" original="ng.template">\n' +
             '    <unit id="ID1">\n' +
             '      <segment>\n' +
             '        <source>source val changed</source>\n' +
@@ -641,7 +641,7 @@ describe('Builder', () => {
             '  </file>\n' +
             '</xliff>', 'utf8');
         await fs.writeFile(MESSAGES_FR_XLF_PATH, '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="en" trgLang="fr">\n' +
-            '  <file original="ng.template" id="ngi18n">\n' +
+            '  <file id="ngi18n" original="ng.template">\n' +
             '    <unit id="ID1">\n' +
             '      <segment state="final">\n' +
             '        <source>source val</source>\n' +
@@ -651,7 +651,7 @@ describe('Builder', () => {
             '  </file>\n' +
             '</xliff>', 'utf8');
         await fs.writeFile('builder-test/messages.en.xlf', '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="en">\n' +
-            '  <file original="ng.template" id="ngi18n">\n' +
+            '  <file id="ngi18n" original="ng.template">\n' +
             '    <unit id="ID1">\n' +
             '      <segment state="final">\n' +
             '        <source>source val</source>\n' +
@@ -677,7 +677,7 @@ describe('Builder', () => {
         // Expect that the copied file is the same as its source.
         const targetContent1 = await fs.readFile(MESSAGES_FR_XLF_PATH, 'utf8');
         expect(targetContent1).toEqual('<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="en" trgLang="fr">\n' +
-            '  <file original="ng.template" id="ngi18n">\n' +
+            '  <file id="ngi18n" original="ng.template">\n' +
             '    <unit id="ID1">\n' +
             '      <segment state="initial">\n' +
             '        <source>source val changed</source>\n' +
@@ -695,7 +695,7 @@ describe('Builder', () => {
 
         const targetContent2 = await fs.readFile('builder-test/messages.en.xlf', 'utf8');
         expect(targetContent2).toEqual('<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="en">\n' +
-            '  <file original="ng.template" id="ngi18n">\n' +
+            '  <file id="ngi18n" original="ng.template">\n' +
             '    <unit id="ID1">\n' +
             '      <segment state="final">\n' +
             '        <source>source val changed</source>\n' +
@@ -722,7 +722,7 @@ describe('Builder', () => {
 
         await runTest({
             messagesFrBefore: '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="fr" trgLang="fr">\n' +
-                '  <file original="ng.template" id="ngi18n">\n' +
+                '  <file id="ngi18n" original="ng.template">\n' +
                 '    <unit id="ID1">\n' +
                 '      <segment state="final">\n' +
                 '        <source>source val</source>\n' +
@@ -738,7 +738,7 @@ describe('Builder', () => {
                 '  </file>\n' +
                 '</xliff>',
             messagesBefore: '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="fr">\n' +
-                '  <file original="ng.template" id="ngi18n">\n' +
+                '  <file id="ngi18n" original="ng.template">\n' +
                 '    <unit id="ID1">\n' +
                 '      <segment>\n' +
                 '        <source>updated source val</source>\n' +
@@ -756,7 +756,7 @@ describe('Builder', () => {
                 sourceLanguageTargetFile: 'messages.fr.xlf'
             },
             messagesFrExpected: '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="fr" trgLang="fr">\n' +
-                '  <file original="ng.template" id="ngi18n">\n' +
+                '  <file id="ngi18n" original="ng.template">\n' +
                 '    <unit id="ID1">\n' +
                 '      <segment state="final">\n' +
                 '        <source>updated source val</source>\n' +
@@ -857,6 +857,7 @@ describe('Builder', () => {
                     format: 'xlf',
                     targetFiles: ['messages.fr.xlf'],
                     outputPath: 'builder-test',
+                    includeContext: true,
                     removeIdsWithPrefix: ['removeMe']
                 },
                 messagesFrExpected: '<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
@@ -1189,6 +1190,43 @@ describe('Builder', () => {
                         '</xliff>'
                 }
             );
+        });
+        test('remove newline in description of xlf2 when trim=false and collapseWhitespace=true', async () => {
+            await runTest({
+               messagesBefore:  '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">\n' +
+                   '  <file id="ngi18n" original="ng.template">\n' +
+                   '    <unit id="ID1">\n' +
+                   '      <notes>\n' +
+                   '        <note category="location">some-file.ts:281,286</note>\n' +
+                   '        <note category="location">some-other-file.ts:281</note>\n' +
+                   '        <note category="description">test description\n' +
+                   '</note>\n' +
+                   '      </notes>\n' +
+                   '      <segment>\n' +
+                   '        <source>source val</source>\n' +
+                   '      </segment>\n' +
+                   '    </unit>\n' +
+                   '  </file>\n' +
+                   '</xliff>',
+                options: {
+                    format: 'xlf2',
+                    includeContext: true
+                },
+                messagesExpected:  '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">\n' +
+                    '  <file id="ngi18n" original="ng.template">\n' +
+                    '    <unit id="ID1">\n' +
+                    '      <notes>\n' +
+                    '        <note category="location">some-file.ts:281,286</note>\n' +
+                    '        <note category="location">some-other-file.ts:281</note>\n' +
+                    '        <note category="description">test description </note>\n' +
+                    '      </notes>\n' +
+                    '      <segment>\n' +
+                    '        <source>source val</source>\n' +
+                    '      </segment>\n' +
+                    '    </unit>\n' +
+                    '  </file>\n' +
+                    '</xliff>',
+            });
         });
         test('retain whitespaces when trim=false and collapseWhitespace=true', async () => {
             await runTest(
@@ -1587,7 +1625,7 @@ describe('Builder', () => {
     test('keep context in messages source file when includeContext=true and format=xlf2', async () => {
         await runTest({
             messagesBefore: '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">\n' +
-                '  <file original="ng.template" id="ngi18n">\n' +
+                '  <file id="ngi18n" original="ng.template">\n' +
                 '    <unit id="ID1">\n' +
                 '      <notes>\n' +
                 '        <note category="location">some-file.ts:281,286</note>\n' +
@@ -1605,13 +1643,44 @@ describe('Builder', () => {
                 format: 'xlf2'
             },
             messagesExpected: '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">\n' +
-                '  <file original="ng.template" id="ngi18n">\n' +
+                '  <file id="ngi18n" original="ng.template">\n' +
                 '    <unit id="ID1">\n' +
                 '      <notes>\n' +
                 '        <note category="location">some-file.ts:281,286</note>\n' +
                 '        <note category="location">some-other-file.ts:281</note>\n' +
                 '        <note category="description">test description</note>\n' +
                 '      </notes>\n' +
+                '      <segment>\n' +
+                '        <source>source val</source>\n' +
+                '      </segment>\n' +
+                '    </unit>\n' +
+                '  </file>\n' +
+                '</xliff>',
+        })
+
+    });
+    test('remove context in messages source file when includeContext=false and format=xlf2', async () => {
+        await runTest({
+            messagesBefore: '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">\n' +
+                '  <file id="ngi18n" original="ng.template">\n' +
+                '    <unit id="ID1">\n' +
+                '      <notes>\n' +
+                '        <note category="location">some-file.ts:281,286</note>\n' +
+                '        <note category="location">some-other-file.ts:281</note>\n' +
+                '        <note category="description">test description</note>\n' +
+                '      </notes>\n' +
+                '      <segment>\n' +
+                '        <source>source val</source>\n' +
+                '      </segment>\n' +
+                '    </unit>\n' +
+                '  </file>\n' +
+                '</xliff>',
+            options: {
+                format: 'xlf2'
+            },
+            messagesExpected: '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">\n' +
+                '  <file id="ngi18n" original="ng.template">\n' +
+                '    <unit id="ID1">\n' +
                 '      <segment>\n' +
                 '        <source>source val</source>\n' +
                 '      </segment>\n' +

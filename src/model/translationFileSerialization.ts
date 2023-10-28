@@ -68,7 +68,7 @@ function toString(...nodes: XmlNode[]): string {
 
 export function toXlf2(translationFile: TranslationFile): string {
     const doc = new XmlDocument(`<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="${translationFile.sourceLang}">
-    <file original="ng.template" id="ngi18n">
+    <file id="ngi18n" original="ng.template">
     </file>
 </xliff>`);
     if (translationFile.targetLang) {

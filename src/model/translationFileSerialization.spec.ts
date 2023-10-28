@@ -6,7 +6,7 @@ describe('translationFileSerialization', () => {
         it('should parse xlf2', () => {
             const xlf2 = `<?xml version="1.0" encoding="UTF-8"?>
 <xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de" trgLang="fr">
-  <file original="ng.template" id="ngi18n">
+  <file id="ngi18n" original="ng.template">
     <unit id="ID1">
       <notes>
         <note category="location">app/app.component.ts:11</note>
@@ -50,7 +50,7 @@ describe('translationFileSerialization', () => {
                 locations: []
             }], 'de', undefined);
             expect(toXlf2(input)).toEqual(`<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">
-  <file original="ng.template" id="ngi18n">
+  <file id="ngi18n" original="ng.template">
     <unit id="ID1">
       <segment>
         <source> source val </source>
@@ -80,7 +80,7 @@ describe('translationFileSerialization', () => {
             }], 'de', 'fr', '<?xml version="1.0" encoding="UTF-8"?>\n');
             expect(toXlf2(input)).toEqual(`<?xml version="1.0" encoding="UTF-8"?>
 <xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de" trgLang="fr">
-  <file original="ng.template" id="ngi18n">
+  <file id="ngi18n" original="ng.template">
     <unit id="ID1">
       <notes>
         <note category="location">app/app.component.ts:11</note>
