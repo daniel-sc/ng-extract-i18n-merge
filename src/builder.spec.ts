@@ -189,6 +189,54 @@ describe('Builder', () => {
                 '</xliff>'
         })
     });
+    test('should handle nested html and escaped html', async () => {
+        await runTest({
+            messagesBefore: '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">\n' +
+                '  <file original="ng.template" id="ngi18n">\n' +
+                '    <unit id="ID1">\n' +
+                '      <segment>\n' +
+                '        <source>source val<some-tag attribute="value">some content &lt;between escaped/&gt;</some-tag></source>\n' +
+                '      </segment>\n' +
+                '    </unit>\n' +
+                '    <unit id="ID2">\n' +
+                '      <segment>\n' +
+                '        <source>Text <pc dispStart="&lt;span class=&quot;my-class&quot;&gt;">pc-content</pc> end</source>\n' +
+                '      </segment>\n' +
+                '    </unit>\n' +
+                '    <unit id="ID3">\n' +
+                '      <segment>\n' +
+                '        <source>Text <pc dispStart="&lt;span class=&quot;my-class&quot;>">pc-content</pc> end</source>\n' +
+                '      </segment>\n' +
+                '    </unit>\n' +
+                '  </file>\n' +
+                '</xliff>',
+            options: {
+                format: 'xlf2',
+            },
+            messagesFrExpected: '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de" trgLang="fr">\n' +
+                '  <file original="ng.template" id="ngi18n">\n' +
+                '    <unit id="ID1">\n' +
+                '      <segment state="initial">\n' +
+                '        <source>source val<some-tag attribute="value">some content &lt;between escaped/&gt;</some-tag></source>\n' +
+                '        <target>source val<some-tag attribute="value">some content &lt;between escaped/&gt;</some-tag></target>\n' +
+                '      </segment>\n' +
+                '    </unit>\n' +
+                '    <unit id="ID2">\n' +
+                '      <segment state="initial">\n' +
+                '        <source>Text <pc dispStart="&lt;span class=&quot;my-class&quot;&gt;">pc-content</pc> end</source>\n' +
+                '        <target>Text <pc dispStart="&lt;span class=&quot;my-class&quot;&gt;">pc-content</pc> end</target>\n' +
+                '      </segment>\n' +
+                '    </unit>\n' +
+                '    <unit id="ID3">\n' +
+                '      <segment state="initial">\n' +
+                '        <source>Text <pc dispStart="&lt;span class=&quot;my-class&quot;>">pc-content</pc> end</source>\n' +
+                '        <target>Text <pc dispStart="&lt;span class=&quot;my-class&quot;>">pc-content</pc> end</target>\n' +
+                '      </segment>\n' +
+                '    </unit>\n' +
+                '  </file>\n' +
+                '</xliff>'
+        })
+    });
 
     test('should handle empty target files for xlf 2.0', async () => {
         await runTest({
