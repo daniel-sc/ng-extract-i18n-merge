@@ -206,14 +206,14 @@ describe('Builder', () => {
                 '    <unit id="ID3">\n' +
                 '      <segment>\n' +
                 '        <source>\n' +
-                '          <pc id="1" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">Muster12</pc>\n' +
+                '                <pc id="1" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">   Muster12   </pc>\n' +
                 '        </source>\n' +
                 '      </segment>\n' +
                 '    </unit>\n' +
                 '  </file>\n' +
                 '</xliff>',
             messagesFrBefore: '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de" trgLang="fr">\n' +
-                '  <file original="ng.template" id="ngi18n">\n' +
+                '  <file id="ngi18n" original="ng.template">\n' +
                 '    <unit id="ID1">\n' +
                 '      <segment state="translated">\n' +
                 '        <source>source val<some-tag attribute="value">some content &lt;between escaped/&gt;</some-tag></source>\n' +
@@ -229,10 +229,10 @@ describe('Builder', () => {
                 '    <unit id="ID3">\n' +
                 '      <segment state="translated">\n' +
                 '        <source>\n' +
-                '          <pc id="1" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">Muster12</pc>\n' +
+                '          <pc id="1" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;"> Muster12 </pc>\n' +
                 '        </source>\n' +
                 '        <target>\n' +
-                '          <pc id="1" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">Muster12</pc>\n' +
+                '          <pc id="1" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;"> Muster12 </pc>\n' +
                 '        </target>\n' +
                 '      </segment>\n' +
                 '    </unit>\n' +
@@ -242,7 +242,7 @@ describe('Builder', () => {
                 format: 'xlf2',
             },
             messagesFrExpected: '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de" trgLang="fr">\n' +
-                '  <file original="ng.template" id="ngi18n">\n' +
+                '  <file id="ngi18n" original="ng.template">\n' +
                 '    <unit id="ID1">\n' +
                 '      <segment state="translated">\n' +
                 '        <source>source val<some-tag attribute="value">some content &lt;between escaped/&gt;</some-tag></source>\n' +
@@ -258,10 +258,10 @@ describe('Builder', () => {
                 '    <unit id="ID3">\n' +
                 '      <segment state="translated">\n' +
                 '        <source>\n' +
-                '          <pc id="1" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">Muster12</pc>\n' +
+                '          <pc id="1" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;"> Muster12 </pc>\n' +
                 '        </source>\n' +
                 '        <target>\n' +
-                '          <pc id="1" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">Muster12</pc>\n' +
+                '          <pc id="1" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;"> Muster12 </pc>\n' +
                 '        </target>\n' +
                 '      </segment>\n' +
                 '    </unit>\n' +
