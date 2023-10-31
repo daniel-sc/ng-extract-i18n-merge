@@ -205,7 +205,35 @@ describe('Builder', () => {
                 '    </unit>\n' +
                 '    <unit id="ID3">\n' +
                 '      <segment>\n' +
-                '        <source>Text <pc dispStart="&lt;span class=&quot;my-class&quot;>">pc-content</pc> end</source>\n' +
+                '        <source>\n' +
+                '          <pc id="1" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">Muster12</pc>\n' +
+                '        </source>\n' +
+                '      </segment>\n' +
+                '    </unit>\n' +
+                '  </file>\n' +
+                '</xliff>',
+            messagesFrBefore: '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de" trgLang="fr">\n' +
+                '  <file original="ng.template" id="ngi18n">\n' +
+                '    <unit id="ID1">\n' +
+                '      <segment state="translated">\n' +
+                '        <source>source val<some-tag attribute="value">some content &lt;between escaped/&gt;</some-tag></source>\n' +
+                '        <target>source val<some-tag attribute="value">some content &lt;between escaped/&gt;</some-tag></target>\n' +
+                '      </segment>\n' +
+                '    </unit>\n' +
+                '    <unit id="ID2">\n' +
+                '      <segment state="translated">\n' +
+                '        <source>Text <pc dispStart="&lt;span class=&quot;my-class&quot;&gt;">pc-content</pc> end</source>\n' +
+                '        <target>Text <pc dispStart="&lt;span class=&quot;my-class&quot;&gt;">pc-content</pc> end</target>\n' +
+                '      </segment>\n' +
+                '    </unit>\n' +
+                '    <unit id="ID3">\n' +
+                '      <segment state="translated">\n' +
+                '        <source>\n' +
+                '          <pc id="1" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">Muster12</pc>\n' +
+                '        </source>\n' +
+                '        <target>\n' +
+                '          <pc id="1" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">Muster12</pc>\n' +
+                '        </target>\n' +
                 '      </segment>\n' +
                 '    </unit>\n' +
                 '  </file>\n' +
@@ -216,21 +244,25 @@ describe('Builder', () => {
             messagesFrExpected: '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de" trgLang="fr">\n' +
                 '  <file original="ng.template" id="ngi18n">\n' +
                 '    <unit id="ID1">\n' +
-                '      <segment state="initial">\n' +
+                '      <segment state="translated">\n' +
                 '        <source>source val<some-tag attribute="value">some content &lt;between escaped/&gt;</some-tag></source>\n' +
                 '        <target>source val<some-tag attribute="value">some content &lt;between escaped/&gt;</some-tag></target>\n' +
                 '      </segment>\n' +
                 '    </unit>\n' +
                 '    <unit id="ID2">\n' +
-                '      <segment state="initial">\n' +
+                '      <segment state="translated">\n' +
                 '        <source>Text <pc dispStart="&lt;span class=&quot;my-class&quot;&gt;">pc-content</pc> end</source>\n' +
                 '        <target>Text <pc dispStart="&lt;span class=&quot;my-class&quot;&gt;">pc-content</pc> end</target>\n' +
                 '      </segment>\n' +
                 '    </unit>\n' +
                 '    <unit id="ID3">\n' +
-                '      <segment state="initial">\n' +
-                '        <source>Text <pc dispStart="&lt;span class=&quot;my-class&quot;>">pc-content</pc> end</source>\n' +
-                '        <target>Text <pc dispStart="&lt;span class=&quot;my-class&quot;>">pc-content</pc> end</target>\n' +
+                '      <segment state="translated">\n' +
+                '        <source>\n' +
+                '          <pc id="1" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">Muster12</pc>\n' +
+                '        </source>\n' +
+                '        <target>\n' +
+                '          <pc id="1" equivStart="START_TAG_STRONG" equivEnd="CLOSE_TAG_STRONG" type="other" dispStart="&lt;strong&gt;" dispEnd="&lt;/strong&gt;">Muster12</pc>\n' +
+                '        </target>\n' +
                 '      </segment>\n' +
                 '    </unit>\n' +
                 '  </file>\n' +
