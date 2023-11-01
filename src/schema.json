@@ -74,6 +74,11 @@
       "default": "stableAppendNew",
       "description": "Sorting of all translation units in source and target translation files."
     },
+    "prettyNestedTags": {
+      "type": "boolean",
+      "default": true,
+      "description": "If source/target only contains xml nodes (interpolations, nested html), `true` formats these with line breaks and indentation. `false` keeps the original angular single line format. Note: while `true` was the historic implementation, it is _not_ recommended, as it adds whitespace between tags that had no whitespace in between and increases bundle sizes."
+    },
     "collapseWhitespace": {
       "type": "boolean",
       "default": true,

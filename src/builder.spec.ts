@@ -405,7 +405,7 @@ describe('Builder', () => {
                     '  <file id="ngi18n" original="ng.template">\n' +
                     '    <unit id="ID1">\n' +
                     '      <segment>\n' +
-                    '        <source>prefix <some-tag>  <another-tag/></some-tag></source>\n' +
+                    '        <source>prefix <some-tag>  <another-tag/></some-tag> </source>\n' +
                     '      </segment>\n' +
                     '    </unit>\n' +
                     '  </file>\n' +
@@ -414,7 +414,7 @@ describe('Builder', () => {
                     '  <file id="ngi18n" original="ng.template">\n' +
                     '    <unit id="ID1">\n' +
                     '      <segment state="translated">\n' +
-                    '        <source>prefix <some-tag> <another-tag/></some-tag></source>\n' +
+                    '        <source>prefix <some-tag> <another-tag/></some-tag> </source>\n' +
                     '        <target>translated <some-tag>content</some-tag><another-tag>other</another-tag></target>\n' +
                     '      </segment>\n' +
                     '    </unit>\n' +
@@ -427,7 +427,7 @@ describe('Builder', () => {
                     '  <file id="ngi18n" original="ng.template">\n' +
                     '    <unit id="ID1">\n' +
                     '      <segment>\n' +
-                    '        <source>prefix <some-tag> <another-tag/></some-tag></source>\n' +
+                    '        <source>prefix <some-tag> <another-tag/></some-tag> </source>\n' +
                     '      </segment>\n' +
                     '    </unit>\n' +
                     '  </file>\n' +
@@ -436,8 +436,68 @@ describe('Builder', () => {
                     '  <file id="ngi18n" original="ng.template">\n' +
                     '    <unit id="ID1">\n' +
                     '      <segment state="translated">\n' +
-                    '        <source>prefix <some-tag> <another-tag/></some-tag></source>\n' +
+                    '        <source>prefix <some-tag> <another-tag/></some-tag> </source>\n' +
                     '        <target>translated <some-tag>content</some-tag><another-tag>other</another-tag></target>\n' +
+                    '      </segment>\n' +
+                    '    </unit>\n' +
+                    '  </file>\n' +
+                    '</xliff>',
+            });
+
+    });
+    // TODO broken?
+    test('should pretty print nested html tags without surrounding text', async () => {
+        await runTest(
+            {
+                messagesBefore: '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">\n' +
+                    '  <file id="ngi18n" original="ng.template">\n' +
+                    '    <unit id="ID1">\n' +
+                    '      <segment>\n' +
+                    '        <source> <some-tag>a</some-tag> <another>b</another> </source>\n' +
+                    '      </segment>\n' +
+                    '    </unit>\n' +
+                    '  </file>\n' +
+                    '</xliff>',
+                messagesFrBefore: '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">\n' +
+                    '  <file id="ngi18n" original="ng.template">\n' +
+                    '    <unit id="ID1">\n' +
+                    '      <segment state="translated">\n' +
+                    '        <source>\n' +
+                    '          <some-tag>a</some-tag>\n' +
+                    '          <another>b</another>\n' +
+                    '        </source>\n' +
+                    '        <target> <some-tag>content</some-tag> <another-tag>other</another-tag> </target>\n' +
+                    '      </segment>\n' +
+                    '    </unit>\n' +
+                    '  </file>\n' +
+                    '</xliff>',
+                options: {
+                    format: 'xlf2',
+                },
+                messagesExpected: '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">\n' +
+                    '  <file id="ngi18n" original="ng.template">\n' +
+                    '    <unit id="ID1">\n' +
+                    '      <segment>\n' +
+                    '        <source>\n' +
+                    '          <some-tag>a</some-tag>\n' +
+                    '          <another>b</another>\n' +
+                    '        </source>\n' +
+                    '      </segment>\n' +
+                    '    </unit>\n' +
+                    '  </file>\n' +
+                    '</xliff>',
+                messagesFrExpected: '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">\n' +
+                    '  <file id="ngi18n" original="ng.template">\n' +
+                    '    <unit id="ID1">\n' +
+                    '      <segment state="translated">\n' +
+                    '        <source>\n' +
+                    '          <some-tag>a</some-tag>\n' +
+                    '          <another>b</another>\n' +
+                    '        </source>\n' +
+                    '        <target>\n' +
+                    '          <some-tag>content</some-tag>\n' +
+                    '          <another-tag>other</another-tag>\n' +
+                    '        </target>\n' +
                     '      </segment>\n' +
                     '    </unit>\n' +
                     '  </file>\n' +

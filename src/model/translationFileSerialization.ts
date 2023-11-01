@@ -67,7 +67,7 @@ function toString(...nodes: XmlNode[]): string {
     return nodes.map(n => n.toString({preserveWhitespace: true, compressed: true})).join('');
 }
 
-export function toXlf2(translationFile: TranslationFile, options: Pick<Options, 'collapseWhitespace'>): string {
+export function toXlf2(translationFile: TranslationFile, options: Pick<Options, 'prettyNestedTags'>): string {
     const doc = new XmlDocument(`<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="${translationFile.sourceLang}">
     <file id="ngi18n" original="ng.template">
     </file>
@@ -104,7 +104,7 @@ export function toXlf2(translationFile: TranslationFile, options: Pick<Options, 
     return (translationFile.xmlHeader ?? '') + pretty(doc, options);
 }
 
-export function toXlf1(translationFile: TranslationFile, options: Pick<Options, 'collapseWhitespace'>): string {
+export function toXlf1(translationFile: TranslationFile, options: Pick<Options, 'prettyNestedTags'>): string {
     const doc = new XmlDocument(`<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
     <file source-language="${translationFile.sourceLang}"  datatype="plaintext" original="ng2.template">
     <body></body>
@@ -159,39 +159,25 @@ function isWhiteSpace(node: XmlNode): node is XmlTextNode {
     return node.type === 'text' && !!node.text.match(/^\s*$/);
 }
 
-
-function normalizeWhitespace(node: XmlElement, options: Pick<Options, 'collapseWhitespace'>) {
-    if (options.collapseWhitespace) {
-        node.children = node.children.flatMap(c => c.type === 'text' ? [
-            ...(/^\s/.test(c.text) ? [new XmlTextNode(' ')] : [] as XmlNode[]),
-            ...(/\S/.test(c.text) ? [new XmlTextNode(c.text.trim())] : [] as XmlNode[]),
-            ...(/.\s$/.test(c.text) ? [new XmlTextNode(' ')] : [] as XmlNode[]),
-        ] : [c]);
-        updateFirstAndLastChild(node);
-        node.children.filter((n): n is XmlElement => n.type === 'element').forEach(e => normalizeWhitespace(e, options));
-    }
-}
-
 function isSourceOrTarget<T extends XmlDocument | XmlElement>(node: T) {
     return node.name === 'source' || node.name === 'target';
 }
 
-/// removes all whitespace text nodes that are not mixed with other nodes. For source/target nodes whitespace is normalized
-function removeWhitespace<T extends XmlDocument | XmlElement>(node: T, options: Pick<Options, 'collapseWhitespace'>): void {
+/// removes all whitespace text nodes that are not mixed with other nodes. For source/target nodes whitespace is unchanged.
+function removeWhitespace<T extends XmlDocument | XmlElement>(node: T): void {
     if (node.type === 'element' && isSourceOrTarget(node)) {
-        normalizeWhitespace(node, options);
         return;
     }
     if (node.type === 'element' && node.children.every(n => n.type !== 'text' || isWhiteSpace(n))) {
         node.children = node.children.filter(c => !isWhiteSpace(c));
         updateFirstAndLastChild(node);
     }
-    node.children.filter((n): n is XmlElement => n.type === 'element').forEach(e => removeWhitespace(e, options));
+    node.children.filter((n): n is XmlElement => n.type === 'element').forEach(e => removeWhitespace(e));
 }
 
 /// format with 2 spaces indentation, except for source/target nodes: there nested nodes are assured to keep (non-)whitespaces (potentially collapsed/expanded)
-function pretty(doc: XmlDocument, options: Pick<Options, 'collapseWhitespace'>) {
-    removeWhitespace(doc, options);
+function pretty(doc: XmlDocument, options: Pick<Options, 'prettyNestedTags'>) {
+    removeWhitespace(doc);
     addPrettyWhitespace(doc, 0, options);
     return doc.toString({preserveWhitespace: true, compressed: true});
 }
@@ -204,16 +190,12 @@ function indentChildren(doc: XmlElement, indent: number) {
     updateFirstAndLastChild(doc);
 }
 
-function addPrettyWhitespace(doc: XmlElement, indent: number, options: Pick<Options, 'collapseWhitespace'>, sourceOrTarget = false) {
+function addPrettyWhitespace(doc: XmlElement, indent: number, options: Pick<Options, 'prettyNestedTags'>, sourceOrTarget = false) {
     if (isSourceOrTarget(doc) || sourceOrTarget) {
-        if (options.collapseWhitespace) {
-            if (doc.children.some(c => c.type === 'element')
-                // if every non-whitespace child is surrounded by whitespace: remove the whitespace and indent children:
-                && doc.children.every((c, i) => c.type !== 'element' || (i > 0 && isWhiteSpace(doc.children[i - 1]) && i < doc.children.length - 1 && isWhiteSpace(doc.children[i + 1])))) {
-                doc.children = doc.children.filter(c => !isWhiteSpace(c));
-                updateFirstAndLastChild(doc)
-                indentChildren(doc, indent);
-            }
+        if (options.prettyNestedTags && doc.children.length && doc.children.every(c => isWhiteSpace(c) || c.type === 'element')) {
+            doc.children = doc.children.filter(c => !isWhiteSpace(c));
+            updateFirstAndLastChild(doc)
+            indentChildren(doc, indent);
             doc.children.forEach(c => c.type === 'element' ? addPrettyWhitespace(c, indent + 1, options, true) : null);
         }
         return;

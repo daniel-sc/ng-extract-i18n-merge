@@ -49,7 +49,7 @@ describe('translationFileSerialization', () => {
                 source: ' source val ',
                 locations: []
             }], 'de', undefined);
-            expect(toXlf2(input, {collapseWhitespace: true})).toEqual(`<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">
+            expect(toXlf2(input, {prettyNestedTags: true})).toEqual(`<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">
   <file id="ngi18n" original="ng.template">
     <unit id="ID1">
       <segment>
@@ -65,7 +65,7 @@ describe('translationFileSerialization', () => {
                 source: 'source <b> <nested/></b>',
                 locations: []
             }], 'de', undefined);
-            expect(toXlf2(input, {collapseWhitespace: true})).toEqual(`<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">
+            expect(toXlf2(input, {prettyNestedTags: true})).toEqual(`<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">
   <file id="ngi18n" original="ng.template">
     <unit id="ID1">
       <segment>
@@ -75,13 +75,13 @@ describe('translationFileSerialization', () => {
   </file>
 </xliff>`);
         });
-        it('should wrap nested tags', () => {
+        it('should wrap nested tags with leading whitespace', () => {
             const input = new TranslationFile([{
                 id: 'ID1',
                 source: ' <nested1>a</nested1> <nested2>b</nested2> ',
                 locations: []
             }], 'de', undefined);
-            expect(toXlf2(input, {collapseWhitespace: true})).toEqual(`<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">
+            expect(toXlf2(input, {prettyNestedTags: true})).toEqual(`<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">
   <file id="ngi18n" original="ng.template">
     <unit id="ID1">
       <segment>
@@ -94,17 +94,68 @@ describe('translationFileSerialization', () => {
   </file>
 </xliff>`);
         });
-        it('should not wrap nested tags when collapseWhitespace=false', () => {
+        it('should wrap nested tags without leading whitespace', () => {
+            const input = new TranslationFile([{
+                id: 'ID1',
+                source: '<nested1>a</nested1><nested2>b</nested2>',
+                locations: []
+            }], 'de', undefined);
+            expect(toXlf2(input, {prettyNestedTags: true})).toEqual(`<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">
+  <file id="ngi18n" original="ng.template">
+    <unit id="ID1">
+      <segment>
+        <source>
+          <nested1>a</nested1>
+          <nested2>b</nested2>
+        </source>
+      </segment>
+    </unit>
+  </file>
+</xliff>`);
+        });
+        it('should not wrap nested tags when prettyNestedTags=false', () => {
             const input = new TranslationFile([{
                 id: 'ID1',
                 source: ' <nested1>a</nested1> <nested2>b</nested2> ',
                 locations: []
             }], 'de', undefined);
-            expect(toXlf2(input, {collapseWhitespace: false})).toEqual(`<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">
+            expect(toXlf2(input, {prettyNestedTags: false})).toEqual(`<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">
   <file id="ngi18n" original="ng.template">
     <unit id="ID1">
       <segment>
         <source> <nested1>a</nested1> <nested2>b</nested2> </source>
+      </segment>
+    </unit>
+  </file>
+</xliff>`);
+        });
+        it('should not wrap nested tags prefix text has no leading whitespace', () => {
+            const input = new TranslationFile([{
+                id: 'ID1',
+                source: 'prefix <nested1>a</nested1> <nested2>b</nested2> ',
+                locations: []
+            }], 'de', undefined);
+            expect(toXlf2(input, {prettyNestedTags: true})).toEqual(`<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">
+  <file id="ngi18n" original="ng.template">
+    <unit id="ID1">
+      <segment>
+        <source>prefix <nested1>a</nested1> <nested2>b</nested2> </source>
+      </segment>
+    </unit>
+  </file>
+</xliff>`);
+        });
+        it('should not wrap nested tags prefix text has leading whitespace', () => {
+            const input = new TranslationFile([{
+                id: 'ID1',
+                source: ' prefix <nested1>a</nested1> <nested2>b</nested2> ',
+                locations: []
+            }], 'de', undefined);
+            expect(toXlf2(input, {prettyNestedTags: true})).toEqual(`<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">
+  <file id="ngi18n" original="ng.template">
+    <unit id="ID1">
+      <segment>
+        <source> prefix <nested1>a</nested1> <nested2>b</nested2> </source>
       </segment>
     </unit>
   </file>
@@ -129,7 +180,7 @@ describe('translationFileSerialization', () => {
                     }
                 ]
             }], 'de', 'fr', '<?xml version="1.0" encoding="UTF-8"?>\n');
-            expect(toXlf2(input, {collapseWhitespace: true})).toEqual(`<?xml version="1.0" encoding="UTF-8"?>
+            expect(toXlf2(input, {prettyNestedTags: true})).toEqual(`<?xml version="1.0" encoding="UTF-8"?>
 <xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de" trgLang="fr">
   <file id="ngi18n" original="ng.template">
     <unit id="ID1">
@@ -157,7 +208,7 @@ describe('translationFileSerialization', () => {
                 target: 'target val',
                 locations: []
             }], 'de', undefined);
-            expect(toXlf1(input, {collapseWhitespace: true})).toEqual(`<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
+            expect(toXlf1(input, {prettyNestedTags: true})).toEqual(`<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
   <file source-language="de" datatype="plaintext" original="ng2.template">
     <body>
       <trans-unit id="ID1" datatype="html">
@@ -181,7 +232,7 @@ describe('translationFileSerialization', () => {
                     lineStart: 11
                 }]
             }], 'de', 'fr-ch', '<?xml version="1.0" encoding="UTF-8"?>\n');
-            expect(toXlf1(input, {collapseWhitespace: true})).toEqual(`<?xml version="1.0" encoding="UTF-8"?>
+            expect(toXlf1(input, {prettyNestedTags: true})).toEqual(`<?xml version="1.0" encoding="UTF-8"?>
 <xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
   <file source-language="de" target-language="fr-ch" datatype="plaintext" original="ng2.template">
     <body>
