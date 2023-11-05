@@ -445,7 +445,6 @@ describe('Builder', () => {
             });
 
     });
-    // TODO broken?
     test('should pretty print nested html tags without surrounding text', async () => {
         await runTest(
             {
@@ -453,7 +452,8 @@ describe('Builder', () => {
                     '  <file id="ngi18n" original="ng.template">\n' +
                     '    <unit id="ID1">\n' +
                     '      <segment>\n' +
-                    '        <source> <some-tag>a</some-tag> <another>b</another> </source>\n' +
+                    // simulate angular generated source without whitespace between tags:
+                    '        <source> <some-tag>a</some-tag><another>b</another> </source>\n' +
                     '      </segment>\n' +
                     '    </unit>\n' +
                     '  </file>\n' +
@@ -466,7 +466,10 @@ describe('Builder', () => {
                     '          <some-tag>a</some-tag>\n' +
                     '          <another>b</another>\n' +
                     '        </source>\n' +
-                    '        <target> <some-tag>content</some-tag> <another-tag>other</another-tag> </target>\n' +
+                    '        <target>\n' +
+                    '          <some-tag>content</some-tag>\n' +
+                    '          <another-tag>other</another-tag>\n' +
+                    '        </target>\n' +
                     '      </segment>\n' +
                     '    </unit>\n' +
                     '  </file>\n' +
