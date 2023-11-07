@@ -453,7 +453,7 @@ describe('Builder', () => {
                     '    <unit id="ID1">\n' +
                     '      <segment>\n' +
                     // simulate angular generated source without whitespace between tags:
-                    '        <source> <some-tag>a</some-tag><another>b</another> </source>\n' +
+                    '        <source><some-tag>a</some-tag><another>b</another></source>\n' +
                     '      </segment>\n' +
                     '    </unit>\n' +
                     '  </file>\n' +

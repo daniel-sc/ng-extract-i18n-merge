@@ -5,6 +5,10 @@ import {doCollapseWhitespace} from './stringUtils';
 
 const FUZZY_THRESHOLD = 0.2;
 
+function onlyXmlNodes(source: string): boolean {
+    return source.replace(/<[^>]+\/>|<([\w-]+)[^>]*>.*<\/\1>/g, '').trim() === '';
+}
+
 export class Merger {
 
     public readonly idMapping: { [id: string]: string } = {};
@@ -68,7 +72,7 @@ export class Merger {
 
     private normalize(source: string): string {
         if (this.options.collapseWhitespace ?? true) {
-            const adjusted = this.options.prettyNestedTags ?? true ? source.replace(/></g, '> <') : source;
+            const adjusted = (this.options.prettyNestedTags ?? true) && onlyXmlNodes(source) ? ` ${source.replace(/></g, '> <')} ` : source;
             return doCollapseWhitespace(adjusted);
         } else {
             return source;
