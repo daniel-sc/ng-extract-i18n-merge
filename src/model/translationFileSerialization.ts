@@ -1,5 +1,6 @@
 import {XmlDocument, XmlElement, XmlNode, XmlTextNode} from 'xmldoc';
 import {TranslationFile} from './translationFileModels';
+import {Options} from '../options';
 
 
 const XML_DECLARATION_MATCHER = /^<\?xml [^>]*>\s*/i;
@@ -66,7 +67,7 @@ function toString(...nodes: XmlNode[]): string {
     return nodes.map(n => n.toString({preserveWhitespace: true, compressed: true})).join('');
 }
 
-export function toXlf2(translationFile: TranslationFile): string {
+export function toXlf2(translationFile: TranslationFile, options: Pick<Options, 'prettyNestedTags'>): string {
     const doc = new XmlDocument(`<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="${translationFile.sourceLang}">
     <file id="ngi18n" original="ng.template">
     </file>
@@ -100,10 +101,10 @@ export function toXlf2(translationFile: TranslationFile): string {
         return u;
     });
     updateFirstAndLastChild(doc);
-    return (translationFile.xmlHeader ?? '') + pretty(doc);
+    return (translationFile.xmlHeader ?? '') + pretty(doc, options);
 }
 
-export function toXlf1(translationFile: TranslationFile): string {
+export function toXlf1(translationFile: TranslationFile, options: Pick<Options, 'prettyNestedTags'>): string {
     const doc = new XmlDocument(`<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
     <file source-language="${translationFile.sourceLang}"  datatype="plaintext" original="ng2.template">
     <body></body>
@@ -146,7 +147,7 @@ export function toXlf1(translationFile: TranslationFile): string {
         updateFirstAndLastChild(body);
         return transUnit;
     });
-    return (translationFile.xmlHeader ?? '') + pretty(doc);
+    return (translationFile.xmlHeader ?? '') + pretty(doc, options);
 }
 
 function updateFirstAndLastChild(u: XmlElement) {
@@ -154,40 +155,54 @@ function updateFirstAndLastChild(u: XmlElement) {
     u.lastChild = u.children[u.children.length - 1];
 }
 
-function isWhiteSpace(node: XmlNode): boolean {
+function isWhiteSpace(node: XmlNode): node is XmlTextNode {
     return node.type === 'text' && !!node.text.match(/^\s*$/);
 }
 
+function isSourceOrTarget<T extends XmlDocument | XmlElement>(node: T) {
+    return node.name === 'source' || node.name === 'target';
+}
 
-/// removes all whitespace text nodes that are not mixed with other nodes
+/// removes all whitespace text nodes that are not mixed with other nodes. For source/target nodes whitespace is unchanged.
 function removeWhitespace<T extends XmlDocument | XmlElement>(node: T): void {
-    if (node.type === 'element' && node.children.every(n => isWhiteSpace(n) || n.type !== 'text')) {
+    if (node.type === 'element' && isSourceOrTarget(node)) {
+        return;
+    }
+    if (node.type === 'element' && node.children.every(n => n.type !== 'text' || isWhiteSpace(n))) {
         node.children = node.children.filter(c => !isWhiteSpace(c));
         updateFirstAndLastChild(node);
     }
-    node.children.filter((n): n is XmlElement => n.type === 'element').forEach(removeWhitespace);
+    node.children.filter((n): n is XmlElement => n.type === 'element').forEach(e => removeWhitespace(e));
 }
 
-function pretty(doc: XmlDocument) {
+/// format with 2 spaces indentation, except for source/target nodes: there nested nodes are assured to keep (non-)whitespaces (potentially collapsed/expanded)
+function pretty(doc: XmlDocument, options: Pick<Options, 'prettyNestedTags'>) {
     removeWhitespace(doc);
-    addPrettyWhitespace(doc, 0);
+    addPrettyWhitespace(doc, 0, options);
     return doc.toString({preserveWhitespace: true, compressed: true});
 }
 
-function addPrettyWhitespace(doc: XmlElement, indent: number) {
-    // skip if mixed text and nodes:
-    if (doc.children.some(c => c.type === 'text')) {
+function indentChildren(doc: XmlElement, indent: number) {
+    for (let i = doc.children.length - 1; i >= 0; i--) {
+        doc.children.splice(i, 0, new XmlTextNode('\n' + '  '.repeat(indent + 1)))
+    }
+    doc.children.push(new XmlTextNode('\n' + '  '.repeat(indent)));
+    updateFirstAndLastChild(doc);
+}
+
+function addPrettyWhitespace(doc: XmlElement, indent: number, options: Pick<Options, 'prettyNestedTags'>, sourceOrTarget = false) {
+    if (isSourceOrTarget(doc) || sourceOrTarget) {
+        if (options.prettyNestedTags && doc.children.length && doc.children.every(c => isWhiteSpace(c) || c.type === 'element')) {
+            doc.children = doc.children.filter(c => !isWhiteSpace(c));
+            updateFirstAndLastChild(doc)
+            indentChildren(doc, indent);
+            doc.children.forEach(c => c.type === 'element' ? addPrettyWhitespace(c, indent + 1, options, true) : null);
+        }
         return;
     }
 
-    if (doc.children.length) {
-        for (let i = doc.children.length - 1; i >= 0; i--) {
-            doc.children.splice(i, 0, new XmlTextNode('\n' + '  '.repeat(indent + 1)))
-        }
-        doc.children.push(new XmlTextNode('\n' + '  '.repeat(indent)));
-        doc.firstChild = doc.children[0];
-        doc.lastChild = doc.children[doc.children.length - 1];
-
-        doc.children.forEach(c => c.type === 'element' ? addPrettyWhitespace(c, indent + 1) : null);
+    if (doc.children.length && doc.children.some(e => e.type === 'element')) {
+        indentChildren(doc, indent);
+        doc.children.forEach(c => c.type === 'element' ? addPrettyWhitespace(c, indent + 1, options) : null);
     }
 }

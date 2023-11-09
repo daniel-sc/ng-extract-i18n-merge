@@ -88,7 +88,8 @@ async function extractI18nMergeBuilder(options: Options, context: BuilderContext
     }
 
     function toXlf(output: TranslationFile): string {
-        return isXliffV2 ? toXlf2(output) : toXlf1(output);
+        const outputOptions = {prettyNestedTags: options.prettyNestedTags ?? true};
+        return isXliffV2 ? toXlf2(output, outputOptions) : toXlf1(output, outputOptions);
     }
 
     context.logger.info('running "extract-i18n" ...');

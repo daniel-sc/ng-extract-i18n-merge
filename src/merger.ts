@@ -5,6 +5,10 @@ import {doCollapseWhitespace} from './stringUtils';
 
 const FUZZY_THRESHOLD = 0.2;
 
+function onlyXmlNodes(source: string): boolean {
+    return source.replace(/<[^>]+\/>|<([\w-]+)[^>]*>.*<\/\1>/g, '').trim() === '';
+}
+
 export class Merger {
 
     public readonly idMapping: { [id: string]: string } = {};
@@ -66,11 +70,20 @@ export class Merger {
         return result.mapUnitsList(units => units.filter(unit => !removeNodes.includes(unit)));
     }
 
+    private normalize(source: string): string {
+        if (this.options.collapseWhitespace ?? true) {
+            const adjusted = (this.options.prettyNestedTags ?? true) && onlyXmlNodes(source) ? ` ${source.replace(/></g, '> <')} ` : source;
+            return doCollapseWhitespace(adjusted);
+        } else {
+            return source;
+        }
+    }
+
     /** Syncs `unit` to `destUnit` or adds `unit` as new, if `destUnit` is not given. */
     private handle(unit: TranslationUnit, destUnit: TranslationUnit | undefined, isSourceLang: boolean, removeNodes: TranslationUnit[]): TranslationUnit {
         if (destUnit) {
             let updatedDestUnit = destUnit;
-            if (this.options.collapseWhitespace ?? true ? doCollapseWhitespace(destUnit.source) !== doCollapseWhitespace(unit.source) : destUnit.source !== unit.source) {
+            if (this.normalize(destUnit.source) !== this.normalize(unit.source)) {
                 console.debug(`update element with id "${unit.id}" with new source: ${unit.source} (was: ${destUnit.source})`);
 
                 const syncSourceLang = isSourceLang && destUnit.source === destUnit.target; // sync source language only if target is unchanged
