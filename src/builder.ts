@@ -92,6 +92,16 @@ async function extractI18nMergeBuilder(options: Options, context: BuilderContext
         return isXliffV2 ? toXlf2(output, outputOptions) : toXlf1(output, outputOptions);
     }
 
+    function filterUnits(unit: TranslationUnit): boolean {
+        if (options.includeOnlyPrefix) {
+            return unit.id.startsWith(options.includeOnlyPrefix);
+        }
+        if (options.removeIdsWithPrefix) {
+            return !options.removeIdsWithPrefix?.some(removePrefix => unit.id.startsWith(removePrefix));
+        }
+        return true;
+    }
+
     context.logger.info('running "extract-i18n" ...');
     const sourcePath = join(normalize(outputPath), options.sourceFile ?? 'messages.xlf');
     const translationSourceFileOriginal = fromXlf(await readFileIfExists(sourcePath));
@@ -121,7 +131,7 @@ async function extractI18nMergeBuilder(options: Options, context: BuilderContext
     const removeContextSource = options.includeContext !== true && options.includeContext !== 'sourceFileOnly';
     const normalizedTranslationSourceFile = translationSourceFile.mapUnitsList(units => {
         const updatedUnits: TranslationUnit[] = units
-            .filter(unit => !options.removeIdsWithPrefix?.some(removePrefix => unit.id.startsWith(removePrefix)))
+            .filter(filterUnits)
             .map(unit => ({
                 ...unit,
                 source: mapper(unit.source),
@@ -152,7 +162,8 @@ async function extractI18nMergeBuilder(options: Options, context: BuilderContext
 
         const mergedTarget = merger.mergeWithMapping(translationTargetFile, isSourceLang);
         const normalizedTarget = mergedTarget.mapUnitsList(units => {
-            const updatedUnits = units.filter(unit => !options.removeIdsWithPrefix?.some(removePrefix => unit.id.startsWith(removePrefix)))
+            const updatedUnits = units
+                .filter(filterUnits)
                 .map(unit => ({
                     ...unit,
                     source: mapper(unit.source),

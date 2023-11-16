@@ -7,6 +7,7 @@ export interface Options extends JsonObject {
     targetFiles: string[],
     sourceLanguageTargetFile: string | null,
     removeIdsWithPrefix: string[] | null,
+    includeOnlyPrefix: string | null,
     fuzzyMatch: boolean,
     resetTranslationState: boolean,
     prettyNestedTags: boolean,
