@@ -42,7 +42,7 @@
       "description": "Remove translation units where the ID matches any of the given prefixes."
     },
     "includeIdsWithPrefix": {
-      "type": "string",
+      "type": "array",
       "items": {
         "type": "string"
       },
