@@ -1041,6 +1041,47 @@ describe('Builder', () => {
                     '</xliff>'
             });
     });
+    test('extract-and-merge xlf 1.2 with ampersand in meaning', async () => {
+        await runTest(
+            {
+                messagesBefore: '<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+                    '  <file source-language="de" datatype="plaintext" original="ng2.template">\n' +
+                    '    <body>\n' +
+                    '      <trans-unit id="ID1" datatype="html">\n' +
+                    '        <source>source &amp; val</source>\n' +
+                    '        <note priority="1" from="description">description &amp; and</note>\n' +
+                    '        <note priority="1" from="meaning">meaning &amp; and</note>\n' +
+                    '      </trans-unit>\n' +
+                    '    </body>\n' +
+                    '  </file>\n' +
+                    '</xliff>',
+                messagesFrBefore: '<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+                    '  <file source-language="de" target-language="fr-ch" datatype="plaintext" original="ng2.template">\n' +
+                    '    <body>\n' +
+                    '    </body>\n' +
+                    '  </file>\n' +
+                    '</xliff>',
+                options: {
+                    format: 'xlf',
+                    targetFiles: ['messages.fr.xlf'],
+                    outputPath: 'builder-test',
+                    includeContext: true,
+                    removeIdsWithPrefix: ['removeMe']
+                },
+                messagesFrExpected: '<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+                    '  <file source-language="de" target-language="fr-ch" datatype="plaintext" original="ng2.template">\n' +
+                    '    <body>\n' +
+                    '      <trans-unit id="ID1" datatype="html">\n' +
+                    '        <source>source &amp; val</source>\n' +
+                    '        <target state="new">source &amp; val</target>\n' +
+                    '        <note priority="1" from="description">description &amp; and</note>\n' +
+                    '        <note priority="1" from="meaning">meaning &amp; and</note>\n' +
+                    '      </trans-unit>\n' +
+                    '    </body>\n' +
+                    '  </file>\n' +
+                    '</xliff>'
+            });
+    });
     test('extract-and-merge xlf 1.2 with newTranslationTargetsBlank', async () => {
         await runTest(
             {

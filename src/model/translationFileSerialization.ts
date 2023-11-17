@@ -17,10 +17,10 @@ export function fromXlf2(xlf2: string): TranslationFile {
             return {
                 id: unit.attr.id,
                 source: toString(...segment.childNamed('source')!.children),
-                target: segment.childNamed('target') ? toString(...segment.childNamed('target')!.children) : undefined,
+                target: toStringOrUndefined(segment.childNamed('target')?.children),
                 state: segment.attr.state,
-                meaning: notes?.childWithAttribute('category', 'meaning')?.val,
-                description: notes?.childWithAttribute('category', 'description')?.val,
+                meaning: toStringOrUndefined(notes?.childWithAttribute('category', 'meaning')?.children),
+                description: toStringOrUndefined(notes?.childWithAttribute('category', 'description')?.children),
                 locations: notes?.children
                     .filter((n): n is XmlElement => n.type === 'element' && n.attr.category === 'location')
                     .map(note => {
@@ -49,10 +49,10 @@ export function fromXlf1(xlf1: string): TranslationFile {
             return {
                 id: unit.attr.id,
                 source: toString(...unit.childNamed('source')!.children),
-                target: target ? toString(...target.children) : undefined,
+                target: toStringOrUndefined(target?.children),
                 state: target?.attr.state,
-                meaning: notes?.find(note => note.attr.from === 'meaning')?.val,
-                description: notes?.find(note => note.attr.from === 'description')?.val,
+                meaning: toStringOrUndefined(notes?.find(note => note.attr.from === 'meaning')?.children),
+                description: toStringOrUndefined(notes?.find(note => note.attr.from === 'description')?.children),
                 locations: unit.childrenNamed('context-group')
                     .map(contextGroup => ({
                         file: contextGroup.childWithAttribute('context-type', 'sourcefile')!.val,
@@ -65,6 +65,10 @@ export function fromXlf1(xlf1: string): TranslationFile {
 
 function toString(...nodes: XmlNode[]): string {
     return nodes.map(n => n.toString({preserveWhitespace: true, compressed: true})).join('');
+}
+
+function toStringOrUndefined(nodes: XmlNode[] | undefined): string | undefined {
+    return nodes ? toString(...nodes) : undefined;
 }
 
 export function toXlf2(translationFile: TranslationFile, options: Pick<Options, 'prettyNestedTags'>): string {

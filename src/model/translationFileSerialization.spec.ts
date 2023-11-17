@@ -28,7 +28,7 @@ describe('translationFileSerialization', () => {
                 target: 'target val',
                 state: 'initial',
                 meaning: 'greeting',
-                description: 'Greeting message that includes the user\'s name.',
+                description: 'Greeting message that includes the user&apos;s name.',
                 locations: [
                     {
                         file: 'app/app.component.ts',
@@ -168,7 +168,7 @@ describe('translationFileSerialization', () => {
                 target: 'target val',
                 state: 'initial',
                 meaning: 'greeting',
-                description: 'Greeting message that includes the user\'s name.',
+                description: 'Greeting message that includes the user&apos;s name.',
                 locations: [
                     {
                         file: 'app/app.component.ts',
