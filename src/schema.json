@@ -41,6 +41,13 @@
       },
       "description": "Remove translation units where the ID matches any of the given prefixes."
     },
+    "includeIdsWithPrefix": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Include only translation units where the ID starts with given prefixes."
+    },
     "fuzzyMatch": {
       "type": "boolean",
       "default": true,

@@ -565,6 +565,62 @@ describe('Builder', () => {
                     '</xliff>'
             });
     });
+    test('extract-and-merge xlf 2.0 with includeIdsWithPrefix', async () => {
+        await runTest(
+            {
+                messagesBefore: '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">\n' +
+                    '  <file id="ngi18n" original="ng.template">\n' +
+                    '    <unit id="ID1">\n' +
+                    '      <segment>\n' +
+                    '        <source>source val</source>\n' +
+                    '      </segment>\n' +
+                    '    </unit>\n' +
+                    '    <unit id="ID2">\n' +
+                    '      <segment>\n' +
+                    '        <source>source val2</source>\n' +
+                    '      </segment>\n' +
+                    '    </unit>\n' +
+                    '    <unit id="removeMeID3">\n' +
+                    '      <segment>\n' +
+                    '        <source>source val2</source>\n' +
+                    '      </segment>\n' +
+                    '    </unit>\n' +
+                    '  </file>\n' +
+                    '</xliff>',
+                messagesFrBefore: '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">\n' +
+                    '  <file id="ngi18n" original="ng.template">\n' +
+                    '    <unit id="ID1">\n' +
+                    '      <segment>\n' +
+                    '        <source>source val</source>\n' +
+                    '        <target>target val</target>\n' +
+                    '      </segment>\n' +
+                    '    </unit>\n' +
+                    '  </file>\n' +
+                    '</xliff>',
+                options: {
+                    format: 'xlf2',
+                    targetFiles: ['messages.fr.xlf'],
+                    outputPath: 'builder-test',
+                    includeIdsWithPrefix: ['ID']
+                },
+                messagesFrExpected: '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">\n' +
+                    '  <file id="ngi18n" original="ng.template">\n' +
+                    '    <unit id="ID1">\n' +
+                    '      <segment>\n' +
+                    '        <source>source val</source>\n' +
+                    '        <target>target val</target>\n' +
+                    '      </segment>\n' +
+                    '    </unit>\n' +
+                    '    <unit id="ID2">\n' +
+                    '      <segment state="initial">\n' +
+                    '        <source>source val2</source>\n' +
+                    '        <target>source val2</target>\n' +
+                    '      </segment>\n' +
+                    '    </unit>\n' +
+                    '  </file>\n' +
+                    '</xliff>'
+            });
+    });
     test('extract-and-merge xlf 2.0 with specified sourceLanguageTargetFile', async () => {
         await fs.writeFile(MESSAGES_XLF_PATH, '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="en">\n' +
             '  <file id="ngi18n" original="ng.template">\n' +
