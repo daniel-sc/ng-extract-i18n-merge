@@ -565,7 +565,7 @@ describe('Builder', () => {
                     '</xliff>'
             });
     });
-    test('extract-and-merge xlf 2.0 with includeOnlyPrefix', async () => {
+    test('extract-and-merge xlf 2.0 with includeIdsWithPrefix', async () => {
         await runTest(
             {
                 messagesBefore: '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">\n' +
@@ -601,7 +601,7 @@ describe('Builder', () => {
                     format: 'xlf2',
                     targetFiles: ['messages.fr.xlf'],
                     outputPath: 'builder-test',
-                    includeOnlyPrefix: 'ID'
+                    includeIdsWithPrefix: ['ID']
                 },
                 messagesFrExpected: '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">\n' +
                     '  <file id="ngi18n" original="ng.template">\n' +

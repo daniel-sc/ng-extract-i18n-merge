@@ -41,10 +41,12 @@
       },
       "description": "Remove translation units where the ID matches any of the given prefixes."
     },
-    "includeOnlyPrefix": {
+    "includeIdsWithPrefix": {
       "type": "string",
-      "default": null,
-      "description": "Include only translation units where the ID starts with given prefix."
+      "items": {
+        "type": "string"
+      },
+      "description": "Include only translation units where the ID starts with given prefixes."
     },
     "fuzzyMatch": {
       "type": "boolean",

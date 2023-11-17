@@ -93,8 +93,8 @@ async function extractI18nMergeBuilder(options: Options, context: BuilderContext
     }
 
     function filterUnits(unit: TranslationUnit): boolean {
-        if (options.includeOnlyPrefix) {
-            return unit.id.startsWith(options.includeOnlyPrefix);
+        if (options.includeIdsWithPrefix) {
+            return options.includeIdsWithPrefix.some(includePrefix => unit.id.startsWith(includePrefix));
         }
         if (options.removeIdsWithPrefix) {
             return !options.removeIdsWithPrefix?.some(removePrefix => unit.id.startsWith(removePrefix));
