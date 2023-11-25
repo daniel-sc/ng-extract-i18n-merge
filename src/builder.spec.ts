@@ -1444,7 +1444,7 @@ describe('Builder', () => {
                         '  <file source-language="de" datatype="plaintext" original="ng2.template">\n' +
                         '    <body>\n' +
                         '      <trans-unit id="ID1" datatype="html">\n' +
-                        '        <source> source   val </source>\n' +
+                        '        <source> source   val \u00a0 x </source>\n' +
                         '      </trans-unit>\n' +
                         '    </body>\n' +
                         '  </file>\n' +
@@ -1465,7 +1465,7 @@ describe('Builder', () => {
                         '  <file source-language="de" datatype="plaintext" original="ng2.template">\n' +
                         '    <body>\n' +
                         '      <trans-unit id="ID1" datatype="html">\n' +
-                        '        <source> source val </source>\n' +
+                        '        <source> source val\u00a0x </source>\n' +
                         '      </trans-unit>\n' +
                         '    </body>\n' +
                         '  </file>\n' +
@@ -1474,8 +1474,8 @@ describe('Builder', () => {
                         '  <file source-language="de" target-language="fr-ch" datatype="plaintext" original="ng2.template">\n' +
                         '    <body>\n' +
                         '      <trans-unit id="ID1" datatype="html">\n' +
-                        '        <source> source val </source>\n' +
-                        '        <target state="new"> source val </target>\n' +
+                        '        <source> source val\u00a0x </source>\n' +
+                        '        <target state="new"> source val\u00a0x </target>\n' +
                         '      </trans-unit>\n' +
                         '    </body>\n' +
                         '  </file>\n' +
@@ -1491,7 +1491,7 @@ describe('Builder', () => {
                         '  <file source-language="de" datatype="plaintext" original="ng2.template">\n' +
                         '    <body>\n' +
                         '      <trans-unit id="ID1" datatype="html">\n' +
-                        '        <source> source   val </source>\n' +
+                        '        <source> source   val \u00a0 x </source>\n' +
                         '      </trans-unit>\n' +
                         '    </body>\n' +
                         '  </file>\n' +
@@ -1512,7 +1512,7 @@ describe('Builder', () => {
                         '  <file source-language="de" datatype="plaintext" original="ng2.template">\n' +
                         '    <body>\n' +
                         '      <trans-unit id="ID1" datatype="html">\n' +
-                        '        <source>source val</source>\n' +
+                        '        <source>source val\u00a0x</source>\n' +
                         '      </trans-unit>\n' +
                         '    </body>\n' +
                         '  </file>\n' +
@@ -1521,8 +1521,8 @@ describe('Builder', () => {
                         '  <file source-language="de" target-language="fr-ch" datatype="plaintext" original="ng2.template">\n' +
                         '    <body>\n' +
                         '      <trans-unit id="ID1" datatype="html">\n' +
-                        '        <source>source val</source>\n' +
-                        '        <target state="new">source val</target>\n' +
+                        '        <source>source val\u00a0x</source>\n' +
+                        '        <target state="new">source val\u00a0x</target>\n' +
                         '      </trans-unit>\n' +
                         '    </body>\n' +
                         '  </file>\n' +
@@ -1587,7 +1587,7 @@ describe('Builder', () => {
                         '  <file source-language="de" datatype="plaintext" original="ng2.template">\n' +
                         '    <body>\n' +
                         '      <trans-unit id="ID1" datatype="html">\n' +
-                        '        <source> source   val </source>\n' +
+                        '        <source> source   val \u00a0 x </source>\n' +
                         '      </trans-unit>\n' +
                         '    </body>\n' +
                         '  </file>\n' +
@@ -1607,7 +1607,7 @@ describe('Builder', () => {
                         '  <file source-language="de" datatype="plaintext" original="ng2.template">\n' +
                         '    <body>\n' +
                         '      <trans-unit id="ID1" datatype="html">\n' +
-                        '        <source> source   val </source>\n' +
+                        '        <source> source   val \u00a0 x </source>\n' +
                         '      </trans-unit>\n' +
                         '    </body>\n' +
                         '  </file>\n' +
@@ -1616,8 +1616,8 @@ describe('Builder', () => {
                         '  <file source-language="de" target-language="fr-ch" datatype="plaintext" original="ng2.template">\n' +
                         '    <body>\n' +
                         '      <trans-unit id="ID1" datatype="html">\n' +
-                        '        <source> source   val </source>\n' +
-                        '        <target state="new"> source   val </target>\n' +
+                        '        <source> source   val \u00a0 x </source>\n' +
+                        '        <target state="new"> source   val \u00a0 x </target>\n' +
                         '      </trans-unit>\n' +
                         '    </body>\n' +
                         '  </file>\n' +
@@ -1633,7 +1633,7 @@ describe('Builder', () => {
                         '  <file source-language="de" datatype="plaintext" original="ng2.template">\n' +
                         '    <body>\n' +
                         '      <trans-unit id="ID1" datatype="html">\n' +
-                        '        <source> source   val </source>\n' +
+                        '        <source> source   val \u00a0 x </source>\n' +
                         '      </trans-unit>\n' +
                         '    </body>\n' +
                         '  </file>\n' +
@@ -1653,7 +1653,7 @@ describe('Builder', () => {
                         '  <file source-language="de" datatype="plaintext" original="ng2.template">\n' +
                         '    <body>\n' +
                         '      <trans-unit id="ID1" datatype="html">\n' +
-                        '        <source> source val </source>\n' +
+                        '        <source> source val\u00a0x </source>\n' +
                         '      </trans-unit>\n' +
                         '    </body>\n' +
                         '  </file>\n' +
@@ -1662,8 +1662,8 @@ describe('Builder', () => {
                         '  <file source-language="de" target-language="fr-ch" datatype="plaintext" original="ng2.template">\n' +
                         '    <body>\n' +
                         '      <trans-unit id="ID1" datatype="html">\n' +
-                        '        <source> source val </source>\n' +
-                        '        <target state="new"> source val </target>\n' +
+                        '        <source> source val\u00a0x </source>\n' +
+                        '        <target state="new"> source val\u00a0x </target>\n' +
                         '      </trans-unit>\n' +
                         '    </body>\n' +
                         '  </file>\n' +
