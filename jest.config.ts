@@ -1,7 +1,7 @@
-import type {Config} from '@jest/types';
+import {JestConfigWithTsJest} from 'ts-jest';
 
 // Sync object
-const config: Config.InitialOptions = {
+const config: JestConfigWithTsJest = {
     preset: 'ts-jest',
     testEnvironment: 'node',
     verbose: false,
@@ -9,6 +9,5 @@ const config: Config.InitialOptions = {
     testRegex: '.*\.spec\.ts$',
     collectCoverageFrom: ['src/**/*.ts'], // exclude coverage from schematic as it only collects from js (instead of ts)..
     coveragePathIgnorePatterns: ['src/rmSafe.ts'],
-
 };
 export default config;

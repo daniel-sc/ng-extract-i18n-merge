@@ -4,8 +4,13 @@ import * as path from 'path';
 import {Schema as WorkspaceOptions} from '@schematics/angular/workspace/schema';
 import {Schema as ApplicationOptions, Style} from '@schematics/angular/application/schema';
 import {Tree} from '@angular-devkit/schematics';
+import * as extractI18nSchema from '@angular-devkit/build-angular/src/builders/extract-i18n/schema.json';
 
 const collectionPath = path.join(__dirname, '../collection.json');
+
+async function getBuildTargetAttribute() {
+    return extractI18nSchema.properties.buildTarget ? 'buildTarget' : 'browserTarget';
+}
 
 const workspaceOptions: WorkspaceOptions = {
     name: 'workspace',
@@ -46,11 +51,12 @@ describe('ngAdd', () => {
     });
 
     it('works', async () => {
+        const buildTargetAttribute = await getBuildTargetAttribute();
         const tree = await runSchematic(runner, 'ng-add', {}, appTree);
         expect(norm(tree.readContent('/angular.json'))).toContain(norm('"extract-i18n": {\n' +
             '          "builder": "ng-extract-i18n-merge:ng-extract-i18n-merge",\n' +
             '          "options": {\n' +
-            '            "browserTarget": "bar:build",\n' +
+            '            "' + buildTargetAttribute + '": "bar:build",\n' +
             '            "format": "xlf2",\n' +
             '            "outputPath": "src/locales",\n' +
             '            "targetFiles": []\n' +
@@ -72,11 +78,11 @@ describe('ngAdd', () => {
         appTree.overwrite('/angular.json', JSON.stringify(angularJson));
 
         const tree = await runSchematic(runner, 'ng-add', {}, appTree);
-
+        const buildTargetAttribute = await getBuildTargetAttribute();
         expect(norm(tree.readContent('/angular.json'))).toContain(norm('"extract-i18n": {\n' +
             '          "builder": "ng-extract-i18n-merge:ng-extract-i18n-merge",\n' +
             '          "options": {\n' +
-            '            "browserTarget": "bar:build",\n' +
+            '            "' + buildTargetAttribute + '": "bar:build",\n' +
             '            "format": "xlf",\n' +
             '            "outputPath": "src/other-path",\n' +
             '            "targetFiles": [ "messages.fr.xlf" ]\n' +
@@ -105,11 +111,11 @@ describe('ngAdd', () => {
         appTree.create('/src/some-path/my-messages.xlf', '<>');
 
         const tree = await runSchematic(runner, 'ng-add', {}, appTree);
-
+        const buildTargetAttribute = await getBuildTargetAttribute();
         expect(norm(tree.readContent('/angular.json'))).toContain(norm('"extract-i18n": {\n' +
             '          "builder": "ng-extract-i18n-merge:ng-extract-i18n-merge",\n' +
             '          "options": {\n' +
-            '            "browserTarget": "bar:build",\n' +
+            '            "' + buildTargetAttribute + '": "bar:build",\n' +
             '            "format": "xlf",\n' +
             '            "outputPath": "src/some-path",\n' +
             '            "targetFiles": [ "../other-path/messages.fr.xlf" ],\n' +
@@ -131,11 +137,11 @@ describe('ngAdd', () => {
         appTree.overwrite('/angular.json', JSON.stringify(angularJson));
 
         const tree = await runSchematic(runner, 'ng-add', {}, appTree);
-
+        const buildTargetAttribute = await getBuildTargetAttribute();
         expect(norm(tree.readContent('/angular.json'))).toContain(norm('"extract-i18n": {\n' +
             '          "builder": "ng-extract-i18n-merge:ng-extract-i18n-merge",\n' +
             '          "options": {\n' +
-            '            "browserTarget": "bar:build",\n' +
+            '            "' + buildTargetAttribute + '": "bar:build",\n' +
             '            "format": "xlf",\n' +
             '            "outputPath": "src/other-path",\n' +
             '            "targetFiles": [ "messages.fr.xlf" ]\n' +
@@ -153,11 +159,11 @@ describe('ngAdd', () => {
         appTree.overwrite('/angular.json', JSON.stringify(angularJson));
 
         const tree = await runSchematic(runner, 'ng-add', {}, appTree);
-
+        const buildTargetAttribute = await getBuildTargetAttribute();
         expect(norm(tree.readContent('/angular.json'))).toContain(norm('"extract-i18n": {\n' +
             '          "builder": "ng-extract-i18n-merge:ng-extract-i18n-merge",\n' +
             '          "options": {\n' +
-            '            "browserTarget": "bar:build",\n' +
+            '            "' + buildTargetAttribute + '": "bar:build",\n' +
             '            "format": "xlf",\n' +
             '            "outputPath": "src/other-path",\n' +
             '            "targetFiles": [ "messages.fr.xlf" ]\n' +
@@ -181,11 +187,11 @@ describe('ngAdd', () => {
         appTree.overwrite('/angular.json', JSON.stringify(angularJson));
 
         const tree = await runSchematic(runner, 'ng-add', {}, appTree);
-
+        const buildTargetAttribute = await getBuildTargetAttribute();
         expect(norm(tree.readContent('/angular.json'))).toContain(norm('"extract-i18n": {\n' +
             '          "builder": "ng-extract-i18n-merge:ng-extract-i18n-merge",\n' +
             '          "options": {\n' +
-            '            "browserTarget": "bar:build",\n' +
+            '            "' + buildTargetAttribute + '": "bar:build",\n' +
             '            "format": "xlf",\n' +
             '            "outputPath": "src/other-path",\n' +
             '            "targetFiles": [ "messages.fr.xlf" ]\n' +
@@ -210,11 +216,11 @@ describe('ngAdd', () => {
         appTree.overwrite('/angular.json', JSON.stringify(angularJson));
 
         const tree = await runSchematic(runner, 'ng-add', {}, appTree);
-
+        const buildTargetAttribute = await getBuildTargetAttribute();
         expect(norm(tree.readContent('/angular.json'))).toContain(norm('"extract-i18n": {\n' +
             '          "builder": "ng-extract-i18n-merge:ng-extract-i18n-merge",\n' +
             '          "options": {\n' +
-            '            "browserTarget": "bar:build",\n' +
+            '            "' + buildTargetAttribute + '": "bar:build",\n' +
             '            "format": "xlf2",\n' +
             '            "outputPath": "src/other-path",\n' +
             '            "targetFiles": [ "messages.fr.xlf" ]\n' +
