@@ -16,13 +16,13 @@ jobs:
     strategy:
       matrix:
         node-version: [14.x, 16.x, 18.x, 20.x]
-        angular-version: [13.1.4, 14.0.2, 15.0.3, 16.2.1, 17.0.0]
+        angular-version: [13.1.3, 14.0.2, 15.0.3, 16.2.1, 17.0.0]
         exclude:
           - node-version: 18.x
           - node-version: 20.x
           - angular-version: 17.0.0
         include:
-          - angular-version: 13.1.4
+          - angular-version: 13.1.3
             devkit-version: 0.1301.4
           - angular-version: 14.0.2
             devkit-version: 0.1400.2
