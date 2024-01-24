@@ -8,7 +8,7 @@ import {TranslationFile, TranslationUnit} from './model/translationFileModels';
 import {Merger} from './merger';
 import {Options} from './options';
 import {doCollapseWhitespace} from './stringUtils';
-import {VERSION} from "@angular/core";
+import {VERSION} from '@angular/core';
 
 
 const STATE_INITIAL_XLF_2_0 = 'initial';
