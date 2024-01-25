@@ -16,7 +16,9 @@ export interface Options extends JsonObject {
     includeContext: boolean | 'sourceFileOnly',
     newTranslationTargetsBlank: boolean | 'omit',
     sort: 'idAsc' | 'stableAppendNew' | 'stableAlphabetNew',
-    browserTarget: string,
+    /** @deprecated use `buildTarget` instead */
+    browserTarget: string | null,
+    buildTarget: string | null,
     builderI18n: string,
     verbose: boolean
 }

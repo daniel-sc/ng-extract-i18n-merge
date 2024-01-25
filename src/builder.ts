@@ -108,9 +108,9 @@ async function extractI18nMergeBuilder(options: Options, context: BuilderContext
     const translationSourceFileOriginal = fromXlf(await readFileIfExists(sourcePath));
 
     const angularMajorVersion = parseInt(VERSION.major);
-    const targetAttribute = angularMajorVersion >= 17 ? 'buildTarget' : 'browserTarget';
+    const buildTargetAttribute = angularMajorVersion >= 17 ? 'buildTarget' : 'browserTarget';
     const extractI18nRun = await context.scheduleBuilder(options.builderI18n ?? '@angular-devkit/build-angular:extract-i18n', {
-        [targetAttribute]: options.browserTarget,
+        [buildTargetAttribute]: options.browserTarget ?? options.buildTarget,
         outputPath: dirname(sourcePath),
         outFile: basename(sourcePath),
         format,

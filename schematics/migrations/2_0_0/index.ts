@@ -1,5 +1,6 @@
 import {Rule, SchematicContext, SchematicsException, Tree} from '@angular-devkit/schematics';
 import {updateWorkspace} from '@schematics/angular/utility/workspace';
+import {VERSION} from '@angular/core';
 
 function updateNpmScript(tree: Tree, logger: SchematicContext['logger']) {
     const pkgPath = '/package.json';
@@ -28,11 +29,13 @@ export default function (): Rule {
                 const i18nMergeTarget = project.targets.get('extract-i18n-merge');
                 if (i18nMergeTarget) {
                     context.logger.info(`updating extract-i18n(-merge) targets for project ${projectName}..`)
+                    const angularMajorVersion = parseInt(VERSION.major);
+                    const buildTargetAttribute = angularMajorVersion >= 17 ? 'buildTarget' : 'browserTarget';
                     const i18nTarget = {...(project.targets.get('extract-i18n') ?? {builder: 'ng-extract-i18n-merge:ng-extract-i18n-merge'})};
                     i18nTarget.builder = 'ng-extract-i18n-merge:ng-extract-i18n-merge';
                     i18nTarget.options = {
                         ...i18nMergeTarget.options,
-                        browserTarget: i18nTarget.options?.browserTarget ?? `${projectName}:build`
+                        [buildTargetAttribute]: i18nTarget.options?.browserTarget ?? i18nTarget.options?.buildTarget ?? `${projectName}:build`
                     }
                     project.targets.delete('extract-i18n'); // 'project.targets.set' not working!?
                     project.targets.add({name: 'extract-i18n', ...i18nTarget});

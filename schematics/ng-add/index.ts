@@ -4,6 +4,7 @@ import {Schema} from './schema';
 import {JsonArray, JsonObject, normalize, Path, relative} from '@angular-devkit/core';
 
 import {Options} from '../../src/options';
+import {VERSION} from '@angular/core';
 
 function getTargetFiles(i18nExtension: JsonObject | undefined): string[] {
     const locales = i18nExtension?.locales ? (Object.values(i18nExtension?.locales) as JsonArray | string[] | undefined) : undefined;
@@ -81,7 +82,7 @@ export function ngAdd(_options: Schema): Rule {
             const outputPath = normalize(outputPathFromExtractI18nOptions ?? outputPathFromTargetFiles ?? 'src/locales');
             context.logger.info(`inferred output path: ${outputPath}`);
 
-            const browserTarget = existingI18nTargetOptions?.browserTarget as string | undefined ?? `${projectName}:build`;
+            const buildTarget = existingI18nTargetOptions?.browserTarget as string | undefined ?? existingI18nTargetOptions?.buildTarget as string | undefined ?? `${projectName}:build`;
 
             // infer format:
             const formatFromExtractI18nOptions = existingI18nTargetOptions?.format as Options['format'] | undefined;
@@ -93,8 +94,10 @@ export function ngAdd(_options: Schema): Rule {
             const filesWithoutOutputPath = files?.map(f => relative(`/${outputPath}` as Path, `/${f}` as Path));
 
             const target = projectWorkspace.targets.get('extract-i18n');
+            const angularMajorVersion = parseInt(VERSION.major);
+            const buildTargetAttribute = angularMajorVersion >= 17 ? 'buildTarget' : 'browserTarget';
             const builderOptions: Partial<Options> = {
-                browserTarget,
+                [buildTargetAttribute]: buildTarget,
                 format,
                 outputPath,
                 targetFiles: filesWithoutOutputPath ?? []
