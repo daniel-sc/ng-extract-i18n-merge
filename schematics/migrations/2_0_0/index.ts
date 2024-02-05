@@ -1,5 +1,6 @@
 import {Rule, SchematicContext, SchematicsException, Tree} from '@angular-devkit/schematics';
 import {updateWorkspace} from '@schematics/angular/utility/workspace';
+import {VERSION} from '@angular/core';
 
 function updateNpmScript(tree: Tree, logger: SchematicContext['logger']) {
     const pkgPath = '/package.json';
@@ -24,7 +25,6 @@ export default function (): Rule {
     return (tree: Tree, context: SchematicContext) => {
         updateNpmScript(tree, context.logger);
         return updateWorkspace(async (workspace) => {
-            const {VERSION} = await import('@angular/core');
             workspace.projects.forEach((project, projectName) => {
                 const i18nMergeTarget = project.targets.get('extract-i18n-merge');
                 if (i18nMergeTarget) {
