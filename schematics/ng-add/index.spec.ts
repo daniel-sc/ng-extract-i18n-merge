@@ -4,11 +4,16 @@ import * as path from 'path';
 import {Schema as WorkspaceOptions} from '@schematics/angular/workspace/schema';
 import {Schema as ApplicationOptions, Style} from '@schematics/angular/application/schema';
 import {Tree} from '@angular-devkit/schematics';
-import {VERSION} from '@angular/core';
+import {loadEsmModule} from "@angular-devkit/architect/node";
+import {Version} from '@angular/core';
 
 const collectionPath = path.join(__dirname, '../collection.json');
-const angularMajorVersion = parseInt(VERSION.major);
-const buildTargetAttribute = angularMajorVersion >= 17 ? 'buildTarget' : 'browserTarget';
+
+async function getBuildTargetAttribute() {
+    const {VERSION} = (await loadEsmModule<{VERSION: Version}>('@angular/core'));
+    const angularMajorVersion = parseInt(VERSION.major);
+    return angularMajorVersion >= 17 ? 'buildTarget' : 'browserTarget';
+}
 
 const workspaceOptions: WorkspaceOptions = {
     name: 'workspace',
@@ -49,6 +54,7 @@ describe('ngAdd', () => {
     });
 
     it('works', async () => {
+        const buildTargetAttribute = await getBuildTargetAttribute();
         const tree = await runSchematic(runner, 'ng-add', {}, appTree);
         expect(norm(tree.readContent('/angular.json'))).toContain(norm('"extract-i18n": {\n' +
             '          "builder": "ng-extract-i18n-merge:ng-extract-i18n-merge",\n' +
@@ -75,7 +81,7 @@ describe('ngAdd', () => {
         appTree.overwrite('/angular.json', JSON.stringify(angularJson));
 
         const tree = await runSchematic(runner, 'ng-add', {}, appTree);
-
+        const buildTargetAttribute = await getBuildTargetAttribute();
         expect(norm(tree.readContent('/angular.json'))).toContain(norm('"extract-i18n": {\n' +
             '          "builder": "ng-extract-i18n-merge:ng-extract-i18n-merge",\n' +
             '          "options": {\n' +
@@ -108,7 +114,7 @@ describe('ngAdd', () => {
         appTree.create('/src/some-path/my-messages.xlf', '<>');
 
         const tree = await runSchematic(runner, 'ng-add', {}, appTree);
-
+        const buildTargetAttribute = await getBuildTargetAttribute();
         expect(norm(tree.readContent('/angular.json'))).toContain(norm('"extract-i18n": {\n' +
             '          "builder": "ng-extract-i18n-merge:ng-extract-i18n-merge",\n' +
             '          "options": {\n' +
@@ -134,7 +140,7 @@ describe('ngAdd', () => {
         appTree.overwrite('/angular.json', JSON.stringify(angularJson));
 
         const tree = await runSchematic(runner, 'ng-add', {}, appTree);
-
+        const buildTargetAttribute = await getBuildTargetAttribute();
         expect(norm(tree.readContent('/angular.json'))).toContain(norm('"extract-i18n": {\n' +
             '          "builder": "ng-extract-i18n-merge:ng-extract-i18n-merge",\n' +
             '          "options": {\n' +
@@ -156,7 +162,7 @@ describe('ngAdd', () => {
         appTree.overwrite('/angular.json', JSON.stringify(angularJson));
 
         const tree = await runSchematic(runner, 'ng-add', {}, appTree);
-
+        const buildTargetAttribute = await getBuildTargetAttribute();
         expect(norm(tree.readContent('/angular.json'))).toContain(norm('"extract-i18n": {\n' +
             '          "builder": "ng-extract-i18n-merge:ng-extract-i18n-merge",\n' +
             '          "options": {\n' +
@@ -184,7 +190,7 @@ describe('ngAdd', () => {
         appTree.overwrite('/angular.json', JSON.stringify(angularJson));
 
         const tree = await runSchematic(runner, 'ng-add', {}, appTree);
-
+        const buildTargetAttribute = await getBuildTargetAttribute();
         expect(norm(tree.readContent('/angular.json'))).toContain(norm('"extract-i18n": {\n' +
             '          "builder": "ng-extract-i18n-merge:ng-extract-i18n-merge",\n' +
             '          "options": {\n' +
@@ -213,7 +219,7 @@ describe('ngAdd', () => {
         appTree.overwrite('/angular.json', JSON.stringify(angularJson));
 
         const tree = await runSchematic(runner, 'ng-add', {}, appTree);
-
+        const buildTargetAttribute = await getBuildTargetAttribute();
         expect(norm(tree.readContent('/angular.json'))).toContain(norm('"extract-i18n": {\n' +
             '          "builder": "ng-extract-i18n-merge:ng-extract-i18n-merge",\n' +
             '          "options": {\n' +

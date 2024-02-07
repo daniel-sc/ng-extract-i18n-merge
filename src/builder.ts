@@ -8,6 +8,8 @@ import {TranslationFile, TranslationUnit} from './model/translationFileModels';
 import {Merger} from './merger';
 import {Options} from './options';
 import {doCollapseWhitespace} from './stringUtils';
+import {loadEsmModule} from '@angular-devkit/architect/node';
+import {Version} from '@angular/core';
 
 
 const STATE_INITIAL_XLF_2_0 = 'initial';
@@ -106,7 +108,7 @@ async function extractI18nMergeBuilder(options: Options, context: BuilderContext
     const sourcePath = join(normalize(outputPath), options.sourceFile ?? 'messages.xlf');
     const translationSourceFileOriginal = fromXlf(await readFileIfExists(sourcePath));
 
-    const {VERSION} = await import('@angular/core');
+    const {VERSION} = (await loadEsmModule<{VERSION: Version}>('@angular/core'));
     const angularMajorVersion = parseInt(VERSION.major);
     const buildTargetAttribute = angularMajorVersion >= 17 ? 'buildTarget' : 'browserTarget';
     const extractI18nRun = await context.scheduleBuilder(options.builderI18n ?? '@angular-devkit/build-angular:extract-i18n', {

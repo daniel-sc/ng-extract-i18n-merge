@@ -2,7 +2,7 @@ import {JestConfigWithTsJest} from 'ts-jest';
 
 // Sync object
 const config: JestConfigWithTsJest = {
-    preset: 'ts-jest/presets/js-with-ts-esm',
+    preset: 'ts-jest',
     testEnvironment: 'node',
     verbose: false,
     testMatch: undefined,

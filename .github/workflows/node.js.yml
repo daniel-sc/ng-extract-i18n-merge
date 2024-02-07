@@ -51,7 +51,7 @@ jobs:
     - run: npm i
     - run: npm ls || true
     - run: npm run build
-    - run: npm run test-coverage
+    - run: NODE_OPTIONS=--experimental-vm-modules npm run test-coverage
     - name: Coveralls
       uses: coverallsapp/github-action@v1.1.2
       with:
