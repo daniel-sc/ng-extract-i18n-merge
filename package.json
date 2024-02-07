@@ -3,10 +3,6 @@
   "version": "2.10.0-2",
   "description": "Extract and merge i18n xliff translation files for angular projects.",
   "main": "index.js",
-  "type": "module",
-  "exports": {
-    ".": "./index.js"
-  },
   "builders": "builders.json",
   "schematics": "./schematics/collection.json",
   "ng-add": {
