@@ -1,7 +1,7 @@
 import {Rule, SchematicContext, SchematicsException, Tree} from '@angular-devkit/schematics';
 import {updateWorkspace} from '@schematics/angular/utility/workspace';
-import {loadEsmModule} from '@angular-devkit/architect/node';
 import {Version} from '@angular/core';
+import {loadEsmModule} from '../../../src/loadEsmModule';
 
 function updateNpmScript(tree: Tree, logger: SchematicContext['logger']) {
     const pkgPath = '/package.json';

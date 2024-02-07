@@ -4,7 +4,7 @@ import {Schema} from './schema';
 import {JsonArray, JsonObject, normalize, Path, relative} from '@angular-devkit/core';
 
 import {Options} from '../../src/options';
-import {loadEsmModule} from '@angular-devkit/architect/node';
+import {loadEsmModule} from '../../src/loadEsmModule';
 import {Version} from '@angular/core';
 
 function getTargetFiles(i18nExtension: JsonObject | undefined): string[] {

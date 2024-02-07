@@ -8,8 +8,8 @@ import {TranslationFile, TranslationUnit} from './model/translationFileModels';
 import {Merger} from './merger';
 import {Options} from './options';
 import {doCollapseWhitespace} from './stringUtils';
-import {loadEsmModule} from '@angular-devkit/architect/node';
 import {Version} from '@angular/core';
+import {loadEsmModule} from './loadEsmModule';
 
 
 const STATE_INITIAL_XLF_2_0 = 'initial';
