@@ -4,7 +4,7 @@ import * as path from 'path';
 import {Schema as WorkspaceOptions} from '@schematics/angular/workspace/schema';
 import {Schema as ApplicationOptions, Style} from '@schematics/angular/application/schema';
 import {Tree} from '@angular-devkit/schematics';
-import {loadEsmModule} from "@angular-devkit/architect/node";
+import {loadEsmModule} from '../../src/loadEsmModule';
 import {Version} from '@angular/core';
 
 const collectionPath = path.join(__dirname, '../collection.json');
