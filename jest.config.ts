@@ -6,7 +6,7 @@ const config: JestConfigWithTsJest = {
     testEnvironment: 'node',
     verbose: false,
     maxWorkers: 100,
-    maxConcurrency: 100,
+    maxConcurrency: 1,
     testTimeout: 30_000,
     testMatch: undefined,
     testRegex: '.*\.spec\.ts$',
