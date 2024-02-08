@@ -11,6 +11,7 @@ export interface Options extends JsonObject {
     fuzzyMatch: boolean,
     resetTranslationState: boolean,
     prettyNestedTags: boolean,
+    sortNestedTagAttributes: boolean,
     collapseWhitespace: boolean,
     trim: boolean,
     includeContext: boolean | 'sourceFileOnly',
