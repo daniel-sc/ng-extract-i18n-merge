@@ -271,6 +271,24 @@ describe('translationFileSerialization', () => {
             }], 'de', undefined, undefined));
         });
 
+        it('should parse xml with placeholder and sorting', () => {
+            const xlf1 = `<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
+  <file source-language="de" datatype="plaintext" original="ng2.template">
+    <body>
+      <trans-unit id="ID1" datatype="html">
+        <source>Some text <ph id="0" equiv="INTERPOLATION" disp="{{ myLabel }}"/></source>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>`;
+            const translationFile = fromXlf1(xlf1, { sortNestedTagAttributes: true });
+            expect(translationFile).toEqual(new TranslationFile([{
+                id: 'ID1',
+                source: 'Some text <ph disp="{{ myLabel }}" equiv="INTERPOLATION" id="0"/>',
+                locations: []
+            }], 'de', undefined, undefined));
+        });
+
         it('should parse xlf1', () => {
             const xlf1 = `<?xml version="1.0" encoding="UTF-8"?>
 <xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">

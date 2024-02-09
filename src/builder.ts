@@ -84,7 +84,9 @@ async function extractI18nMergeBuilder(options: Options, context: BuilderContext
     function fromXlf(input: string): TranslationFile;
     function fromXlf(input: string | undefined | null): TranslationFile | undefined;
     function fromXlf(input: string | undefined | null): TranslationFile | undefined {
-        return (input !== undefined && input !== null) ? (isXliffV2 ? fromXlf2(input) : fromXlf1(input)) : undefined;
+        const inputOptions = { sortNestedTagAttributes: options.sortNestedTagAttributes ?? false };
+        return (input !== undefined && input !== null) ? (isXliffV2 ?
+            fromXlf2(input, inputOptions) : fromXlf1(input, inputOptions)) : undefined;
     }
 
     function toXlf(output: TranslationFile): string {

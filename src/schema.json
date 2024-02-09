@@ -86,6 +86,11 @@
       "default": true,
       "description": "If source/target only contains xml nodes (interpolations, nested html), `true` formats these with line breaks and indentation. `false` keeps the original angular single line format. Note: while `true` was the historic implementation, it is _not_ recommended, as it adds whitespace between tags that had no whitespace in between and increases bundle sizes."
     },
+    "sortNestedTagAttributes": {
+      "type": "boolean",
+      "default": false,
+      "description": "Attributes of xml nodes (interpolations, nested html) in source/target/meaning/description can be sorted for normalization."
+    },
     "collapseWhitespace": {
       "type": "boolean",
       "default": true,
