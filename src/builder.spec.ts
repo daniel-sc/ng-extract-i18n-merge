@@ -995,6 +995,52 @@ describe('Builder', () => {
             });
     });
 
+    test('keep meaning with includeContext=false', async () => {
+        await runTest(
+            {
+                messagesBefore: '<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+                    '  <file source-language="de" datatype="plaintext" original="ng2.template">\n' +
+                    '    <body>\n' +
+                    '      <trans-unit id="ID1" datatype="html">\n' +
+                    '        <source>source val</source>\n' +
+                    '        <context-group purpose="location">\n' +
+                    '          <context context-type="sourcefile">src/app/app.component.html</context>\n' +
+                    '          <context context-type="linenumber">182,183</context>\n' +
+                    '        </context-group>\n' +
+                    '        <note priority="1" from="description">An introduction header for this sample</note>\n' +
+                    '        <note priority="1" from="meaning">User welcome</note>\n' +
+                    '      </trans-unit>\n' +
+                    '    </body>\n' +
+                    '  </file>\n' +
+                    '</xliff>',
+                options: {
+                },
+                messagesExpected:'<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+                    '  <file source-language="de" datatype="plaintext" original="ng2.template">\n' +
+                    '    <body>\n' +
+                    '      <trans-unit id="ID1" datatype="html">\n' +
+                    '        <source>source val</source>\n' +
+                    '        <note priority="1" from="description">An introduction header for this sample</note>\n' +
+                    '        <note priority="1" from="meaning">User welcome</note>\n' +
+                    '      </trans-unit>\n' +
+                    '    </body>\n' +
+                    '  </file>\n' +
+                    '</xliff>',
+                messagesFrBefore: '<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+                    '  <file source-language="de" datatype="plaintext" original="ng2.template">\n' +
+                    '    <body>\n' +
+                    '      <trans-unit id="ID1" datatype="html">\n' +
+                    '        <source>source val</source>\n' +
+                    '        <target>source val</target>\n' +
+                    '        <note priority="1" from="description">An introduction header for this sample</note>\n' +
+                    '        <note priority="1" from="meaning">User welcome</note>\n' +
+                    '      </trans-unit>\n' +
+                    '    </body>\n' +
+                    '  </file>\n' +
+                    '</xliff>',
+            });
+    });
+
     test('extract-and-merge xlf 1.2 with updated note', async () => {
         await runTest(
             {
@@ -1889,6 +1935,9 @@ describe('Builder', () => {
             messagesExpected: '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">\n' +
                 '  <file id="ngi18n" original="ng.template">\n' +
                 '    <unit id="ID1">\n' +
+                '      <notes>\n' +
+                '        <note category="description">test description</note>\n' +
+                '      </notes>\n' +
                 '      <segment>\n' +
                 '        <source>source val</source>\n' +
                 '      </segment>\n' +

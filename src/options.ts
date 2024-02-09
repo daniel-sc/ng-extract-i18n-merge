@@ -15,6 +15,7 @@ export interface Options extends JsonObject {
     collapseWhitespace: boolean,
     trim: boolean,
     includeContext: boolean | 'sourceFileOnly',
+    includeMeaningAndDescription: boolean,
     newTranslationTargetsBlank: boolean | 'omit',
     sort: 'idAsc' | 'stableAppendNew' | 'stableAlphabetNew',
     browserTarget: string,

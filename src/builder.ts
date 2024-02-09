@@ -139,8 +139,8 @@ async function extractI18nMergeBuilder(options: Options, context: BuilderContext
                 source: mapper(unit.source),
                 target: unit.target !== undefined ? mapper(unit.target) : undefined,
                 locations: removeContextSource ? [] : unit.locations,
-                description: removeContextSource ? undefined : mapper(unit.description),
-                meaning: removeContextSource ? undefined : mapper(unit.meaning)
+                description: (options.includeMeaningAndDescription ?? true) ? mapper(unit.description) : undefined,
+                meaning: (options.includeMeaningAndDescription ?? true) ? mapper(unit.meaning) : undefined
             }));
         if (sort === 'idAsc') {
             return updatedUnits.sort((a, b) => a.id.localeCompare(b.id));
@@ -171,8 +171,8 @@ async function extractI18nMergeBuilder(options: Options, context: BuilderContext
                     source: mapper(unit.source),
                     target: unit.target !== undefined ? mapper(unit.target) : undefined,
                     locations: options.includeContext === true ? unit.locations : [],
-                    meaning: options.includeContext === true ? mapper(unit.meaning) : undefined,
-                    description: options.includeContext === true ? mapper(unit.description) : undefined,
+                    meaning: (options.includeMeaningAndDescription ?? true) ? mapper(unit.meaning) : undefined,
+                    description: (options.includeMeaningAndDescription ?? true) ? mapper(unit.description) : undefined,
                     // reset to original state, if source was changed to target from sourceLangTarget:
                     state: idsOfUnitsWithSourceChangedToSourceLangTarget.has(unit.id) ? (translationTargetFile.units.find(u => u.id === unit.id)?.state ?? unit.state) : unit.state
                 }));
