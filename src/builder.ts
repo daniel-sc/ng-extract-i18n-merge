@@ -159,20 +159,25 @@ async function extractI18nMergeBuilder(options: Options, context: BuilderContext
         const targetPath = join(normalize(outputPath), targetFile);
         context.logger.info(`merge and normalize ${targetPath} ...`);
         const translationTargetFileContent = await readFileIfExists(targetPath);
-        const translationTargetFile = translationTargetFileContent ? fromXlf(translationTargetFileContent) : new TranslationFile([], translationSourceFile.sourceLang, targetPath?.match(/\.([a-zA-Z-]+)\.xlf$/)?.[1] ?? 'en');
+        const translationTargetFileRaw = translationTargetFileContent ? fromXlf(translationTargetFileContent) : new TranslationFile([], translationSourceFile.sourceLang, targetPath?.match(/\.([a-zA-Z-]+)\.xlf$/)?.[1] ?? 'en');
+        const translationTargetFile = translationTargetFileRaw.mapUnitsList(units => units
+            .filter(filterUnits)
+            .map(unit => ({
+                ...unit,
+                source: mapper(unit.source),
+                target: unit.target !== undefined ? mapper(unit.target) : undefined,
+                meaning: (options.includeMeaningAndDescription ?? true) ? mapper(unit.meaning) : undefined,
+                description: (options.includeMeaningAndDescription ?? true) ? mapper(unit.description) : undefined,
+            }))
+        );
         const isSourceLang = targetFile === options.sourceLanguageTargetFile;
 
         const mergedTarget = merger.mergeWithMapping(translationTargetFile, isSourceLang);
         const normalizedTarget = mergedTarget.mapUnitsList(units => {
             const updatedUnits = units
-                .filter(filterUnits)
                 .map(unit => ({
                     ...unit,
-                    source: mapper(unit.source),
-                    target: unit.target !== undefined ? mapper(unit.target) : undefined,
                     locations: options.includeContext === true ? unit.locations : [],
-                    meaning: (options.includeMeaningAndDescription ?? true) ? mapper(unit.meaning) : undefined,
-                    description: (options.includeMeaningAndDescription ?? true) ? mapper(unit.description) : undefined,
                     // reset to original state, if source was changed to target from sourceLangTarget:
                     state: idsOfUnitsWithSourceChangedToSourceLangTarget.has(unit.id) ? (translationTargetFile.units.find(u => u.id === unit.id)?.state ?? unit.state) : unit.state
                 }));
