@@ -4,8 +4,7 @@ import {Schema} from './schema';
 import {JsonArray, JsonObject, normalize, Path, relative} from '@angular-devkit/core';
 
 import {Options} from '../../src/options';
-import {loadEsmModule} from '../../src/loadEsmModule';
-import {Version} from '@angular/core';
+import * as extractI18nSchema from '@angular-devkit/build-angular/src/builders/extract-i18n/schema.json';
 
 function getTargetFiles(i18nExtension: JsonObject | undefined): string[] {
     const locales = i18nExtension?.locales ? (Object.values(i18nExtension?.locales) as JsonArray | string[] | undefined) : undefined;
@@ -95,9 +94,7 @@ export function ngAdd(_options: Schema): Rule {
             const filesWithoutOutputPath = files?.map(f => relative(`/${outputPath}` as Path, `/${f}` as Path));
 
             const target = projectWorkspace.targets.get('extract-i18n');
-            const {VERSION} = (await loadEsmModule<{VERSION: Version}>('@angular/core'));
-            const angularMajorVersion = parseInt(VERSION.major);
-            const buildTargetAttribute = angularMajorVersion >= 17 ? 'buildTarget' : 'browserTarget';
+            const buildTargetAttribute = extractI18nSchema.properties.buildTarget ? 'buildTarget' : 'browserTarget';
             const builderOptions: Partial<Options> = {
                 [buildTargetAttribute]: buildTarget,
                 format,

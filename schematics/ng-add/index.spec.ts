@@ -4,15 +4,12 @@ import * as path from 'path';
 import {Schema as WorkspaceOptions} from '@schematics/angular/workspace/schema';
 import {Schema as ApplicationOptions, Style} from '@schematics/angular/application/schema';
 import {Tree} from '@angular-devkit/schematics';
-import {loadEsmModule} from '../../src/loadEsmModule';
-import {Version} from '@angular/core';
+import * as extractI18nSchema from '@angular-devkit/build-angular/src/builders/extract-i18n/schema.json';
 
 const collectionPath = path.join(__dirname, '../collection.json');
 
 async function getBuildTargetAttribute() {
-    const {VERSION} = (await loadEsmModule<{VERSION: Version}>('@angular/core'));
-    const angularMajorVersion = parseInt(VERSION.major);
-    return angularMajorVersion >= 17 ? 'buildTarget' : 'browserTarget';
+    return extractI18nSchema.properties.buildTarget ? 'buildTarget' : 'browserTarget';
 }
 
 const workspaceOptions: WorkspaceOptions = {
