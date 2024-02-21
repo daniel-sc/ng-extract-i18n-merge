@@ -8,7 +8,7 @@ import {TranslationFile, TranslationUnit} from './model/translationFileModels';
 import {Merger} from './merger';
 import {Options} from './options';
 import {doCollapseWhitespace} from './stringUtils';
-import * as extractI18nSchema from '@angular-devkit/build-angular/src/builders/extract-i18n/schema.json';
+import {buildTargetAttribute} from './buildTargetAttribute';
 
 
 const STATE_INITIAL_XLF_2_0 = 'initial';
@@ -109,7 +109,6 @@ async function extractI18nMergeBuilder(options: Options, context: BuilderContext
     const sourcePath = join(normalize(outputPath), options.sourceFile ?? 'messages.xlf');
     const translationSourceFileOriginal = fromXlf(await readFileIfExists(sourcePath));
 
-    const buildTargetAttribute = extractI18nSchema.properties.buildTarget ? 'buildTarget' : 'browserTarget';
     const extractI18nRun = await context.scheduleBuilder(options.builderI18n ?? '@angular-devkit/build-angular:extract-i18n', {
         [buildTargetAttribute]: options.browserTarget ?? options.buildTarget,
         outputPath: dirname(sourcePath),
