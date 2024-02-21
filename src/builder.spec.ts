@@ -1397,6 +1397,53 @@ describe('Builder', () => {
             }
         );
     });
+    test('retain target state when equal after normalization', async () => {
+        await runTest(
+            {
+                messagesBefore: '<?xml version="1.0"?>\n' +
+                    '<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+                    '  <file source-language="de" datatype="plaintext" original="ng2.template">\n' +
+                    '    <body>\n' +
+                    '      <trans-unit id="ID1" datatype="html">\n' +
+                    '        <source>source val&apos; <x equiv-text="{{c}}" id="INTERPOLATION"/></source>\n' +
+                    '      </trans-unit>\n' +
+                    '    </body>\n' +
+                    '  </file>\n' +
+                    '</xliff>',
+                messagesFrBefore: '<?xml version="1.0"?>\n' +
+                    '<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+                    '  <file source-language="de" target-language="fr-ch" datatype="plaintext" original="ng2.template">\n' +
+                    '    <body>\n' +
+                    '      <trans-unit datatype="html" id="ID1">\n' +
+                    '        <source>source val\' <x id="INTERPOLATION" equiv-text="{{c}}"/>\n' +
+                    '        </source>\n' +
+                    '        <target state="signed-off">SOURCE VAL\' <x id="INTERPOLATION" equiv-text="{{c}}"/></target>\n' +
+                    '      </trans-unit>\n' +
+                    '    </body>\n' +
+                    '  </file>\n' +
+                    '</xliff>',
+                options: {
+                    format: 'xlf',
+                    targetFiles: ['messages.fr.xlf'],
+                    outputPath: 'builder-test',
+                    sortNestedTagAttributes: true,
+                    collapseWhitespace: true,
+                    trim: true,
+                },
+                messagesFrExpected: '<?xml version="1.0"?>\n' +
+                    '<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+                    '  <file source-language="de" target-language="fr-ch" datatype="plaintext" original="ng2.template">\n' +
+                    '    <body>\n' +
+                    '      <trans-unit id="ID1" datatype="html">\n' +
+                    '        <source>source val&apos; <x equiv-text="{{c}}" id="INTERPOLATION"/></source>\n' +
+                    '        <target state="signed-off">SOURCE VAL&apos; <x equiv-text="{{c}}" id="INTERPOLATION"/></target>\n' +
+                    '      </trans-unit>\n' +
+                    '    </body>\n' +
+                    '  </file>\n' +
+                    '</xliff>'
+            }
+        );
+    });
     describe('trim', () => {
         test('retain whitespaces when trim=false and collapseWhitespace=false', async () => {
             await runTest(
