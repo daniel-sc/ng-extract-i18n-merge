@@ -1,6 +1,5 @@
 import {Rule, SchematicContext, SchematicsException, Tree} from '@angular-devkit/schematics';
 import {updateWorkspace} from '@schematics/angular/utility/workspace';
-import {buildTargetAttribute} from '../../../src/buildTargetAttribute';
 
 function updateNpmScript(tree: Tree, logger: SchematicContext['logger']) {
     const pkgPath = '/package.json';
@@ -33,8 +32,9 @@ export default function (): Rule {
                     i18nTarget.builder = 'ng-extract-i18n-merge:ng-extract-i18n-merge';
                     i18nTarget.options = {
                         ...i18nMergeTarget.options,
-                        [buildTargetAttribute]: i18nTarget.options?.browserTarget ?? i18nTarget.options?.buildTarget ?? `${projectName}:build`
+                        buildTarget: i18nTarget.options?.browserTarget ?? i18nTarget.options?.buildTarget ?? `${projectName}:build`
                     }
+                    delete i18nTarget.options.browserTarget;
                     project.targets.delete('extract-i18n'); // 'project.targets.set' not working!?
                     project.targets.add({name: 'extract-i18n', ...i18nTarget});
                     project.targets.delete('extract-i18n-merge');

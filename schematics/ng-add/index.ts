@@ -4,7 +4,6 @@ import {Schema} from './schema';
 import {JsonArray, JsonObject, normalize, Path, relative} from '@angular-devkit/core';
 
 import {Options} from '../../src/options';
-import {buildTargetAttribute} from '../../src/buildTargetAttribute';
 
 function getTargetFiles(i18nExtension: JsonObject | undefined): string[] {
     const locales = i18nExtension?.locales ? (Object.values(i18nExtension?.locales) as JsonArray | string[] | undefined) : undefined;
@@ -95,7 +94,7 @@ export function ngAdd(_options: Schema): Rule {
 
             const target = projectWorkspace.targets.get('extract-i18n');
             const builderOptions: Partial<Options> = {
-                [buildTargetAttribute]: buildTarget,
+                buildTarget: buildTarget,
                 format,
                 outputPath,
                 targetFiles: filesWithoutOutputPath ?? []
