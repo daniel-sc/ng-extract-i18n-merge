@@ -57,7 +57,7 @@ function getOutFileRelativeToOutputPath(outFile: string, outputPathFromExtractI1
 // noinspection JSUnusedGlobalSymbols
 export function ngAdd(_options: Schema): Rule {
     return (tree: Tree, context: SchematicContext) => {
-        return updateWorkspace((workspace) => {
+        return updateWorkspace(async (workspace) => {
             const projectName = _options.project || Array.from(workspace.projects.keys())[0];
             const projectWorkspace = workspace.projects.get(projectName)!;
             if (!projectWorkspace) {
@@ -81,7 +81,7 @@ export function ngAdd(_options: Schema): Rule {
             const outputPath = normalize(outputPathFromExtractI18nOptions ?? outputPathFromTargetFiles ?? 'src/locales');
             context.logger.info(`inferred output path: ${outputPath}`);
 
-            const browserTarget = existingI18nTargetOptions?.browserTarget as string | undefined ?? `${projectName}:build`;
+            const buildTarget = existingI18nTargetOptions?.browserTarget as string | undefined ?? existingI18nTargetOptions?.buildTarget as string | undefined ?? `${projectName}:build`;
 
             // infer format:
             const formatFromExtractI18nOptions = existingI18nTargetOptions?.format as Options['format'] | undefined;
@@ -94,7 +94,7 @@ export function ngAdd(_options: Schema): Rule {
 
             const target = projectWorkspace.targets.get('extract-i18n');
             const builderOptions: Partial<Options> = {
-                browserTarget,
+                buildTarget: buildTarget,
                 format,
                 outputPath,
                 targetFiles: filesWithoutOutputPath ?? []

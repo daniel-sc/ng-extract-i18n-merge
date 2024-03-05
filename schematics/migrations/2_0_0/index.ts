@@ -23,7 +23,7 @@ function updateNpmScript(tree: Tree, logger: SchematicContext['logger']) {
 export default function (): Rule {
     return (tree: Tree, context: SchematicContext) => {
         updateNpmScript(tree, context.logger);
-        return updateWorkspace((workspace) => {
+        return updateWorkspace(async (workspace) => {
             workspace.projects.forEach((project, projectName) => {
                 const i18nMergeTarget = project.targets.get('extract-i18n-merge');
                 if (i18nMergeTarget) {
@@ -32,8 +32,9 @@ export default function (): Rule {
                     i18nTarget.builder = 'ng-extract-i18n-merge:ng-extract-i18n-merge';
                     i18nTarget.options = {
                         ...i18nMergeTarget.options,
-                        browserTarget: i18nTarget.options?.browserTarget ?? `${projectName}:build`
+                        buildTarget: i18nTarget.options?.browserTarget ?? i18nTarget.options?.buildTarget ?? `${projectName}:build`
                     }
+                    delete i18nTarget.options.browserTarget;
                     project.targets.delete('extract-i18n'); // 'project.targets.set' not working!?
                     project.targets.add({name: 'extract-i18n', ...i18nTarget});
                     project.targets.delete('extract-i18n-merge');
