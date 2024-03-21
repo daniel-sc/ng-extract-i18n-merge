@@ -12,6 +12,7 @@ export interface TranslationUnit {
     meaning?: string;
     description?: string;
     locations: Location[];
+    additionalAttributes?: { name: string, value: string, path: string }[];
 }
 
 

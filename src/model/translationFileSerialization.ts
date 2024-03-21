@@ -1,9 +1,27 @@
 import {XmlDocument, XmlElement, XmlNode, XmlTextNode} from 'xmldoc';
-import {TranslationFile} from './translationFileModels';
+import {TranslationFile, TranslationUnit} from './translationFileModels';
 import {Options} from '../options';
 
 
 const XML_DECLARATION_MATCHER = /^<\?xml [^>]*>\s*/i;
+
+const REGULAR_ATTRIBUTES_XLF1: {[nodeName: string]: string[]} = {
+    'trans-unit': ['id', 'datatype'],
+    'source': [],
+    'target': ['state'],
+    'note': ['priority', 'from'],
+    'context': ['context-type'],
+    'context-group': ['purpose']
+}
+
+const REGULAR_ATTRIBUTES_XLF2: {[nodeName: string]: string[]} = {
+    'unit': ['id'],
+    'notes': [],
+    'note': ['category'],
+    'segment': ['state'],
+    'source': [],
+    'target': []
+}
 
 export function fromXlf2(xlf2: string,
     options: Pick<Options, 'sortNestedTagAttributes'> = { sortNestedTagAttributes: false }): TranslationFile {
@@ -16,7 +34,7 @@ export function fromXlf2(xlf2: string,
         .map(unit => {
             const segment = unit.childNamed('segment')!;
             const notes = unit.childNamed('notes');
-            return {
+            const result: TranslationUnit = {
                 id: unit.attr.id,
                 source: toString(options, ...segment.childNamed('source')!.children),
                 target: toStringOrUndefined(options, segment.childNamed('target')?.children),
@@ -36,6 +54,11 @@ export function fromXlf2(xlf2: string,
                         };
                     }) ?? []
             };
+            const additionalAttributes = getAdditionalAttributes(unit, REGULAR_ATTRIBUTES_XLF2);
+            if (additionalAttributes.length) {
+                result.additionalAttributes = additionalAttributes;
+            }
+            return result;
         });
     return new TranslationFile(units, doc.attr.srcLang, doc.attr.trgLang, xmlDeclaration);
 }
@@ -51,7 +74,7 @@ export function fromXlf1(xlf1: string,
         .map(unit => {
             const notes = unit.childrenNamed('note');
             const target = unit.childNamed('target');
-            return {
+            const result: TranslationUnit  = {
                 id: unit.attr.id,
                 source: toString(options, ...unit.childNamed('source')!.children),
                 target: toStringOrUndefined(options, target?.children),
@@ -65,6 +88,11 @@ export function fromXlf1(xlf1: string,
                         lineStart: parseInt(contextGroup.childWithAttribute('context-type', 'linenumber')!.val, 10)
                     })) ?? []
             };
+            const additionalAttributes = getAdditionalAttributes(unit, REGULAR_ATTRIBUTES_XLF1);
+            if (additionalAttributes.length) {
+                result.additionalAttributes = additionalAttributes;
+            }
+            return result;
         });
     return new TranslationFile(units, file.attr['source-language'], file.attr['target-language'], xmlDeclaration);
 }
@@ -116,6 +144,9 @@ export function toXlf2(translationFile: TranslationFile, options: Pick<Options, 
         }
 
         updateFirstAndLastChild(u);
+        unit.additionalAttributes?.forEach(attr => {
+            (attr.path === '.' ? u : u.descendantWithPath(attr.path)!).attr[attr.name] = attr.value;
+        });
         return u;
     });
     updateFirstAndLastChild(doc);
@@ -163,6 +194,9 @@ export function toXlf1(translationFile: TranslationFile, options: Pick<Options, 
         </context-group>`)));
         }
         updateFirstAndLastChild(body);
+        unit.additionalAttributes?.forEach(attr => {
+           (attr.path === '.' ? transUnit : transUnit.descendantWithPath(attr.path)!).attr[attr.name] = attr.value;
+        });
         return transUnit;
     });
     return (translationFile.xmlHeader ?? '') + pretty(doc, options);
@@ -223,4 +257,23 @@ function addPrettyWhitespace(doc: XmlElement, indent: number, options: Pick<Opti
         indentChildren(doc, indent);
         doc.children.forEach(c => c.type === 'element' ? addPrettyWhitespace(c, indent + 1, options) : null);
     }
+}
+
+function allChildrenWithPath(unit: XmlElement, currentPath = '.'): { element: XmlElement, path: string }[] {
+    return unit.children.flatMap(child => {
+        if (child.type === 'element') {
+            const path = currentPath === '.' ? child.name : (currentPath + '.' + child.name);
+            return [{element: child, path}, ...allChildrenWithPath(child, path)];
+        }
+        return [];
+    });
+}
+
+function getAdditionalAttributes(unit: XmlElement, knownAttributes: {[nodeName: string]: string[]}) {
+    return [{element: unit, path: '.'}, ...allChildrenWithPath(unit)]
+        .flatMap(({element, path}) => Object.entries(element.attr)
+            .map(([attrName, attrValue]) => ({element, attrName, attrValue, path}))
+        )
+        .filter(({element, attrName}) => knownAttributes[element.name] ? !knownAttributes[element.name]?.includes(attrName) : false)
+        .map(({attrName, attrValue, path}) => ({name: attrName, value: attrValue, path}));
 }
