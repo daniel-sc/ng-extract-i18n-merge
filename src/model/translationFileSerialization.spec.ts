@@ -41,6 +41,25 @@ describe('translationFileSerialization', () => {
                 ]
             }], 'de', 'fr', '<?xml version="1.0" encoding="UTF-8"?>\n'));
         });
+
+        it('should parse additionalAttributes', () => {
+            const xlf2 = `<?xml version="1.0" encoding="UTF-8"?>
+<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de" trgLang="fr">
+  <file id="ngi18n" original="ng.template">
+    <unit id="ID1">
+      <segment state="initial" customAttr="customVal">
+        <source>source val</source>
+        <target customState="custom">target val</target>
+      </segment>
+    </unit>
+  </file>
+</xliff>`;
+            const translationFile = fromXlf2(xlf2);
+            expect(translationFile.units[0].additionalAttributes).toEqual([
+                {name: 'customAttr', value: 'customVal', path: 'segment'},
+                {name: 'customState', value: 'custom', path: 'segment.target'}
+            ]);
+        });
     });
     describe('toXlf2', () => {
         it('should keep trailing whitespace', () => {
@@ -199,6 +218,31 @@ describe('translationFileSerialization', () => {
 </xliff>`);
         });
 
+        it('should format additionalAttributes', () => {
+            const input = new TranslationFile([{
+                id: 'ID1',
+                source: 'source val',
+                target: 'target val',
+                state: 'initial',
+                locations: [],
+                additionalAttributes: [
+                    {name: 'approved', value: 'yes', path: '.'},
+                    {name: 'other', value: 'value', path: 'segment.target'}
+                ]
+            }], 'de', 'fr', '<?xml version="1.0" encoding="UTF-8"?>\n');
+            expect(toXlf2(input, {prettyNestedTags: true})).toEqual(`<?xml version="1.0" encoding="UTF-8"?>
+<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de" trgLang="fr">
+  <file id="ngi18n" original="ng.template">
+    <unit id="ID1" approved="yes">
+      <segment state="initial">
+        <source>source val</source>
+        <target other="value">target val</target>
+      </segment>
+    </unit>
+  </file>
+</xliff>`);
+        });
+
     });
     describe('toXlf1', () => {
         it('should not include state attribute if it is undefined', () => {
@@ -245,6 +289,30 @@ describe('translationFileSerialization', () => {
           <context context-type="sourcefile">app/app.component.ts</context>
           <context context-type="linenumber">11</context>
         </context-group>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>`);
+        });
+        it('should output additinalAttribute', () => {
+            const input = new TranslationFile([{
+                id: 'ID1',
+                source: 'source val',
+                target: 'target val',
+                state: 'translated',
+                locations: [],
+                additionalAttributes: [
+                    {name: 'approved', value: 'yes', path: '.'},
+                    {name: 'other', value: 'value', path: 'target'}
+                ]
+            }], 'de', 'fr-ch', '<?xml version="1.0" encoding="UTF-8"?>\n');
+            expect(toXlf1(input, {prettyNestedTags: true})).toEqual(`<?xml version="1.0" encoding="UTF-8"?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
+  <file source-language="de" target-language="fr-ch" datatype="plaintext" original="ng2.template">
+    <body>
+      <trans-unit id="ID1" datatype="html" approved="yes">
+        <source>source val</source>
+        <target state="translated" other="value">target val</target>
       </trans-unit>
     </body>
   </file>
@@ -320,6 +388,25 @@ describe('translationFileSerialization', () => {
                     lineStart: 11
                 }]
             }], 'de', 'fr-ch', '<?xml version="1.0" encoding="UTF-8"?>\n'));
+        });
+
+        it('should parse additionalAttributes', () => {
+            const xlf1 = `<?xml version="1.0" encoding="UTF-8"?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
+  <file source-language="de" target-language="fr-ch" datatype="plaintext" original="ng2.template">
+    <body>
+      <trans-unit id="ID1" datatype="html" approved="yes">
+        <source>source val</source>
+        <target state="translated" other="value">target val</target>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>`;
+            const translationFile = fromXlf1(xlf1);
+            expect(translationFile.units[0].additionalAttributes).toEqual([
+                {name: 'approved', value: 'yes', path: '.'},
+                {name: 'other', value: 'value', path: 'target'}
+            ]);
         });
     });
 })
