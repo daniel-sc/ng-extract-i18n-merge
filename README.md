@@ -9,6 +9,12 @@ New/removed translations are added/removed from the target translation files and
 Additionally, translation files are normalized (whitespace, stable sort) so that diffs are easy to read 
 (and translations in PRs might actually get reviewed ;-) ).
 
+> [!TIP]
+> If you'd like to keep your translation process simple and rather validate translations, than waiting for actual translations, I'd like you to check out [doloc.io](https://doloc.io).
+>
+> This service is provided by the maintainer of `ng-extract-i18n-merge` ([@daniel-sc](https://github.com/daniel-sc)),
+> integrates semaless with this library (see [here](https://github.com/daniel-sc/ng-extract-i18n-merge/discussions/115)) and gives great translations immediatly on extraction!
+
 ## Install
 
 _Prerequisites_: i18n setup with defined target locales in `angular.json` - as
