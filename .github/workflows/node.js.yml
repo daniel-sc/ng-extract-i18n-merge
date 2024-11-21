@@ -47,34 +47,20 @@ jobs:
           - {angular: {version: 17.0.0}}
           - {angular: {version: 18.0.0}}
         include:
-          - angular.version: 13.2.6
-            node.node-version: 14.x
-          - angular.version: 13.2.6
-            node.node-version: 16.x
-          - angular.version: 14.0.2
-            node.node-version: 14.x
-          - angular.version: 14.0.2
-            node.node-version: 16.x
-          - angular.version: 15.0.3
-            node.node-version: 14.x
-          - angular.version: 15.0.3
-            node.node-version: 16.x
-          - angular.version: 15.0.3
-            node.node-version: 18.x
-          - angular.version: 16.2.1
-            node.node-version: 16.x
-          - angular.version: 16.2.1
-            node.node-version: 18.x
-          - angular.version: 17.0.0
-            node.node-version: 18.x
-          - angular.version: 17.0.0
-            node.node-version: 20.x
-          - angular.version: 18.0.0
-            node.node-version: 18.x
-          - angular.version: 18.0.0
-            node.node-version: 20.x
-          - angular.version: 18.0.0
-            node.node-version: 22.x
+          - {angular: {version: 13.2.6}, node: {node-version: 14.x}}
+          - {angular: {version: 13.2.6}, node: {node-version: 16.x}}
+          - {angular: {version: 14.0.2}, node: {node-version: 14.x}}
+          - {angular: {version: 14.0.2}, node: {node-version: 16.x}}
+          - {angular: {version: 15.0.3}, node: {node-version: 14.x}}
+          - {angular: {version: 15.0.3}, node: {node-version: 16.x}}
+          - {angular: {version: 15.0.3}, node: {node-version: 18.x}}
+          - {angular: {version: 16.2.1}, node: {node-version: 16.x}}
+          - {angular: {version: 16.2.1}, node: {node-version: 18.x}}
+          - {angular: {version: 17.0.0}, node: {node-version: 18.x}}
+          - {angular: {version: 17.0.0}, node: {node-version: 20.x}}
+          - {angular: {version: 18.0.0}, node: {node-version: 18.x}}
+          - {angular: {version: 18.0.0}, node: {node-version: 20.x}}
+          - {angular: {version: 18.0.0}, node: {node-version: 22.x}}
 
     steps:
     - uses: actions/checkout@v2
