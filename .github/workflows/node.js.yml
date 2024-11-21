@@ -15,7 +15,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version:
+        node:
           - node-version: 14.x
             types-version: 14.14.31
           - node-version: 16.x
@@ -24,42 +24,66 @@ jobs:
             types-version: 18.15.3
           - node-version: 20.x
             types-version: 20.17.6
-        angular-version: [13.2.6, 14.0.2, 15.0.3, 16.2.1, 17.0.0, 18.0.0-rc.3]
-        exclude:
-          - node-version.node-version: 18.x
-          - node-version.node-version: 20.x
-          - angular-version: 17.0.0
-          - angular-version: 18.0.0-rc.3
-        include:
-          - angular-version: 13.2.6
+          - node-version: 22.x
+            types-version: 20.9.1
+        angular:
+          - version: 13.2.6
             devkit-version: 0.1302.6
-          - angular-version: 14.0.2
+          - version: 14.0.2
             devkit-version: 0.1400.2
-          - angular-version: 15.0.3
+          - version: 15.0.3
             devkit-version: 0.1500.3
-          - angular-version: 16.2.1
+          - version: 16.2.1
             devkit-version: 0.1602.1
-          - angular-version: 16.2.1
-            devkit-version: 0.1602.1
-            node-version.node-version: 18.x
-          - angular-version: 17.0.0
+          - version: 17.0.0
             devkit-version: 0.1700.0
-            node-version.node-version: 18.x
-          - angular-version: 17.0.0
-            devkit-version: 0.1700.0
-            node-version.node-version: 20.x
-          - angular-version: 18.0.0-rc.3
-            devkit-version: 0.1800.0-rc.3
-            node-version.node-version: 20.x
+          - version: 18.0.0
+            devkit-version: 0.1800.0
+        exclude:
+          - {angular: {version: 13.2.6}}
+          - {angular: {version: 14.0.2}}
+          - {angular: {version: 15.0.3}}
+          - {angular: {version: 16.2.1}}
+          - {angular: {version: 17.0.0}}
+          - {angular: {version: 18.0.0}}
+        include:
+          - angular.version: 13.2.6
+            node.node-version: 14.x
+          - angular.version: 13.2.6
+            node.node-version: 16.x
+          - angular.version: 14.0.2
+            node.node-version: 14.x
+          - angular.version: 14.0.2
+            node.node-version: 16.x
+          - angular.version: 15.0.3
+            node.node-version: 14.x
+          - angular.version: 15.0.3
+            node.node-version: 16.x
+          - angular.version: 15.0.3
+            node.node-version: 18.x
+          - angular.version: 16.2.1
+            node.node-version: 16.x
+          - angular.version: 16.2.1
+            node.node-version: 18.x
+          - angular.version: 17.0.0
+            node.node-version: 18.x
+          - angular.version: 17.0.0
+            node.node-version: 20.x
+          - angular.version: 18.0.0
+            node.node-version: 18.x
+          - angular.version: 18.0.0
+            node.node-version: 20.x
+          - angular.version: 18.0.0
+            node.node-version: 22.x
 
     steps:
     - uses: actions/checkout@v2
-    - name: Use Node.js ${{ matrix.node-version.node-version }}
+    - name: Use Node.js ${{ matrix.node.node-version }}
       uses: actions/setup-node@v1
       with:
-        node-version: ${{ matrix.node-version.node-version }}
+        node-version: ${{ matrix.node.node-version }}
     - run: rm package-lock.json # otherwise we cannot overwrite the peerDependencies version of @angular-devkit/build-angular below
-    - run: npm i --save-exact "@types/node@${{ matrix.node-version.types-version }}" "@angular-devkit/architect@${{ matrix.devkit-version }}" "@angular-devkit/core@${{ matrix.angular-version }}" "@angular-devkit/schematics@${{ matrix.angular-version }}" "@schematics/angular@${{ matrix.angular-version }}" "@angular-devkit/build-angular@${{ matrix.angular-version }}" "@angular/core@${{ matrix.angular-version }}" "@angular/compiler-cli@${{ matrix.angular-version }}"
+    - run: npm i --save-exact "@types/node@${{ matrix.node.types-version }}" "@angular-devkit/architect@${{ matrix.angular.devkit-version }}" "@angular-devkit/core@${{ matrix.angular.version }}" "@angular-devkit/schematics@${{ matrix.angular.version }}" "@schematics/angular@${{ matrix.angular.version }}" "@angular-devkit/build-angular@${{ matrix.angular.version }}" "@angular/core@${{ matrix.angular.version }}" "@angular/compiler-cli@${{ matrix.angular.version }}"
     - run: npm i
     - run: npm ls || true
     - run: npm run build
@@ -68,7 +92,7 @@ jobs:
       uses: coverallsapp/github-action@v1.1.2
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
-        flag-name: run-${{ matrix.node-version.node-version }}
+        flag-name: run-${{ matrix.node.node-version }}
         parallel: true
 
   finish:
