@@ -51,7 +51,9 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
     - run: rm package-lock.json # otherwise we cannot overwrite the peerDependencies version of @angular-devkit/build-angular below
-    - run: npm i --save-exact "@angular-devkit/architect@${{ matrix.devkit-version }}" "@angular-devkit/core@${{ matrix.angular-version }}" "@angular-devkit/schematics@${{ matrix.angular-version }}" "@schematics/angular@${{ matrix.angular-version }}" "@angular-devkit/build-angular@${{ matrix.angular-version }}" "@angular/core@${{ matrix.angular-version }}" "@angular/compiler-cli@${{ matrix.angular-version }}"
+    # compute the correct version for @types/node from node-version:
+    - run: export TYPES_NODE_VERSION=$(echo "${{ matrix.node-version }}" | sed -E 's/([0-9]+)\.x/\1.0.0/')
+    - run: npm i --save-exact "@types/node@^${{ TYPES_NODE_VERSION }}" "@angular-devkit/architect@${{ matrix.devkit-version }}" "@angular-devkit/core@${{ matrix.angular-version }}" "@angular-devkit/schematics@${{ matrix.angular-version }}" "@schematics/angular@${{ matrix.angular-version }}" "@angular-devkit/build-angular@${{ matrix.angular-version }}" "@angular/core@${{ matrix.angular-version }}" "@angular/compiler-cli@${{ matrix.angular-version }}"
     - run: npm i
     - run: npm ls || true
     - run: npm run build
