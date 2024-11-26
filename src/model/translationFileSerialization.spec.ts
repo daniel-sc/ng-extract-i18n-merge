@@ -294,7 +294,23 @@ describe('translationFileSerialization', () => {
   </file>
 </xliff>`);
         });
-        it('should output additinalAttribute', () => {
+        it('should output id with quotes', () => {
+            const input = new TranslationFile([{
+                id: 'idWithQuote"',
+                source: 'some source',
+                locations: []
+            }], 'en', 'de', '');
+            expect(toXlf1(input, {prettyNestedTags: true})).toEqual(`<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
+  <file source-language="en" target-language="de" datatype="plaintext" original="ng2.template">
+    <body>
+      <trans-unit id="idWithQuote&quot;" datatype="html">
+        <source>some source</source>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>`);
+        });
+        it('should output additionalAttribute', () => {
             const input = new TranslationFile([{
                 id: 'ID1',
                 source: 'source val',

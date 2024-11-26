@@ -123,7 +123,8 @@ export function toXlf2(translationFile: TranslationFile, options: Pick<Options, 
     }
     const file = doc.childNamed('file')!;
     file.children = translationFile.units.map(unit => {
-        const u = new XmlDocument(`<unit id="${unit.id}"><segment><source>${unit.source}</source></segment></unit>`);
+        const u = new XmlDocument(`<unit id=""><segment><source>${unit.source}</source></segment></unit>`);
+        u.attr.id = unit.id;
         const segment = u.childNamed('segment')!;
         if (unit.target !== undefined) {
             segment.children.push(new XmlDocument(`<target>${unit.target}</target>`));
@@ -171,9 +172,10 @@ export function toXlf1(translationFile: TranslationFile, options: Pick<Options, 
     }
     const body = file.childNamed('body')!;
     body.children = translationFile.units.map(unit => {
-        const transUnit = new XmlDocument(`<trans-unit id="${unit.id}" datatype="html">
+        const transUnit = new XmlDocument(`<trans-unit id="" datatype="html">
         <source>${unit.source}</source>
 </trans-unit>`);
+        transUnit.attr.id = unit.id;
         if (unit.target !== undefined) {
             const target = new XmlDocument(`<target>${unit.target}</target>`);
             if (unit.state !== undefined) {
