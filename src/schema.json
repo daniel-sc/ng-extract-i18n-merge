@@ -94,7 +94,7 @@
     "collapseWhitespace": {
       "type": "boolean",
       "default": true,
-      "description": "Collapsing of multiple whitespaces/line breaks in translation sources and targets."
+      "description": "Collapsing of multiple whitespaces/line breaks in translation sources and targets. This handles changed leading/trailing whitespaces intelligently - i.e. updates the target accordingly _without_ resetting the translation state when only leading/trailing whitespace was changed."
     },
     "trim": {
       "type": "boolean",
