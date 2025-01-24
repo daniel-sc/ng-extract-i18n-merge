@@ -18,7 +18,7 @@ export interface TranslationUnit {
 
 export class TranslationFile {
 
-    constructor(public readonly units: TranslationUnit[], public readonly sourceLang: string, public readonly targetLang?: string, public readonly xmlHeader?: string) {
+    constructor(public readonly units: TranslationUnit[], public readonly sourceLang: string, public readonly targetLang?: string, public readonly xmlHeader?: string, public readonly trailingWhitespace?: string) {
     }
 
     mapUnitsList(unitsMapper: (units: TranslationUnit[]) => TranslationUnit[]): TranslationFile {

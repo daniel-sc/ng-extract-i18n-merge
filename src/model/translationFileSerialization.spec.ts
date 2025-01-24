@@ -425,4 +425,40 @@ describe('translationFileSerialization', () => {
             ]);
         });
     });
+    describe('round trip xlf2.0', () => {
+        it('should retain trailing new line', () => {
+            const xlf2 = `<?xml version="1.0" encoding="UTF-8"?>
+<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de" trgLang="fr">
+  <file id="ngi18n" original="ng.template">
+    <unit id="ID1">
+      <segment state="initial">
+        <source>source val</source>
+        <target>target val</target>
+      </segment>
+    </unit>
+  </file>
+</xliff>
+`;
+            const translationFile = fromXlf2(xlf2);
+            expect(toXlf2(translationFile, {prettyNestedTags: false})).toEqual(xlf2);
+        });
+    });
+    describe('round trip xlf1.2', () => {
+        it('should retain trailing new line', () => {
+            const xlf1 = `<?xml version="1.0" encoding="UTF-8"?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
+  <file source-language="de" target-language="fr-ch" datatype="plaintext" original="ng2.template">
+    <body>
+      <trans-unit id="ID1" datatype="html" approved="yes">
+        <source>source val</source>
+        <target state="translated" other="value">target val</target>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>
+`;
+            const translationFile = fromXlf1(xlf1);
+            expect(toXlf1(translationFile, {prettyNestedTags: false})).toEqual(xlf1);
+        });
+    })
 })

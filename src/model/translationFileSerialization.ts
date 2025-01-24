@@ -26,7 +26,6 @@ const REGULAR_ATTRIBUTES_XLF2: {[nodeName: string]: string[]} = {
 export function fromXlf2(xlf2: string,
     options: Pick<Options, 'sortNestedTagAttributes'> = { sortNestedTagAttributes: false }): TranslationFile {
 
-    const xmlDeclaration = xlf2.match(XML_DECLARATION_MATCHER)?.[0];
     const doc = new XmlDocument(xlf2);
     const file = doc.childNamed('file')!;
     const units = file.children
@@ -60,13 +59,16 @@ export function fromXlf2(xlf2: string,
             }
             return result;
         });
-    return new TranslationFile(units, doc.attr.srcLang, doc.attr.trgLang, xmlDeclaration);
+    return new TranslationFile(units, doc.attr.srcLang, doc.attr.trgLang, xlf2.match(XML_DECLARATION_MATCHER)?.[0], getTrailingWhitespace(xlf2));
+}
+
+function getTrailingWhitespace(xml: string): string | undefined {
+    return xml.substring(xml.lastIndexOf('>') + 1) || undefined;
 }
 
 export function fromXlf1(xlf1: string,
     options: Pick<Options, 'sortNestedTagAttributes'> = { sortNestedTagAttributes: false }): TranslationFile {
 
-    const xmlDeclaration = xlf1.match(XML_DECLARATION_MATCHER)?.[0];
     const doc = new XmlDocument(xlf1);
     const file = doc.childNamed('file')!;
     const units = file.childNamed('body')!.children
@@ -94,7 +96,7 @@ export function fromXlf1(xlf1: string,
             }
             return result;
         });
-    return new TranslationFile(units, file.attr['source-language'], file.attr['target-language'], xmlDeclaration);
+    return new TranslationFile(units, file.attr['source-language'], file.attr['target-language'], xlf1.match(XML_DECLARATION_MATCHER)?.[0], getTrailingWhitespace(xlf1));
 }
 
 function toString(options: Pick<Options, 'sortNestedTagAttributes'>, ...nodes: XmlNode[]): string {
@@ -151,7 +153,7 @@ export function toXlf2(translationFile: TranslationFile, options: Pick<Options, 
         return u;
     });
     updateFirstAndLastChild(doc);
-    return (translationFile.xmlHeader ?? '') + pretty(doc, options);
+    return (translationFile.xmlHeader ?? '') + pretty(doc, options) + (translationFile.trailingWhitespace ?? '');
 }
 
 export function toXlf1(translationFile: TranslationFile, options: Pick<Options, 'prettyNestedTags'>): string {
@@ -201,7 +203,7 @@ export function toXlf1(translationFile: TranslationFile, options: Pick<Options, 
         });
         return transUnit;
     });
-    return (translationFile.xmlHeader ?? '') + pretty(doc, options);
+    return (translationFile.xmlHeader ?? '') + pretty(doc, options) + (translationFile.trailingWhitespace ?? '');
 }
 
 function updateFirstAndLastChild(u: XmlElement) {
