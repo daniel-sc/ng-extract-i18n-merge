@@ -48,5 +48,23 @@ describe('merger', () => {
                 {id: 'c', source: 'ccccccc', target: 'ccc1', state: 'translated', locations: [], description: undefined, meaning: undefined, additionalAttributes: [{name: 'A3', value: 'B', path: '.'}]},
             ]);
         });
+        it('should update target and keep state unchanged for added leading/trailing whitespace', () => {
+            const translationSourceFile = new TranslationFile([{id: 'a1', source: ' This is some text ', locations: []}], 'en');
+            const translationTargetFile = new TranslationFile([{id: 'a1', source: 'This is some text', target: 'Dies ist ein Text', state: 'final', locations: []}], 'en', 'de');
+            const merger = new Merger({collapseWhitespace: true, resetTranslationState: true}, translationSourceFile, 'new');
+            const mergedTarget = merger.mergeWithMapping(translationTargetFile, false);
+            expect(mergedTarget.units).toEqual([
+                {id: 'a1', source: ' This is some text ', target: ' Dies ist ein Text ', state: 'final', locations: [], description: undefined, meaning: undefined},
+            ]);
+        });
+        it('should update target and keep state unchanged for removed leading/traling whitespace', () => {
+            const translationSourceFile = new TranslationFile([{id: 'a1', source: 'This is some text', locations: []}], 'en');
+            const translationTargetFile = new TranslationFile([{id: 'a1', source: ' This is some text ', target: ' Dies ist ein Text ', state: 'final', locations: []}], 'en', 'de');
+            const merger = new Merger({collapseWhitespace: true, resetTranslationState: true}, translationSourceFile, 'new');
+            const mergedTarget = merger.mergeWithMapping(translationTargetFile, false);
+            expect(mergedTarget.units).toEqual([
+                {id: 'a1', source: 'This is some text', target: 'Dies ist ein Text', state: 'final', locations: [], description: undefined, meaning: undefined},
+            ]);
+        });
     });
 });
