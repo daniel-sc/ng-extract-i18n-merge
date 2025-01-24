@@ -17,7 +17,6 @@ describe('fileUtils', () => {
         expect(result).toBeNull();
     });
     it('should throw any other error', async () => {
-        jest.spyOn(fs, 'readFile').mockRejectedValue(new Error('some random fs error'));
-        await expect(readFileIfExists('some-file.txt')).rejects.toEqual(new Error('some random fs error'));
+        await expect(readFileIfExists('.')).rejects.toMatchObject({code: 'EISDIR'});
     });
 });

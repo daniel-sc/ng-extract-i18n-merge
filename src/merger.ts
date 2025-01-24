@@ -88,11 +88,22 @@ export class Merger {
 
                 const syncSourceLang = isSourceLang && destUnit.source === destUnit.target; // sync source language only if target is unchanged
                 const syncTarget = syncSourceLang || isUntranslated(destUnit, this.initialTranslationState);
+
+                const onlyWhitespaceChanged = (this.options.collapseWhitespace ?? true) && unit.source.trim() === destUnit.source.trim();
+
+                let target: string | undefined;
+                if (syncTarget && !(destUnit.target === undefined && this.options.newTranslationTargetsBlank === 'omit')) {
+                    target = unit.source;
+                } else if (onlyWhitespaceChanged && destUnit.target) {
+                    target = (unit.source.startsWith(' ') ? ' ' : '') + destUnit.target.trim() + (unit.source.endsWith(' ') ? ' ' : '');
+                } else {
+                    target = destUnit.target;
+                }
                 updatedDestUnit = {
                     ...destUnit,
-                    state: isSourceLang ? 'final' : this.initialTranslationState,
+                    state: isSourceLang ? 'final' : (onlyWhitespaceChanged ? destUnit.state : this.initialTranslationState),
                     source: unit.source,
-                    target: syncTarget && !(destUnit.target === undefined && this.options.newTranslationTargetsBlank === 'omit') ? unit.source : destUnit.target
+                    target: target
                 }
             }
             if (destUnit.id !== unit.id) {
@@ -121,7 +132,6 @@ export class Merger {
             };
         }
     }
-
 
 }
 
