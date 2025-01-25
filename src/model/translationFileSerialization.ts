@@ -235,7 +235,12 @@ function removeWhitespace<T extends XmlDocument | XmlElement>(node: T): void {
 function pretty(doc: XmlDocument, options: Pick<Options, 'prettyNestedTags'>) {
     removeWhitespace(doc);
     addPrettyWhitespace(doc, 0, options);
-    return doc.toString({preserveWhitespace: true, compressed: true});
+    return expandSelfClosingTags(doc.toString({preserveWhitespace: true, compressed: true}));
+}
+
+// this only addresses 'target' nodes, to avoid breaking nested html tags (<hr/> -> <hr></hr>):
+function expandSelfClosingTags(xml: string): string {
+    return xml.replace(/<(target)([^>]*)\/>/g, '<$1$2></$1>');
 }
 
 function indentChildren(doc: XmlElement, indent: number) {

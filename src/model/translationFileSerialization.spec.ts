@@ -242,7 +242,25 @@ describe('translationFileSerialization', () => {
   </file>
 </xliff>`);
         });
-
+        it('should create new node without self closing tag', () => {
+            const input = new TranslationFile([{
+                id: 'ID1',
+                source: 'source val',
+                target: '',
+                state: 'new',
+                locations: []
+            }], 'de', undefined);
+            expect(toXlf2(input, {prettyNestedTags: false})).toEqual(`<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">
+  <file id="ngi18n" original="ng.template">
+    <unit id="ID1">
+      <segment state="new">
+        <source>source val</source>
+        <target></target>
+      </segment>
+    </unit>
+  </file>
+</xliff>`);
+        });
     });
     describe('toXlf1', () => {
         it('should not include state attribute if it is undefined', () => {
@@ -334,7 +352,26 @@ describe('translationFileSerialization', () => {
   </file>
 </xliff>`);
         });
-
+        it('should create new node without self closing tag', () => {
+            const input = new TranslationFile([{
+                id: 'ID1',
+                source: 'source val',
+                target: '',
+                state: 'new',
+                locations: []
+            }], 'de', undefined);
+            expect(toXlf1(input, {prettyNestedTags: false})).toEqual(
+                `<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
+  <file source-language="de" datatype="plaintext" original="ng2.template">
+    <body>
+      <trans-unit id="ID1" datatype="html">
+        <source>source val</source>
+        <target state="new"></target>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>`)
+        });
     });
     describe('fromXlf1', () => {
         it('should parse xml with placeholder', () => {

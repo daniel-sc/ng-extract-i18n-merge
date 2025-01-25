@@ -1169,7 +1169,7 @@ describe('Builder', () => {
                     '      </trans-unit>\n' +
                     '      <trans-unit id="ID2" datatype="html">\n' +
                     '        <source>source val2</source>\n' +
-                    '        <target state="new"/>\n' +
+                    '        <target state="new"></target>\n' +
                     '      </trans-unit>\n' +
                     '    </body>\n' +
                     '  </file>\n' +
