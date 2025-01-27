@@ -22,7 +22,7 @@ export class TranslationFile {
     }
 
     mapUnitsList(unitsMapper: (units: TranslationUnit[]) => TranslationUnit[]): TranslationFile {
-        return new TranslationFile(unitsMapper(this.units), this.sourceLang, this.targetLang, this.xmlHeader);
+        return new TranslationFile(unitsMapper(this.units), this.sourceLang, this.targetLang, this.xmlHeader, this.trailingWhitespace);
     }
 
     replaceUnit(unit: TranslationUnit, updated: TranslationUnit) {

@@ -1302,6 +1302,44 @@ describe('Builder', () => {
                     '</xliff>'
             });
     });
+    test('extract-and-merge with trailing newline', async () => {
+        await runTest(
+            {
+                messagesBefore: '<?xml version="1.0"?>\n' +
+                    '<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+                    '  <file source-language="de" datatype="plaintext" original="ng2.template">\n' +
+                    '    <body>\n' +
+                    '      <trans-unit id="ID1" datatype="html">\n' +
+                    '        <source>source val</source>\n' +
+                    '      </trans-unit>\n' +
+                    '    </body>\n' +
+                    '  </file>\n' +
+                    '</xliff>\n',
+                messagesFrBefore: '<?xml version="1.0"?>\n' +
+                    '<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+                    '  <file source-language="de" target-language="fr-ch" datatype="plaintext" original="ng2.template">\n' +
+                    '    <body>\n' +
+                    '    </body>\n' +
+                    '  </file>\n' +
+                    '</xliff>\n',
+                options: {
+                    format: 'xlf',
+                    targetFiles: ['messages.fr.xlf'],
+                    outputPath: 'builder-test'
+                },
+                messagesFrExpected: '<?xml version="1.0"?>\n' +
+                    '<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+                    '  <file source-language="de" target-language="fr-ch" datatype="plaintext" original="ng2.template">\n' +
+                    '    <body>\n' +
+                    '      <trans-unit id="ID1" datatype="html">\n' +
+                    '        <source>source val</source>\n' +
+                    '        <target state="new">source val</target>\n' +
+                    '      </trans-unit>\n' +
+                    '    </body>\n' +
+                    '  </file>\n' +
+                    '</xliff>\n'
+            });
+    });
     test('handle non default source file name', async () => {
         await runTest({
                 sourceFilename: 'builder-test/my-messages.xlf',
