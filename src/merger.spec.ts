@@ -12,7 +12,7 @@ describe('merger', () => {
             ], 'en');
             const translationTargetFile = new TranslationFile([
                 {id: '1.1', source: 'aaaaaaaaaa11', target: 'aaa1', state: 'translated', locations: []},
-                {id: '1.2', source: 'aaaaaaaaaa22', target: 'aaa2', state: 'translated', locations: []},
+                {id: '1.2', source: 'aaaaaaaaaa22                ', target: 'aaa2', state: 'translated', locations: []},
                 {id: '2', source: 'bbbbbb1', target: 'bbb1', state: 'translated', locations: []},
                 {id: '3', source: 'ccccccc', target: 'ccc1', state: 'translated', locations: []},
             ], 'en', 'de');
