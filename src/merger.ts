@@ -144,11 +144,11 @@ function findCloseMatches(originUnit: TranslationUnit, destUnits: TranslationUni
     elem: TranslationUnit,
     score: number
 }[] {
-    const originText = originUnit.source;
+    const originText = originUnit.source.trim();
     return destUnits
         .map(n => ({
             elem: n,
-            score: levenshtein(originText, n.source) / originText.length
+            score: levenshtein(originText, n.source.trim()) / originText.length
         }))
         .filter(x => x.score < FUZZY_THRESHOLD)
         .sort((a, b) => a.score - b.score);
