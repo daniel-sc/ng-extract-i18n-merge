@@ -39,7 +39,7 @@ describe('translationFileSerialization', () => {
                         lineStart: 13
                     }
                 ]
-            }], 'de', 'fr', '<?xml version="1.0" encoding="UTF-8"?>\n'));
+            }], 'de', 'fr'));
         });
 
         it('should parse additionalAttributes', () => {
@@ -198,7 +198,7 @@ describe('translationFileSerialization', () => {
                         lineStart: 13
                     }
                 ]
-            }], 'de', 'fr', '<?xml version="1.0" encoding="UTF-8"?>\n');
+            }], 'de', 'fr');
             expect(toXlf2(input, {prettyNestedTags: true, selfClosingEmptyTargets: true})).toEqual(`<?xml version="1.0" encoding="UTF-8"?>
 <xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de" trgLang="fr">
   <file id="ngi18n" original="ng.template">
@@ -229,7 +229,7 @@ describe('translationFileSerialization', () => {
                     {name: 'approved', value: 'yes', path: '.'},
                     {name: 'other', value: 'value', path: 'segment.target'}
                 ]
-            }], 'de', 'fr', '<?xml version="1.0" encoding="UTF-8"?>\n');
+            }], 'de', 'fr');
             expect(toXlf2(input, {prettyNestedTags: true, selfClosingEmptyTargets: true})).toEqual(`<?xml version="1.0" encoding="UTF-8"?>
 <xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de" trgLang="fr">
   <file id="ngi18n" original="ng.template">
@@ -293,7 +293,7 @@ describe('translationFileSerialization', () => {
                     file: 'app/app.component.ts',
                     lineStart: 11
                 }]
-            }], 'de', 'fr-ch', '<?xml version="1.0" encoding="UTF-8"?>\n');
+            }], 'de', 'fr-ch');
             expect(toXlf1(input, {prettyNestedTags: true, selfClosingEmptyTargets: true})).toEqual(`<?xml version="1.0" encoding="UTF-8"?>
 <xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
   <file source-language="de" target-language="fr-ch" datatype="plaintext" original="ng2.template">
@@ -317,7 +317,7 @@ describe('translationFileSerialization', () => {
                 id: 'idWithQuote"',
                 source: 'some source',
                 locations: []
-            }], 'en', 'de', '');
+            }], 'en', 'de');
             expect(toXlf1(input, {prettyNestedTags: true, selfClosingEmptyTargets: true})).toEqual(`<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
   <file source-language="en" target-language="de" datatype="plaintext" original="ng2.template">
     <body>
@@ -339,7 +339,7 @@ describe('translationFileSerialization', () => {
                     {name: 'approved', value: 'yes', path: '.'},
                     {name: 'other', value: 'value', path: 'target'}
                 ]
-            }], 'de', 'fr-ch', '<?xml version="1.0" encoding="UTF-8"?>\n');
+            }], 'de', 'fr-ch');
             expect(toXlf1(input, {prettyNestedTags: true, selfClosingEmptyTargets: true})).toEqual(`<?xml version="1.0" encoding="UTF-8"?>
 <xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
   <file source-language="de" target-language="fr-ch" datatype="plaintext" original="ng2.template">
@@ -389,7 +389,7 @@ describe('translationFileSerialization', () => {
                 id: 'ID1',
                 source: 'Some text <ph id="0" equiv="INTERPOLATION" disp="{{ myLabel }}"/>',
                 locations: []
-            }], 'de', undefined, undefined));
+            }], 'de', undefined));
         });
 
         it('should parse xml with placeholder and sorting', () => {
@@ -407,7 +407,7 @@ describe('translationFileSerialization', () => {
                 id: 'ID1',
                 source: 'Some text <ph disp="{{ myLabel }}" equiv="INTERPOLATION" id="0"/>',
                 locations: []
-            }], 'de', undefined, undefined));
+            }], 'de', undefined));
         });
 
         it('should parse xlf1', () => {
@@ -440,7 +440,7 @@ describe('translationFileSerialization', () => {
                     file: 'app/app.component.ts',
                     lineStart: 11
                 }]
-            }], 'de', 'fr-ch', '<?xml version="1.0" encoding="UTF-8"?>\n'));
+            }], 'de', 'fr-ch'));
         });
 
         it('should parse additionalAttributes', () => {

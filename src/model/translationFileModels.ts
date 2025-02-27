@@ -18,11 +18,11 @@ export interface TranslationUnit {
 
 export class TranslationFile {
 
-    constructor(public readonly units: TranslationUnit[], public readonly sourceLang: string, public readonly targetLang?: string, public readonly xmlHeader?: string, public readonly trailingWhitespace?: string) {
+    constructor(public readonly units: TranslationUnit[], public readonly sourceLang: string, public readonly targetLang?: string) {
     }
 
     mapUnitsList(unitsMapper: (units: TranslationUnit[]) => TranslationUnit[]): TranslationFile {
-        return new TranslationFile(unitsMapper(this.units), this.sourceLang, this.targetLang, this.xmlHeader, this.trailingWhitespace);
+        return new TranslationFile(unitsMapper(this.units), this.sourceLang, this.targetLang);
     }
 
     replaceUnit(unit: TranslationUnit, updated: TranslationUnit) {

@@ -28,7 +28,7 @@ export class Merger {
         // collect (potentially) obsolete units (defer actual removal to allow for fuzzy matching..):
         const removeNodes = destFileContent.units.filter(destUnit => !inUnitsById.has(destUnit.id));
 
-        const result = new TranslationFile([...destFileContent.units], destFileContent.sourceLang, destFileContent.targetLang, destFileContent.xmlHeader, destFileContent.trailingWhitespace);
+        const result = new TranslationFile([...destFileContent.units], destFileContent.sourceLang, destFileContent.targetLang);
 
         for (const unit of allInUnitsWithDestinationUnit) {
             result.replaceUnit(unit, this.handle(unit, destUnitsById.get(unit.id), isSourceLang, removeNodes));
