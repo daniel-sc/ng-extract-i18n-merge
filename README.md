@@ -10,7 +10,7 @@ Additionally, translation files are normalized (whitespace, stable sort) so that
 (and translations in PRs might actually get reviewed ;-) ).
 
 > [!TIP]
-> If you'd like to keep your translation process simple and rather validate translations, than waiting for actual translations, I'd like you to check out [doloc.io](https://doloc.io).
+> If you'd like to keep your translation process simple and rather validate translations, then waiting for actual translations, I'd like you to check out [doloc.io](https://doloc.io).
 >
 >  Created by the maintainer of `ng-extract-i18n-merge` ([@daniel-sc](https://github.com/daniel-sc)),
 > it integrates seamlessly with this library (see [here](https://github.com/daniel-sc/ng-extract-i18n-merge/discussions/115)) and provides instant translations on extraction!
