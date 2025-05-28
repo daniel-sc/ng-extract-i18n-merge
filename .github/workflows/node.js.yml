@@ -38,11 +38,11 @@ jobs:
           - {angular: {version: 20.0.0-rc.1, devkit-version: 0.2000.0-rc.1}, node: {version: 24.x, types-version: 22.9.1}}
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - name: Use Node.js ${{ matrix.node.version }}
       uses: actions/setup-node@v1
       with:
-        version: ${{ matrix.node.version }}
+        node-version: ${{ matrix.node.version }}
     - run: rm package-lock.json # otherwise we cannot overwrite the peerDependencies version of @angular-devkit/build-angular below
     - run: npm i --save-exact "@types/node@${{ matrix.node.types-version }}" "@angular-devkit/architect@${{ matrix.angular.devkit-version }}" "@angular-devkit/core@${{ matrix.angular.version }}" "@angular-devkit/schematics@${{ matrix.angular.version }}" "@schematics/angular@${{ matrix.angular.version }}" "@angular-devkit/build-angular@${{ matrix.angular.version }}" "@angular/core@${{ matrix.angular.version }}" "@angular/compiler-cli@${{ matrix.angular.version }}"
     - run: npm i
