@@ -22,6 +22,6 @@ export interface Options extends JsonObject {
     /** @deprecated use `buildTarget` instead */
     browserTarget: string | null,
     buildTarget: string | null,
-    builderI18n: string,
+    builderI18n: string | null,
     verbose: boolean
 }

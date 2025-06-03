@@ -138,8 +138,7 @@
     },
     "builderI18n": {
       "type": "string",
-      "description": "The builder to use for i18n extraction. By default, this is `@angular-devkit/build-angular:extract-i18n`. Any custom builder should handle the same options as the default builder (browserTarget, outputPath, outFile, format, progress).",
-      "default": "@angular-devkit/build-angular:extract-i18n"
+      "description": "The builder to use for i18n extraction. If not configured, `@angular-devkit/build-angular:extract-i18n` or `@angular/build:extract-i18n` is inferred from project setup. Any custom builder should handle the same options as the default builder (browserTarget, outputPath, outFile, format, progress)."
     },
     "verbose": {
       "type": "boolean",
