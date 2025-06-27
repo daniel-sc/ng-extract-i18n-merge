@@ -8,7 +8,6 @@ import {TranslationFile, TranslationUnit} from './model/translationFileModels';
 import {Merger} from './merger';
 import {Options} from './options';
 import {doCollapseWhitespace} from './stringUtils';
-import {buildTargetAttribute} from './buildTargetAttribute';
 
 
 const STATE_INITIAL_XLF_2_0 = 'initial';
@@ -127,7 +126,8 @@ async function extractI18nMergeBuilder(options: Options, context: BuilderContext
     const translationSourceFileOriginal = fromXlf(await readFileIfExists(sourcePath));
 
     const extractI18nRun = await context.scheduleBuilder(await getI18nBuilderName(options, context), {
-        [buildTargetAttribute]: options.browserTarget ?? options.buildTarget,
+        buildTarget: options.buildTarget,
+        browserTarget: options.browserTarget,
         outputPath: dirname(sourcePath),
         outFile: basename(sourcePath),
         format,
