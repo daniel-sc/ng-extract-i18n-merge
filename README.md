@@ -48,7 +48,7 @@ Breaking changes:
 ### Upgrade from 2.x.x to 3.0.0
 
 Run `ng update ng-extract-i18n-merge` to update to v3.0.0 using the Angular update mechanism.
-This release drops support for Angular 18 and older.
+This release drops support for Angular 19 and older.
 The defaults for `prettyNestedTags` and `sort` changed to `false` and `"stableAlphabetNew"` respectively.
 During `ng update` existing builder configurations are updated to keep the previous behaviour.
 

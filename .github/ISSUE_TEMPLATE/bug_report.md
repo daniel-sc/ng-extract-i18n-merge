@@ -22,7 +22,7 @@ If applicable, add screenshots to help explain your problem.
 **Version (please complete the following information):**
  - Angular: [e.g. 20.0.0]
  - OS: [e.g. Win10]
- - nodejs: [e.g. 20.11.1]
+ - nodejs: [e.g. 20.19.0]
  - ng-extract-i18n-merge version: [e.g. 3.0.0]
 
 **Additional context**
