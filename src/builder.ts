@@ -8,7 +8,6 @@ import {TranslationFile, TranslationUnit} from './model/translationFileModels';
 import {Merger} from './merger';
 import {Options} from './options';
 import {doCollapseWhitespace} from './stringUtils';
-import {buildTargetAttribute} from './buildTargetAttribute';
 
 
 const STATE_INITIAL_XLF_2_0 = 'initial';
@@ -70,26 +69,6 @@ function resetSortOrderStableAlphabetNew(originalTranslationSourceFile: Translat
     return resetStable.updatedTranslationSourceDoc;
 }
 
-async function getI18nBuilderName(options: Options, context: BuilderContext): Promise<string> {
-    if (options.builderI18n) {
-        return options.builderI18n;
-    } else {
-        try {
-            const buildBuilder = await context.getBuilderNameForTarget({project: context.target?.project!, target: 'build'});
-            context.logger.debug('Inferring i18n builder from build builder: ' + buildBuilder);
-            if (buildBuilder.startsWith('@angular-devkit/build-angular')) {
-                return '@angular-devkit/build-angular:extract-i18n';
-            } else if (buildBuilder.startsWith('@angular/build')) {
-                return '@angular/build:extract-i18n';
-            }
-            context.logger.warn(`Could not determine fallback builder for "extract-i18n" from builder "${buildBuilder}". Using "@angular-devkit/build-angular:extract-i18n" as default. Consider setting "builderI18n" in options.`);
-        } catch (error) {
-            context.logger.warn(`Could not read build builder for project "${context.target?.project}". Using "@angular-devkit/build-angular:extract-i18n" as default. Consider setting "builderI18n" in options.`);
-        }
-        return '@angular-devkit/build-angular:extract-i18n';
-    }
-}
-
 async function extractI18nMergeBuilder(options: Options, context: BuilderContext): Promise<BuilderOutput> {
     context.logger.info(`Running ng-extract-i18n-merge for project ${context.target?.project}`);
 
@@ -108,7 +87,7 @@ async function extractI18nMergeBuilder(options: Options, context: BuilderContext
     }
 
     function toXlf(output: TranslationFile): string {
-        const outputOptions = {prettyNestedTags: options.prettyNestedTags ?? true, selfClosingEmptyTargets: options.selfClosingEmptyTargets ?? true};
+        const outputOptions = {prettyNestedTags: options.prettyNestedTags ?? false, selfClosingEmptyTargets: options.selfClosingEmptyTargets ?? true};
         return isXliffV2 ? toXlf2(output, outputOptions) : toXlf1(output, outputOptions);
     }
 
@@ -126,8 +105,8 @@ async function extractI18nMergeBuilder(options: Options, context: BuilderContext
     const sourcePath = join(normalize(outputPath), options.sourceFile ?? 'messages.xlf');
     const translationSourceFileOriginal = fromXlf(await readFileIfExists(sourcePath));
 
-    const extractI18nRun = await context.scheduleBuilder(await getI18nBuilderName(options, context), {
-        [buildTargetAttribute]: options.browserTarget ?? options.buildTarget,
+    const extractI18nRun = await context.scheduleBuilder(await (options.builderI18n ?? '@angular/build:extract-i18n'), {
+        buildTarget: options.buildTarget,
         outputPath: dirname(sourcePath),
         outFile: basename(sourcePath),
         format,
@@ -142,7 +121,7 @@ async function extractI18nMergeBuilder(options: Options, context: BuilderContext
     context.logger.info(`normalize ${sourcePath} ...`);
     const translationSourceFile = fromXlf(await fs.readFile(sourcePath, 'utf8'));
 
-    const sort: Options['sort'] = options.sort ?? 'stableAppendNew';
+    const sort: Options['sort'] = options.sort ?? 'stableAlphabetNew';
     const identityMapper = <T extends string | undefined>(x: T) => x;
     const mapper = pipe(
         (options.collapseWhitespace ?? true) ? doCollapseWhitespace : identityMapper,

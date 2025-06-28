@@ -78,12 +78,12 @@
         "stableAppendNew",
         "stableAlphabetNew"
       ],
-      "default": "stableAppendNew",
+      "default": "stableAlphabetNew",
       "description": "Sorting of all translation units in source and target translation files."
     },
     "prettyNestedTags": {
       "type": "boolean",
-      "default": true,
+      "default": false,
       "description": "If source/target only contains xml nodes (interpolations, nested html), `true` formats these with line breaks and indentation. `false` keeps the original angular single line format. Note: while `true` was the historic implementation, it is _not_ recommended, as it adds whitespace between tags that had no whitespace in between and increases bundle sizes."
     },
     "selfClosingEmptyTargets": {
@@ -125,12 +125,6 @@
       "default": true,
       "description": "Whether to include the meaning and description information in the translation files."
     },
-    "browserTarget": {
-      "type": "string",
-      "description": "A browser builder target use for rendering the app shell in the format of `project:target[:configuration]`. You can also pass in more than one configuration name as a comma-separated list. Example: `project:target:production,staging`.",
-      "pattern": "^[^:\\s]+:[^:\\s]+(:[^\\s]+)?$",
-      "x-deprecated": "Use `buildTarget` instead."
-    },
     "buildTarget": {
       "type": "string",
       "description": "A build builder target use for rendering the app shell in the format of `project:target[:configuration]`. You can also pass in more than one configuration name as a comma-separated list. Example: `project:target:production,staging`.",
@@ -138,7 +132,8 @@
     },
     "builderI18n": {
       "type": "string",
-      "description": "The builder to use for i18n extraction. If not configured, `@angular-devkit/build-angular:extract-i18n` or `@angular/build:extract-i18n` is inferred from project setup. Any custom builder should handle the same options as the default builder (browserTarget, outputPath, outFile, format, progress)."
+      "default": "@angular/build:extract-i18n",
+      "description": "The builder to use for i18n extraction. Any custom builder should handle the same options as the default builder (buildTarget, outputPath, outFile, format, progress)."
     },
     "verbose": {
       "type": "boolean",
@@ -147,12 +142,5 @@
     }
   },
   "additionalProperties": false,
-  "anyOf": [
-    {
-      "required": ["browserTarget", "targetFiles"]
-    },
-    {
-      "required": ["buildTarget", "targetFiles"]
-    }
-  ]
+  "required": ["buildTarget", "targetFiles"]
 }

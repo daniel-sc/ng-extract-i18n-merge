@@ -5,7 +5,6 @@ coverage/
 *.ts
 !*.d.ts
 *.spec.*
-**/rmSafe.*
 jest*
 *.tgz
 tsconfig.json
