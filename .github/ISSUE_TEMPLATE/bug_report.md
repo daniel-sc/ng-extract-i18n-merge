@@ -20,10 +20,10 @@ A clear and concise description of what you expected to happen.
 If applicable, add screenshots to help explain your problem.
 
 **Version (please complete the following information):**
- - Angular: [e.g. 14.0.4]
+ - Angular: [e.g. 20.0.0]
  - OS: [e.g. Win10]
- - nodejs: [e.g. 16.15.1]
- - ng-extract-i18n-merge version: [e.g. 2.1.0]
+ - nodejs: [e.g. 20.11.1]
+ - ng-extract-i18n-merge version: [e.g. 3.0.0]
 
 **Additional context**
 Add any other context about the problem here.

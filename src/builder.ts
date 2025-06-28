@@ -8,7 +8,6 @@ import {TranslationFile, TranslationUnit} from './model/translationFileModels';
 import {Merger} from './merger';
 import {Options} from './options';
 import {doCollapseWhitespace} from './stringUtils';
-import {buildTargetAttribute} from './buildTargetAttribute';
 
 
 const STATE_INITIAL_XLF_2_0 = 'initial';
@@ -108,7 +107,7 @@ async function extractI18nMergeBuilder(options: Options, context: BuilderContext
     }
 
     function toXlf(output: TranslationFile): string {
-        const outputOptions = {prettyNestedTags: options.prettyNestedTags ?? true, selfClosingEmptyTargets: options.selfClosingEmptyTargets ?? true};
+        const outputOptions = {prettyNestedTags: options.prettyNestedTags ?? false, selfClosingEmptyTargets: options.selfClosingEmptyTargets ?? true};
         return isXliffV2 ? toXlf2(output, outputOptions) : toXlf1(output, outputOptions);
     }
 
@@ -127,7 +126,7 @@ async function extractI18nMergeBuilder(options: Options, context: BuilderContext
     const translationSourceFileOriginal = fromXlf(await readFileIfExists(sourcePath));
 
     const extractI18nRun = await context.scheduleBuilder(await getI18nBuilderName(options, context), {
-        [buildTargetAttribute]: options.browserTarget ?? options.buildTarget,
+        buildTarget: options.buildTarget,
         outputPath: dirname(sourcePath),
         outFile: basename(sourcePath),
         format,
@@ -142,7 +141,7 @@ async function extractI18nMergeBuilder(options: Options, context: BuilderContext
     context.logger.info(`normalize ${sourcePath} ...`);
     const translationSourceFile = fromXlf(await fs.readFile(sourcePath, 'utf8'));
 
-    const sort: Options['sort'] = options.sort ?? 'stableAppendNew';
+    const sort: Options['sort'] = options.sort ?? 'stableAlphabetNew';
     const identityMapper = <T extends string | undefined>(x: T) => x;
     const mapper = pipe(
         (options.collapseWhitespace ?? true) ? doCollapseWhitespace : identityMapper,

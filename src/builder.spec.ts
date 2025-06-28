@@ -94,6 +94,7 @@ describe('Builder', () => {
         // A "run" can have multiple outputs, and contains progress information.
         const run = await architect.scheduleTarget({project: 'builder-test', target: 'extract-i18n-merge'}, {
             format: 'xlf2',
+                    prettyNestedTags: true,
             targetFiles: ['messages.fr.xlf'],
             outputPath: 'builder-test',
         });
@@ -116,6 +117,7 @@ describe('Builder', () => {
 
         const run = await architect.scheduleTarget({project: 'builder-test', target: 'extract-i18n-merge'}, {
             format: 'xlf2',
+                    prettyNestedTags: true,
             targetFiles: ['messages.fr.xlf'],
             outputPath: 'builder-test',
             builderI18n: '@my/custom:builder'
@@ -145,6 +147,7 @@ describe('Builder', () => {
             // A "run" can have multiple outputs, and contains progress information.
             const run = await architect.scheduleTarget({project: 'builder-test', target: 'extract-i18n-merge'}, {
                 format: 'xlf2',
+                    prettyNestedTags: true,
                 targetFiles: ['messages.fr.xlf'],
                 outputPath: 'builder-test',
             });
@@ -176,6 +179,7 @@ describe('Builder', () => {
                 '</xliff>',
             options: {
                 format: 'xlf2',
+                    prettyNestedTags: true,
             },
             messagesFrExpected: '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de" trgLang="fr">\n' +
                 '  <file id="ngi18n" original="ng.template">\n' +
@@ -204,6 +208,7 @@ describe('Builder', () => {
                 '</xliff>',
             options: {
                 format: 'xlf2',
+                    prettyNestedTags: true,
             },
             messagesFrExpected: '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de" trgLang="fr">\n' +
                 '  <file id="ngi18n" original="ng.template">\n' +
@@ -288,6 +293,7 @@ describe('Builder', () => {
                 '</xliff>',
             options: {
                 format: 'xlf2',
+                    prettyNestedTags: true,
             },
             messagesFrExpected: '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de" trgLang="fr">\n' +
                 '  <file id="ngi18n" original="ng.template">\n' +
@@ -422,6 +428,7 @@ describe('Builder', () => {
                     '</xliff>',
                 options: {
                     format: 'xlf2',
+                    prettyNestedTags: true,
                 },
                 messagesExpected: '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">\n' +
                     '  <file id="ngi18n" original="ng.template">\n' +
@@ -476,6 +483,7 @@ describe('Builder', () => {
                     '</xliff>',
                 options: {
                     format: 'xlf2',
+                    prettyNestedTags: true,
                 },
                 messagesExpected: '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">\n' +
                     '  <file id="ngi18n" original="ng.template">\n' +
@@ -543,6 +551,7 @@ describe('Builder', () => {
                     '</xliff>',
                 options: {
                     format: 'xlf2',
+                    prettyNestedTags: true,
                     targetFiles: ['messages.fr.xlf'],
                     outputPath: 'builder-test',
                     removeIdsWithPrefix: ['removeMe']
@@ -599,6 +608,7 @@ describe('Builder', () => {
                     '</xliff>',
                 options: {
                     format: 'xlf2',
+                    prettyNestedTags: true,
                     targetFiles: ['messages.fr.xlf'],
                     outputPath: 'builder-test',
                     includeIdsWithPrefix: ['ID']
@@ -660,6 +670,7 @@ describe('Builder', () => {
         // A "run" can have multiple outputs, and contains progress information.
         const run = await architect.scheduleTarget({project: 'builder-test', target: 'extract-i18n-merge'}, {
             format: 'xlf2',
+                    prettyNestedTags: true,
             targetFiles: ['messages.fr.xlf', 'messages.en.xlf'],
             sourceLanguageTargetFile: 'messages.en.xlf',
             outputPath: 'builder-test',
@@ -751,6 +762,7 @@ describe('Builder', () => {
         // A "run" can have multiple outputs, and contains progress information.
         const run = await architect.scheduleTarget({project: 'builder-test', target: 'extract-i18n-merge'}, {
             format: 'xlf2',
+                    prettyNestedTags: true,
             targetFiles: ['messages.fr.xlf', 'messages.en.xlf'],
             sourceLanguageTargetFile: 'messages.en.xlf',
             outputPath: 'builder-test',
@@ -831,6 +843,7 @@ describe('Builder', () => {
         // A "run" can have multiple outputs, and contains progress information.
         const run = await architect.scheduleTarget({project: 'builder-test', target: 'extract-i18n-merge'}, {
             format: 'xlf2',
+                    prettyNestedTags: true,
             targetFiles: ['messages.fr.xlf', 'messages.en.xlf'],
             sourceLanguageTargetFile: 'messages.en.xlf',
             outputPath: 'builder-test',
@@ -920,6 +933,7 @@ describe('Builder', () => {
                 '</xliff>',
             options: {
                 format: 'xlf2',
+                    prettyNestedTags: true,
                 sourceLanguageTargetFile: 'messages.fr.xlf'
             },
             messagesFrExpected: '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="fr" trgLang="fr">\n' +
@@ -1598,6 +1612,7 @@ describe('Builder', () => {
                    '</xliff>',
                 options: {
                     format: 'xlf2',
+                    prettyNestedTags: true,
                     includeContext: true
                 },
                 messagesExpected:  '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">\n' +
@@ -2028,7 +2043,8 @@ describe('Builder', () => {
                 '</xliff>',
             options: {
                 includeContext: true,
-                format: 'xlf2'
+                format: 'xlf2',
+                prettyNestedTags: true,
             },
             messagesExpected: '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">\n' +
                 '  <file id="ngi18n" original="ng.template">\n' +
@@ -2064,7 +2080,8 @@ describe('Builder', () => {
                 '  </file>\n' +
                 '</xliff>',
             options: {
-                format: 'xlf2'
+                format: 'xlf2',
+                prettyNestedTags: true,
             },
             messagesExpected: '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">\n' +
                 '  <file id="ngi18n" original="ng.template">\n' +
@@ -2399,7 +2416,7 @@ describe('Builder', () => {
                             format: 'xlf',
                             targetFiles: ['messages.fr.xlf'],
                             outputPath: 'builder-test',
-                            // default: sort: 'stableAppendNew'
+                            sort: 'stableAppendNew',
                         },
                         messagesExpected: '<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
                             '  <file source-language="de" datatype="plaintext" original="ng2.template">\n' +

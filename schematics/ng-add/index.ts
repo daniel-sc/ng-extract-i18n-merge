@@ -81,7 +81,7 @@ export function ngAdd(_options: Schema): Rule {
             const outputPath = normalize(outputPathFromExtractI18nOptions ?? outputPathFromTargetFiles ?? 'src/locales');
             context.logger.info(`inferred output path: ${outputPath}`);
 
-            const buildTarget = existingI18nTargetOptions?.browserTarget as string | undefined ?? existingI18nTargetOptions?.buildTarget as string | undefined ?? `${projectName}:build`;
+            const buildTarget = existingI18nTargetOptions?.buildTarget as string | undefined ?? `${projectName}:build`;
 
             // infer format:
             const formatFromExtractI18nOptions = existingI18nTargetOptions?.format as Options['format'] | undefined;

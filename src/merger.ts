@@ -72,7 +72,7 @@ export class Merger {
 
     private normalize(source: string): string {
         if (this.options.collapseWhitespace ?? true) {
-            const adjusted = (this.options.prettyNestedTags ?? true) && onlyXmlNodes(source) ? ` ${source.replace(/></g, '> <')} ` : source;
+            const adjusted = (this.options.prettyNestedTags ?? false) && onlyXmlNodes(source) ? ` ${source.replace(/></g, '> <')} ` : source;
             return doCollapseWhitespace(adjusted);
         } else {
             return source;
