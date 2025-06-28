@@ -34,7 +34,7 @@ describe('Builder', () => {
             target: 'extract-i18n-merge'
         }, 'ng-extract-i18n-merge:ng-extract-i18n-merge');
         extractI18nBuilderMock = jest.fn(() => ({success: true}));
-        await architectHost.addBuilder('@angular-devkit/build-angular:extract-i18n', createBuilder(extractI18nBuilderMock)); // dummy builder
+        await architectHost.addBuilder('@angular/build:extract-i18n', createBuilder(extractI18nBuilderMock)); // dummy builder
     });
 
     async function runTest(p: {
@@ -90,7 +90,7 @@ describe('Builder', () => {
     }
 
     test('should fail if extract-i18n fails', async () => {
-        architectHost.addBuilder('@angular-devkit/build-angular:extract-i18n', createBuilder(() => ({success: false}))); // dummy builder
+        architectHost.addBuilder('@angular/build:extract-i18n', createBuilder(() => ({success: false}))); // dummy builder
         // A "run" can have multiple outputs, and contains progress information.
         const run = await architect.scheduleTarget({project: 'builder-test', target: 'extract-i18n-merge'}, {
             format: 'xlf2',
@@ -136,7 +136,7 @@ describe('Builder', () => {
             '  <file id="ngi18n" original="ng.template">\n' +
             '  </file>\n' +
             '</xliff>';
-        architectHost.addBuilder('@angular-devkit/build-angular:extract-i18n', createBuilder(async () => {
+        architectHost.addBuilder('@angular/build:extract-i18n', createBuilder(async () => {
             await fs.writeFile(MESSAGES_XLF_PATH, dummyContent, 'utf8');
             return {success: true};
         })); // dummy builder that only writes the source file
@@ -2347,7 +2347,7 @@ describe('Builder', () => {
                     '</xliff>', 'utf8');
                 return ({success: true});
             });
-            await architectHost.addBuilder('@angular-devkit/build-angular:extract-i18n', createBuilder(extractI18nBuilderMock));
+            await architectHost.addBuilder('@angular/build:extract-i18n', createBuilder(extractI18nBuilderMock));
 
         });
         describe('idAsc', () => {
@@ -2499,7 +2499,7 @@ describe('Builder', () => {
                         '</xliff>', 'utf8');
                     return ({success: true});
                 });
-                await architectHost.addBuilder('@angular-devkit/build-angular:extract-i18n', createBuilder(extractI18nBuilderMock));
+                await architectHost.addBuilder('@angular/build:extract-i18n', createBuilder(extractI18nBuilderMock));
                 await runTest(
                     {
                         messagesBefore: undefined,
@@ -2616,7 +2616,7 @@ describe('Builder', () => {
                         '</xliff>', 'utf8');
                     return ({success: true});
                 });
-                await architectHost.addBuilder('@angular-devkit/build-angular:extract-i18n', createBuilder(extractI18nBuilderMock));
+                await architectHost.addBuilder('@angular/build:extract-i18n', createBuilder(extractI18nBuilderMock));
                 await runTest(
                     {
                         messagesBefore: '<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +

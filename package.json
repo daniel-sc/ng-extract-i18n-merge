@@ -43,7 +43,7 @@
     "xmldoc": "^1.1.3"
   },
   "peerDependencies": {
-    "@angular-devkit/build-angular": "^20.0.0"
+    "@angular/build": "^20.0.0"
   },
   "devDependencies": {
     "@types/babel__traverse": "<=7.20.4",
