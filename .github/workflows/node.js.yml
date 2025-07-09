@@ -16,24 +16,7 @@ jobs:
     strategy:
       matrix:
         include:
-          - {angular: {version: 13.2.6, devkit-version: 0.1302.6}, node: {version: 14.x, types-version: 14.14.31}}
-          - {angular: {version: 13.2.6, devkit-version: 0.1302.6}, node: {version: 16.x, types-version: 16.11.68}} # this needs @types/babel__traverse to be <= 7.20.0!
-          - {angular: {version: 14.0.2, devkit-version: 0.1400.2}, node: {version: 14.x, types-version: 14.14.31}}
-          - {angular: {version: 14.0.2, devkit-version: 0.1400.2}, node: {version: 16.x, types-version: 16.11.68}}
-          - {angular: {version: 15.0.3, devkit-version: 0.1500.3}, node: {version: 14.x, types-version: 14.14.31}}
-          - {angular: {version: 15.0.3, devkit-version: 0.1500.3}, node: {version: 16.x, types-version: 16.11.68}}
-          - {angular: {version: 15.0.3, devkit-version: 0.1500.3}, node: {version: 18.x, types-version: 18.15.3}}
-          - {angular: {version: 16.2.1, devkit-version: 0.1602.1}, node: {version: 16.x, types-version: 16.11.68}}
-          - {angular: {version: 16.2.1, devkit-version: 0.1602.1}, node: {version: 18.x, types-version: 18.15.3}}
-          - {angular: {version: 17.0.0, devkit-version: 0.1700.0}, node: {version: 18.x, types-version: 18.15.3}}
-          - {angular: {version: 17.0.0, devkit-version: 0.1700.0}, node: {version: 20.x, types-version: 20.17.6}}
-          - {angular: {version: 18.0.0, devkit-version: 0.1800.0}, node: {version: 18.x, types-version: 18.15.3}}
-          - {angular: {version: 18.0.0, devkit-version: 0.1800.0}, node: {version: 20.x, types-version: 20.17.6}}
-          - {angular: {version: 18.0.0, devkit-version: 0.1800.0}, node: {version: 22.x, types-version: 22.9.1}}
-          - {angular: {version: 19.0.0, devkit-version: 0.1900.0}, node: {version: 18.x, types-version: 18.15.3}}
-          - {angular: {version: 19.0.0, devkit-version: 0.1900.0}, node: {version: 20.x, types-version: 20.17.6}}
-          - {angular: {version: 19.0.0, devkit-version: 0.1900.0}, node: {version: 22.x, types-version: 22.9.1}}
-          - {angular: {version: 20.0.0, devkit-version: 0.2000.0}, node: {version: 20.x, types-version: 20.17.6}}
+          - {angular: {version: 20.0.0, devkit-version: 0.2000.0}, node: {version: 20.19.0, types-version: 20.19.0}}
           - {angular: {version: 20.0.0, devkit-version: 0.2000.0}, node: {version: 22.x, types-version: 22.9.1}}
           - {angular: {version: 20.0.0, devkit-version: 0.2000.0}, node: {version: 24.x, types-version: 22.9.1}}
 
@@ -44,7 +27,7 @@ jobs:
       with:
         node-version: ${{ matrix.node.version }}
     - run: rm package-lock.json # otherwise we cannot overwrite the peerDependencies version of @angular-devkit/build-angular below
-    - run: npm i --save-exact "@types/node@${{ matrix.node.types-version }}" "@angular-devkit/architect@${{ matrix.angular.devkit-version }}" "@angular-devkit/core@${{ matrix.angular.version }}" "@angular-devkit/schematics@${{ matrix.angular.version }}" "@schematics/angular@${{ matrix.angular.version }}" "@angular-devkit/build-angular@${{ matrix.angular.version }}" "@angular/core@${{ matrix.angular.version }}" "@angular/compiler-cli@${{ matrix.angular.version }}"
+    - run: npm i --save-exact "@types/node@${{ matrix.node.types-version }}" "@angular-devkit/architect@${{ matrix.angular.devkit-version }}" "@angular-devkit/core@${{ matrix.angular.version }}" "@angular-devkit/schematics@${{ matrix.angular.version }}" "@schematics/angular@${{ matrix.angular.version }}" "@angular/build@${{ matrix.angular.version }}" "@angular/core@${{ matrix.angular.version }}" "@angular/compiler-cli@${{ matrix.angular.version }}"
     - run: npm i
     - run: npm ls || true
     - run: npm run build
