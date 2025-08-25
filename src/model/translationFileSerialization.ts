@@ -1,5 +1,5 @@
 import {XmlDocument, XmlElement, XmlNode, XmlTextNode} from 'xmldoc';
-import {TranslationFile, TranslationUnit} from './translationFileModels';
+import {FileLocation, TranslationFile, TranslationUnit} from './translationFileModels';
 import {Options} from '../options';
 
 
@@ -23,8 +23,11 @@ const REGULAR_ATTRIBUTES_XLF2: {[nodeName: string]: string[]} = {
     'target': []
 }
 
+export type ImportOptions = Partial<Pick<Options, 'sortNestedTagAttributes' | 'excludeContextLineNumber'>>;
+export type ExportOptions = Partial<Pick<Options, 'prettyNestedTags' | 'selfClosingEmptyTargets' | 'excludeContextLineNumber'>>;
+
 export function fromXlf2(xlf2: string,
-    options: Pick<Options, 'sortNestedTagAttributes'> = { sortNestedTagAttributes: false }): TranslationFile {
+    options: ImportOptions = { sortNestedTagAttributes: false, excludeContextLineNumber: false }): TranslationFile {
 
     const doc = new XmlDocument(xlf2);
     const file = doc.childNamed('file')!;
@@ -67,7 +70,7 @@ function getTrailingWhitespace(xml: string): string | undefined {
 }
 
 export function fromXlf1(xlf1: string,
-    options: Pick<Options, 'sortNestedTagAttributes'> = { sortNestedTagAttributes: false }): TranslationFile {
+    options: ImportOptions = { sortNestedTagAttributes: false, excludeContextLineNumber: false }): TranslationFile {
 
     const doc = new XmlDocument(xlf1);
     const file = doc.childNamed('file')!;
@@ -85,10 +88,15 @@ export function fromXlf1(xlf1: string,
                 description:
                     toStringOrUndefined(options, notes?.find(note => note.attr.from === 'description')?.children),
                 locations: unit.childrenNamed('context-group')
-                    .map(contextGroup => ({
-                        file: contextGroup.childWithAttribute('context-type', 'sourcefile')!.val,
-                        lineStart: parseInt(contextGroup.childWithAttribute('context-type', 'linenumber')!.val, 10)
-                    })) ?? []
+                    .map(contextGroup => {
+                        let location: FileLocation = {
+                            file: contextGroup.childWithAttribute('context-type', 'sourcefile')!.val
+                        }
+                        if (!options.excludeContextLineNumber) {
+                            location.lineStart = parseInt(contextGroup.childWithAttribute('context-type', 'linenumber')!.val, 10)
+                        }
+                        return location;
+                    }) ?? []
             };
             const additionalAttributes = getAdditionalAttributes(unit, REGULAR_ATTRIBUTES_XLF1);
             if (additionalAttributes.length) {
@@ -99,7 +107,7 @@ export function fromXlf1(xlf1: string,
     return new TranslationFile(units, file.attr['source-language'], file.attr['target-language'], xlf1.match(XML_DECLARATION_MATCHER)?.[0], getTrailingWhitespace(xlf1));
 }
 
-function toString(options: Pick<Options, 'sortNestedTagAttributes'>, ...nodes: XmlNode[]): string {
+function toString(options: ImportOptions, ...nodes: XmlNode[]): string {
     return nodes.map(n => {
         if (options.sortNestedTagAttributes && n instanceof XmlElement) {
             const attr = Object.entries(n.attr).sort((a, b) => a[0].localeCompare(b[0]));
@@ -109,13 +117,13 @@ function toString(options: Pick<Options, 'sortNestedTagAttributes'>, ...nodes: X
     }).join('');
 }
 
-function toStringOrUndefined(options: Pick<Options, 'sortNestedTagAttributes'>, nodes: XmlNode[] | undefined):
+function toStringOrUndefined(options: ImportOptions, nodes: XmlNode[] | undefined):
     string | undefined {
 
     return nodes ? toString(options, ...nodes) : undefined;
 }
 
-export function toXlf2(translationFile: TranslationFile, options: Pick<Options, 'prettyNestedTags' | 'selfClosingEmptyTargets'>): string {
+export function toXlf2(translationFile: TranslationFile, options: ExportOptions): string {
     const doc = new XmlDocument(`<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="${translationFile.sourceLang}">
     <file id="ngi18n" original="ng.template">
     </file>
@@ -156,7 +164,7 @@ export function toXlf2(translationFile: TranslationFile, options: Pick<Options, 
     return (translationFile.xmlHeader ?? '') + pretty(doc, options) + (translationFile.trailingWhitespace ?? '');
 }
 
-export function toXlf1(translationFile: TranslationFile, options: Pick<Options, 'prettyNestedTags' | 'selfClosingEmptyTargets'>): string {
+export function toXlf1(translationFile: TranslationFile, options: ExportOptions): string {
     const doc = new XmlDocument(`<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
     <file source-language="${translationFile.sourceLang}"  datatype="plaintext" original="ng2.template">
     <body></body>
@@ -192,10 +200,15 @@ export function toXlf1(translationFile: TranslationFile, options: Pick<Options, 
             transUnit.children.push(new XmlDocument(`<note priority="1" from="meaning">${unit.meaning}</note>`));
         }
         if (unit.locations.length) {
-            transUnit.children.push(...unit.locations.map(location => new XmlDocument(`<context-group purpose="location">
-            <context context-type="sourcefile">${location.file}</context>
-            <context context-type="linenumber">${location.lineStart}</context>
-        </context-group>`)));
+            transUnit.children.push(...unit.locations.map(location => {
+                let contextGroup = new XmlDocument(`<context-group purpose="location">
+                    <context context-type="sourcefile">${location.file}</context>
+                </context-group>`);
+                if (!options.excludeContextLineNumber) {
+                    contextGroup.children.push(new XmlDocument(`<context context-type="linenumber">${location.lineStart}</context>`))
+                }
+                return contextGroup;
+            }));
         }
         updateFirstAndLastChild(body);
         unit.additionalAttributes?.forEach(attr => {
@@ -232,7 +245,7 @@ function removeWhitespace<T extends XmlDocument | XmlElement>(node: T): void {
 }
 
 /// format with 2 spaces indentation, except for source/target nodes: there nested nodes are assured to keep (non-)whitespaces (potentially collapsed/expanded)
-function pretty(doc: XmlDocument, options: Pick<Options, 'prettyNestedTags' | 'selfClosingEmptyTargets'>) {
+function pretty(doc: XmlDocument, options: ExportOptions) {
     removeWhitespace(doc);
     addPrettyWhitespace(doc, 0, options);
     const s = doc.toString({preserveWhitespace: true, compressed: true});
@@ -252,7 +265,7 @@ function indentChildren(doc: XmlElement, indent: number) {
     updateFirstAndLastChild(doc);
 }
 
-function addPrettyWhitespace(doc: XmlElement, indent: number, options: Pick<Options, 'prettyNestedTags'>, sourceOrTarget = false) {
+function addPrettyWhitespace(doc: XmlElement, indent: number, options: ExportOptions, sourceOrTarget = false) {
     if (isSourceOrTarget(doc) || sourceOrTarget) {
         if (options.prettyNestedTags && doc.children.length && doc.children.every(c => isWhiteSpace(c) || c.type === 'element')) {
             doc.children = doc.children.filter(c => !isWhiteSpace(c));

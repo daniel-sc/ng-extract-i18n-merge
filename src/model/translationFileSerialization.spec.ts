@@ -443,6 +443,35 @@ describe('translationFileSerialization', () => {
             }], 'de', 'fr-ch', '<?xml version="1.0" encoding="UTF-8"?>\n'));
         });
 
+        it('should handle no line numbers', () => {
+            const xlf1 = `<?xml version="1.0" encoding="UTF-8"?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
+  <file source-language="de" target-language="fr-ch" datatype="plaintext" original="ng2.template">
+    <body>
+      <trans-unit id="ID1" datatype="html">
+        <source>source val</source>
+        <target state="translated">target val</target>
+        <note priority="1" from="description">An introduction header for this sample</note>
+        <note priority="1" from="meaning">User welcome</note>
+        <context-group purpose="location">
+          <context context-type="sourcefile">app/app.component.ts</context>
+        </context-group>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>`;
+            const translationFile = fromXlf1(xlf1, {excludeContextLineNumber: true});
+            expect(translationFile).toEqual(new TranslationFile([{
+                id: 'ID1',
+                source: 'source val',
+                target: 'target val',
+                state: 'translated',
+                meaning: 'User welcome',
+                description: 'An introduction header for this sample',
+                locations: [{file: 'app/app.component.ts'}]
+            }], 'de', 'fr-ch', '<?xml version="1.0" encoding="UTF-8"?>\n'));
+        });
+
         it('should parse additionalAttributes', () => {
             const xlf1 = `<?xml version="1.0" encoding="UTF-8"?>
 <xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
