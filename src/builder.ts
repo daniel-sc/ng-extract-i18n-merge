@@ -83,7 +83,7 @@ async function extractI18nMergeBuilder(options: Options, context: BuilderContext
     function fromXlf(input: string | undefined | null): TranslationFile | undefined {
         const inputOptions: ImportOptions = {
             sortNestedTagAttributes: options.sortNestedTagAttributes ?? false,
-            excludeContextLineNumber: options.excludeContextLineNumber ?? false
+            includeContextLineNumber: options.includeContextLineNumber ?? true
         };
         return (input !== undefined && input !== null) ? (isXliffV2 ?
             fromXlf2(input, inputOptions) : fromXlf1(input, inputOptions)) : undefined;
@@ -93,7 +93,7 @@ async function extractI18nMergeBuilder(options: Options, context: BuilderContext
         const outputOptions: ExportOptions = {
             prettyNestedTags: options.prettyNestedTags ?? false,
             selfClosingEmptyTargets: options.selfClosingEmptyTargets ?? true,
-            excludeContextLineNumber: options.excludeContextLineNumber ?? false
+            includeContextLineNumber: options.includeContextLineNumber ?? true
         };
         return isXliffV2 ? toXlf2(output, outputOptions) : toXlf1(output, outputOptions);
     }

@@ -1952,7 +1952,7 @@ describe('Builder', () => {
                         format: 'xlf',
                         targetFiles: ['messages.fr.xlf'],
                         includeContext: true,
-                        excludeContextLineNumber: true,
+                        includeContextLineNumber: false,
                         outputPath: 'builder-test'
                     },
                     messagesFrExpected: '<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +

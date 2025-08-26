@@ -23,11 +23,11 @@ const REGULAR_ATTRIBUTES_XLF2: {[nodeName: string]: string[]} = {
     'target': []
 }
 
-export type ImportOptions = Partial<Pick<Options, 'sortNestedTagAttributes' | 'excludeContextLineNumber'>>;
-export type ExportOptions = Partial<Pick<Options, 'prettyNestedTags' | 'selfClosingEmptyTargets' | 'excludeContextLineNumber'>>;
+export type ImportOptions = Pick<Options, 'sortNestedTagAttributes' | 'includeContextLineNumber'>;
+export type ExportOptions = Pick<Options, 'prettyNestedTags' | 'selfClosingEmptyTargets' | 'includeContextLineNumber'>;
 
 export function fromXlf2(xlf2: string,
-    options: ImportOptions = { sortNestedTagAttributes: false, excludeContextLineNumber: false }): TranslationFile {
+    options: ImportOptions = { sortNestedTagAttributes: false, includeContextLineNumber: true }): TranslationFile {
 
     const doc = new XmlDocument(xlf2);
     const file = doc.childNamed('file')!;
@@ -70,7 +70,7 @@ function getTrailingWhitespace(xml: string): string | undefined {
 }
 
 export function fromXlf1(xlf1: string,
-    options: ImportOptions = { sortNestedTagAttributes: false, excludeContextLineNumber: false }): TranslationFile {
+    options: ImportOptions = { sortNestedTagAttributes: false, includeContextLineNumber: true }): TranslationFile {
 
     const doc = new XmlDocument(xlf1);
     const file = doc.childNamed('file')!;
@@ -92,7 +92,7 @@ export function fromXlf1(xlf1: string,
                         let location: FileLocation = {
                             file: contextGroup.childWithAttribute('context-type', 'sourcefile')!.val
                         }
-                        if (!options.excludeContextLineNumber) {
+                        if (options.includeContextLineNumber) {
                             location.lineStart = parseInt(contextGroup.childWithAttribute('context-type', 'linenumber')!.val, 10)
                         }
                         return location;
@@ -145,7 +145,13 @@ export function toXlf2(translationFile: TranslationFile, options: ExportOptions)
         if (unit.meaning !== undefined || unit.description !== undefined || unit.locations.length) {
             const notes = new XmlDocument('<notes></notes>');
             u.children.splice(0, 0, notes);
-            notes.children.push(...unit.locations.map(location => new XmlDocument(`<note category="location">${location.file}:${location.lineStart}${location.lineEnd ? ',' + location.lineEnd : ''}</note>`)));
+            notes.children.push(...unit.locations.map(location => {
+                let locationNote = location.file;
+                if (options.includeContextLineNumber) {
+                    locationNote += `:${location.lineStart}${location.lineEnd ? ',' + location.lineEnd : ''}`;
+                }
+                return new XmlDocument(`<note category="location">${locationNote}</note>`)
+            }));
             if (unit.description !== undefined) {
                 notes.children.push(new XmlDocument(`<note category="description">${unit.description}</note>`));
             }
@@ -204,8 +210,9 @@ export function toXlf1(translationFile: TranslationFile, options: ExportOptions)
                 let contextGroup = new XmlDocument(`<context-group purpose="location">
                     <context context-type="sourcefile">${location.file}</context>
                 </context-group>`);
-                if (!options.excludeContextLineNumber) {
+                if (options.includeContextLineNumber) {
                     contextGroup.children.push(new XmlDocument(`<context context-type="linenumber">${location.lineStart}</context>`))
+                    updateFirstAndLastChild(contextGroup);
                 }
                 return contextGroup;
             }));
