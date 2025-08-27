@@ -3,7 +3,7 @@ import {basename, dirname, join, normalize} from '@angular-devkit/core';
 import {promises as fs} from 'fs';
 import {readFileIfExists} from './fileUtils';
 import {findLexClosestIndex} from './lexUtils';
-import {fromXlf1, fromXlf2, toXlf1, toXlf2} from './model/translationFileSerialization';
+import {ExportOptions, fromXlf1, fromXlf2, ImportOptions, toXlf1, toXlf2} from './model/translationFileSerialization';
 import {TranslationFile, TranslationUnit} from './model/translationFileModels';
 import {Merger} from './merger';
 import {Options} from './options';
@@ -81,13 +81,20 @@ async function extractI18nMergeBuilder(options: Options, context: BuilderContext
     function fromXlf(input: string): TranslationFile;
     function fromXlf(input: string | undefined | null): TranslationFile | undefined;
     function fromXlf(input: string | undefined | null): TranslationFile | undefined {
-        const inputOptions = { sortNestedTagAttributes: options.sortNestedTagAttributes ?? false };
+        const inputOptions: ImportOptions = {
+            sortNestedTagAttributes: options.sortNestedTagAttributes ?? false,
+            includeContextLineNumber: options.includeContextLineNumber ?? true
+        };
         return (input !== undefined && input !== null) ? (isXliffV2 ?
             fromXlf2(input, inputOptions) : fromXlf1(input, inputOptions)) : undefined;
     }
 
     function toXlf(output: TranslationFile): string {
-        const outputOptions = {prettyNestedTags: options.prettyNestedTags ?? false, selfClosingEmptyTargets: options.selfClosingEmptyTargets ?? true};
+        const outputOptions: ExportOptions = {
+            prettyNestedTags: options.prettyNestedTags ?? false,
+            selfClosingEmptyTargets: options.selfClosingEmptyTargets ?? true,
+            includeContextLineNumber: options.includeContextLineNumber ?? true
+        };
         return isXliffV2 ? toXlf2(output, outputOptions) : toXlf1(output, outputOptions);
     }
 

@@ -120,6 +120,11 @@
       "default": false,
       "description": "Whether to include the context information (like notes) in the translation files. This is useful for sending the target translation files to translation agencies/services. When `sourceFileOnly` the context is retained only in the `sourceFile`."
     },
+    "includeContextLineNumber": {
+      "type": "boolean",
+      "default": true,
+      "description": "If context has been included allow the inclusion of line number to be optional"
+    },
     "includeMeaningAndDescription": {
       "type": "boolean",
       "default": true,

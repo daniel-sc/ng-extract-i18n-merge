@@ -1,7 +1,17 @@
 import {TranslationFile} from './translationFileModels';
-import {fromXlf1, fromXlf2, toXlf1, toXlf2} from './translationFileSerialization';
+import {ExportOptions, fromXlf1, fromXlf2, ImportOptions, toXlf1, toXlf2} from './translationFileSerialization';
 
 describe('translationFileSerialization', () => {
+    const importOptions: ImportOptions = {
+      sortNestedTagAttributes: false,
+      includeContextLineNumber: true
+    }
+    const exportOptions: ExportOptions = {
+        prettyNestedTags: false,
+        selfClosingEmptyTargets: true,
+        includeContextLineNumber: true
+    }
+
     describe('fromXlf2', () => {
         it('should parse xlf2', () => {
             const xlf2 = `<?xml version="1.0" encoding="UTF-8"?>
@@ -68,7 +78,7 @@ describe('translationFileSerialization', () => {
                 source: ' source val ',
                 locations: []
             }], 'de', undefined);
-            expect(toXlf2(input, {prettyNestedTags: true, selfClosingEmptyTargets: true})).toEqual(`<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">
+            expect(toXlf2(input, {...exportOptions, prettyNestedTags: true})).toEqual(`<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">
   <file id="ngi18n" original="ng.template">
     <unit id="ID1">
       <segment>
@@ -84,7 +94,7 @@ describe('translationFileSerialization', () => {
                 source: 'source <b> <nested/></b>',
                 locations: []
             }], 'de', undefined);
-            expect(toXlf2(input, {prettyNestedTags: true, selfClosingEmptyTargets: true})).toEqual(`<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">
+            expect(toXlf2(input, {...exportOptions, prettyNestedTags: true})).toEqual(`<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">
   <file id="ngi18n" original="ng.template">
     <unit id="ID1">
       <segment>
@@ -100,7 +110,7 @@ describe('translationFileSerialization', () => {
                 source: ' <nested1>a</nested1> <nested2>b</nested2> ',
                 locations: []
             }], 'de', undefined);
-            expect(toXlf2(input, {prettyNestedTags: true, selfClosingEmptyTargets: true})).toEqual(`<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">
+            expect(toXlf2(input, {...exportOptions, prettyNestedTags: true})).toEqual(`<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">
   <file id="ngi18n" original="ng.template">
     <unit id="ID1">
       <segment>
@@ -119,7 +129,7 @@ describe('translationFileSerialization', () => {
                 source: '<nested1>a</nested1><nested2>b</nested2>',
                 locations: []
             }], 'de', undefined);
-            expect(toXlf2(input, {prettyNestedTags: true, selfClosingEmptyTargets: true})).toEqual(`<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">
+            expect(toXlf2(input, {...exportOptions, prettyNestedTags: true})).toEqual(`<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">
   <file id="ngi18n" original="ng.template">
     <unit id="ID1">
       <segment>
@@ -138,7 +148,7 @@ describe('translationFileSerialization', () => {
                 source: ' <nested1>a</nested1> <nested2>b</nested2> ',
                 locations: []
             }], 'de', undefined);
-            expect(toXlf2(input, {prettyNestedTags: false, selfClosingEmptyTargets: true})).toEqual(`<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">
+            expect(toXlf2(input, exportOptions)).toEqual(`<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">
   <file id="ngi18n" original="ng.template">
     <unit id="ID1">
       <segment>
@@ -154,7 +164,7 @@ describe('translationFileSerialization', () => {
                 source: 'prefix <nested1>a</nested1> <nested2>b</nested2> ',
                 locations: []
             }], 'de', undefined);
-            expect(toXlf2(input, {prettyNestedTags: true, selfClosingEmptyTargets: true})).toEqual(`<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">
+            expect(toXlf2(input, {...exportOptions, prettyNestedTags: true})).toEqual(`<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">
   <file id="ngi18n" original="ng.template">
     <unit id="ID1">
       <segment>
@@ -170,7 +180,7 @@ describe('translationFileSerialization', () => {
                 source: ' prefix <nested1>a</nested1> <nested2>b</nested2> ',
                 locations: []
             }], 'de', undefined);
-            expect(toXlf2(input, {prettyNestedTags: true, selfClosingEmptyTargets: true})).toEqual(`<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">
+            expect(toXlf2(input, {...exportOptions, prettyNestedTags: true})).toEqual(`<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">
   <file id="ngi18n" original="ng.template">
     <unit id="ID1">
       <segment>
@@ -199,13 +209,55 @@ describe('translationFileSerialization', () => {
                     }
                 ]
             }], 'de', 'fr', '<?xml version="1.0" encoding="UTF-8"?>\n');
-            expect(toXlf2(input, {prettyNestedTags: true, selfClosingEmptyTargets: true})).toEqual(`<?xml version="1.0" encoding="UTF-8"?>
+            expect(toXlf2(input, {...exportOptions, prettyNestedTags: true})).toEqual(`<?xml version="1.0" encoding="UTF-8"?>
 <xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de" trgLang="fr">
   <file id="ngi18n" original="ng.template">
     <unit id="ID1">
       <notes>
         <note category="location">app/app.component.ts:11</note>
         <note category="location">app/another.component.ts:13</note>
+        <note category="description">Greeting message that includes the user&apos;s name.</note>
+        <note category="meaning">greeting</note>
+      </notes>
+      <segment state="initial">
+        <source>source val</source>
+        <target>target val</target>
+      </segment>
+    </unit>
+  </file>
+</xliff>`);
+        });
+
+        it('should exclude line numbers', () => {
+            const input = new TranslationFile([{
+                id: 'ID1',
+                source: 'source val',
+                target: 'target val',
+                state: 'initial',
+                meaning: 'greeting',
+                description: 'Greeting message that includes the user&apos;s name.',
+                locations: [
+                    {
+                        file: 'app/app.component.ts',
+                        lineStart: 11
+                    },
+                    {
+                        file: 'app/app.component.ts',
+                        lineStart: 36
+                    },
+                    {
+                        file: 'app/another.component.ts',
+                        lineStart: 13
+                    }
+                ]
+            }], 'de', 'fr', '<?xml version="1.0" encoding="UTF-8"?>\n');
+            expect(toXlf2(input, {...exportOptions, includeContextLineNumber: false})).toEqual(`<?xml version="1.0" encoding="UTF-8"?>
+<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de" trgLang="fr">
+  <file id="ngi18n" original="ng.template">
+    <unit id="ID1">
+      <notes>
+        <note category="location">app/app.component.ts</note>
+        <note category="location">app/another.component.ts</note>
         <note category="description">Greeting message that includes the user&apos;s name.</note>
         <note category="meaning">greeting</note>
       </notes>
@@ -230,7 +282,7 @@ describe('translationFileSerialization', () => {
                     {name: 'other', value: 'value', path: 'segment.target'}
                 ]
             }], 'de', 'fr', '<?xml version="1.0" encoding="UTF-8"?>\n');
-            expect(toXlf2(input, {prettyNestedTags: true, selfClosingEmptyTargets: true})).toEqual(`<?xml version="1.0" encoding="UTF-8"?>
+            expect(toXlf2(input, {...exportOptions, prettyNestedTags: true})).toEqual(`<?xml version="1.0" encoding="UTF-8"?>
 <xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de" trgLang="fr">
   <file id="ngi18n" original="ng.template">
     <unit id="ID1" approved="yes">
@@ -250,7 +302,7 @@ describe('translationFileSerialization', () => {
                 state: 'new',
                 locations: []
             }], 'de', undefined);
-            expect(toXlf2(input, {prettyNestedTags: false, selfClosingEmptyTargets: false})).toEqual(`<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">
+            expect(toXlf2(input, {...exportOptions, selfClosingEmptyTargets: false})).toEqual(`<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">
   <file id="ngi18n" original="ng.template">
     <unit id="ID1">
       <segment state="new">
@@ -270,7 +322,7 @@ describe('translationFileSerialization', () => {
                 target: 'target val',
                 locations: []
             }], 'de', undefined);
-            expect(toXlf1(input, {prettyNestedTags: true, selfClosingEmptyTargets: true})).toEqual(`<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
+            expect(toXlf1(input, {...exportOptions, prettyNestedTags: true})).toEqual(`<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
   <file source-language="de" datatype="plaintext" original="ng2.template">
     <body>
       <trans-unit id="ID1" datatype="html">
@@ -294,7 +346,7 @@ describe('translationFileSerialization', () => {
                     lineStart: 11
                 }]
             }], 'de', 'fr-ch', '<?xml version="1.0" encoding="UTF-8"?>\n');
-            expect(toXlf1(input, {prettyNestedTags: true, selfClosingEmptyTargets: true})).toEqual(`<?xml version="1.0" encoding="UTF-8"?>
+            expect(toXlf1(input, {...exportOptions, prettyNestedTags: true})).toEqual(`<?xml version="1.0" encoding="UTF-8"?>
 <xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
   <file source-language="de" target-language="fr-ch" datatype="plaintext" original="ng2.template">
     <body>
@@ -318,7 +370,7 @@ describe('translationFileSerialization', () => {
                 source: 'some source',
                 locations: []
             }], 'en', 'de', '');
-            expect(toXlf1(input, {prettyNestedTags: true, selfClosingEmptyTargets: true})).toEqual(`<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
+            expect(toXlf1(input, {...exportOptions, prettyNestedTags: true})).toEqual(`<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
   <file source-language="en" target-language="de" datatype="plaintext" original="ng2.template">
     <body>
       <trans-unit id="idWithQuote&quot;" datatype="html">
@@ -340,7 +392,7 @@ describe('translationFileSerialization', () => {
                     {name: 'other', value: 'value', path: 'target'}
                 ]
             }], 'de', 'fr-ch', '<?xml version="1.0" encoding="UTF-8"?>\n');
-            expect(toXlf1(input, {prettyNestedTags: true, selfClosingEmptyTargets: true})).toEqual(`<?xml version="1.0" encoding="UTF-8"?>
+            expect(toXlf1(input, {...exportOptions, prettyNestedTags: true})).toEqual(`<?xml version="1.0" encoding="UTF-8"?>
 <xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
   <file source-language="de" target-language="fr-ch" datatype="plaintext" original="ng2.template">
     <body>
@@ -360,7 +412,7 @@ describe('translationFileSerialization', () => {
                 state: 'new',
                 locations: []
             }], 'de', undefined);
-            expect(toXlf1(input, {prettyNestedTags: false, selfClosingEmptyTargets: false})).toEqual(
+            expect(toXlf1(input, {...exportOptions, selfClosingEmptyTargets: false})).toEqual(
                 `<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
   <file source-language="de" datatype="plaintext" original="ng2.template">
     <body>
@@ -402,7 +454,7 @@ describe('translationFileSerialization', () => {
     </body>
   </file>
 </xliff>`;
-            const translationFile = fromXlf1(xlf1, { sortNestedTagAttributes: true });
+            const translationFile = fromXlf1(xlf1, { ...importOptions, sortNestedTagAttributes: true });
             expect(translationFile).toEqual(new TranslationFile([{
                 id: 'ID1',
                 source: 'Some text <ph disp="{{ myLabel }}" equiv="INTERPOLATION" id="0"/>',
@@ -443,6 +495,35 @@ describe('translationFileSerialization', () => {
             }], 'de', 'fr-ch', '<?xml version="1.0" encoding="UTF-8"?>\n'));
         });
 
+        it('should exclude line numbers', () => {
+            const xlf1 = `<?xml version="1.0" encoding="UTF-8"?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
+  <file source-language="de" target-language="fr-ch" datatype="plaintext" original="ng2.template">
+    <body>
+      <trans-unit id="ID1" datatype="html">
+        <source>source val</source>
+        <target state="translated">target val</target>
+        <note priority="1" from="description">An introduction header for this sample</note>
+        <note priority="1" from="meaning">User welcome</note>
+        <context-group purpose="location">
+          <context context-type="sourcefile">app/app.component.ts</context>
+        </context-group>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>`;
+            const translationFile = fromXlf1(xlf1, {...importOptions, includeContextLineNumber: false});
+            expect(translationFile).toEqual(new TranslationFile([{
+                id: 'ID1',
+                source: 'source val',
+                target: 'target val',
+                state: 'translated',
+                meaning: 'User welcome',
+                description: 'An introduction header for this sample',
+                locations: [{file: 'app/app.component.ts'}]
+            }], 'de', 'fr-ch', '<?xml version="1.0" encoding="UTF-8"?>\n'));
+        });
+
         it('should parse additionalAttributes', () => {
             const xlf1 = `<?xml version="1.0" encoding="UTF-8"?>
 <xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
@@ -477,7 +558,7 @@ describe('translationFileSerialization', () => {
 </xliff>
 `;
             const translationFile = fromXlf2(xlf2);
-            expect(toXlf2(translationFile, {prettyNestedTags: false, selfClosingEmptyTargets: true})).toEqual(xlf2);
+            expect(toXlf2(translationFile, exportOptions)).toEqual(xlf2);
         });
     });
     describe('round trip xlf1.2', () => {
@@ -495,7 +576,7 @@ describe('translationFileSerialization', () => {
 </xliff>
 `;
             const translationFile = fromXlf1(xlf1);
-            expect(toXlf1(translationFile, {prettyNestedTags: false, selfClosingEmptyTargets: true})).toEqual(xlf1);
+            expect(toXlf1(translationFile, exportOptions)).toEqual(xlf1);
         });
     })
 })

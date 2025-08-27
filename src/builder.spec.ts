@@ -1930,6 +1930,50 @@ describe('Builder', () => {
                 }
             );
         });
+        test('exclude line number context groups', async () => {
+            await runTest(
+                {
+                    messagesBefore: multipleContextGroupsDefaultMessages,
+                    messagesFrBefore: '<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+                        '  <file source-language="de" target-language="fr-ch" datatype="plaintext" original="ng2.template">\n' +
+                        '    <body>\n' +
+                        '      <trans-unit id="ID1" datatype="html">\n' +
+                        '        <source>Some text</source>\n' +
+                        '        <target state="new">Some text</target>\n' +
+                        '        <context-group purpose="location">\n' +
+                        '          <context context-type="sourcefile">src/app/app-routing.module.ts</context>\n' +
+                        '          <context context-type="linenumber">12</context>\n' +
+                        '        </context-group>\n' +
+                        '      </trans-unit>\n' +
+                        '    </body>\n' +
+                        '  </file>\n' +
+                        '</xliff>',
+                    options: {
+                        format: 'xlf',
+                        targetFiles: ['messages.fr.xlf'],
+                        includeContext: true,
+                        includeContextLineNumber: false,
+                        outputPath: 'builder-test'
+                    },
+                    messagesFrExpected: '<?xml version="1.0"?><xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n' +
+                        '  <file source-language="de" target-language="fr-ch" datatype="plaintext" original="ng2.template">\n' +
+                        '    <body>\n' +
+                        '      <trans-unit id="ID1" datatype="html">\n' +
+                        '        <source>Some text</source>\n' +
+                        '        <target state="new">Some text</target>\n' +
+                        '        <context-group purpose="location">\n' +
+                        '          <context context-type="sourcefile">src/app/app-routing.module.ts</context>\n' +
+                        '        </context-group>\n' +
+                        '        <context-group purpose="location">\n' +
+                        '          <context context-type="sourcefile">src/app/app.component.html</context>\n' +
+                        '        </context-group>\n' +
+                        '      </trans-unit>\n' +
+                        '    </body>\n' +
+                        '  </file>\n' +
+                        '</xliff>'
+                }
+            );
+        });
         test('retain multiple context nodes', async () => {
 
             await runTest(

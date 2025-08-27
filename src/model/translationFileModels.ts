@@ -1,6 +1,6 @@
-interface Location {
+export interface FileLocation {
     file: string;
-    lineStart: number;
+    lineStart?: number;
     lineEnd?: number;
 }
 
@@ -11,7 +11,7 @@ export interface TranslationUnit {
     state?: string;
     meaning?: string;
     description?: string;
-    locations: Location[];
+    locations: FileLocation[];
     additionalAttributes?: { name: string, value: string, path: string }[];
 }
 
