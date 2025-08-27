@@ -242,6 +242,10 @@ describe('translationFileSerialization', () => {
                         lineStart: 11
                     },
                     {
+                        file: 'app/app.component.ts',
+                        lineStart: 36
+                    },
+                    {
                         file: 'app/another.component.ts',
                         lineStart: 13
                     }

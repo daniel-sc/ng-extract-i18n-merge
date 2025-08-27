@@ -123,6 +123,16 @@ function toStringOrUndefined(options: ImportOptions, nodes: XmlNode[] | undefine
     return nodes ? toString(options, ...nodes) : undefined;
 }
 
+function locationFilter(includeLineNumber: boolean): (location: FileLocation) => boolean {
+    const seen = new Set<string>();
+    return function(location: FileLocation): boolean {
+        const fileId = includeLineNumber ? `${location.file}:${location.lineStart}` : location.file;
+        if (seen.has(fileId)) return false;
+        seen.add(fileId);
+        return true;
+    }
+}
+
 export function toXlf2(translationFile: TranslationFile, options: ExportOptions): string {
     const doc = new XmlDocument(`<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="${translationFile.sourceLang}">
     <file id="ngi18n" original="ng.template">
@@ -145,7 +155,7 @@ export function toXlf2(translationFile: TranslationFile, options: ExportOptions)
         if (unit.meaning !== undefined || unit.description !== undefined || unit.locations.length) {
             const notes = new XmlDocument('<notes></notes>');
             u.children.splice(0, 0, notes);
-            notes.children.push(...unit.locations.map(location => {
+            notes.children.push(...unit.locations.filter(locationFilter(options.includeContextLineNumber)).map(location => {
                 let locationNote = location.file;
                 if (options.includeContextLineNumber) {
                     locationNote += `:${location.lineStart}${location.lineEnd ? ',' + location.lineEnd : ''}`;
@@ -206,7 +216,7 @@ export function toXlf1(translationFile: TranslationFile, options: ExportOptions)
             transUnit.children.push(new XmlDocument(`<note priority="1" from="meaning">${unit.meaning}</note>`));
         }
         if (unit.locations.length) {
-            transUnit.children.push(...unit.locations.map(location => {
+            transUnit.children.push(...unit.locations.filter(locationFilter(options.includeContextLineNumber)).map(location => {
                 let contextGroup = new XmlDocument(`<context-group purpose="location">
                     <context context-type="sourcefile">${location.file}</context>
                 </context-group>`);
