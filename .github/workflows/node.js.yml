@@ -16,9 +16,18 @@ jobs:
     strategy:
       matrix:
         include:
-          - {angular: {version: 20.0.0, devkit-version: 0.2000.0}, node: {version: 20.19.0, types-version: 20.19.0}}
-          - {angular: {version: 20.0.0, devkit-version: 0.2000.0}, node: {version: 22.x, types-version: 22.9.1}}
-          - {angular: {version: 20.0.0, devkit-version: 0.2000.0}, node: {version: 24.x, types-version: 22.9.1}}
+          - angular: {version: 20.3.9, devkit-version: 0.2003.9}
+            node: {version: 20.19.0, types-version: 20.19.0}
+          - angular: {version: 20.3.9, devkit-version: 0.2003.9}
+            node: {version: 22.x, types-version: 22.9.1}
+          - angular: {version: 20.3.9, devkit-version: 0.2003.9}
+            node: {version: 24.x, types-version: 22.9.1}
+          - angular: {version: 21.0.0-rc.1, devkit-version: 0.2100.0-rc.1}
+            node: {version: 20.19.0, types-version: 20.19.0}
+          - angular: {version: 21.0.0-rc.1, devkit-version: 0.2100.0-rc.1}
+            node: {version: 22.x, types-version: 22.9.1}
+          - angular: {version: 21.0.0-rc.1, devkit-version: 0.2100.0-rc.1}
+            node: {version: 24.x, types-version: 22.9.1}
 
     steps:
     - uses: actions/checkout@v4
@@ -36,7 +45,7 @@ jobs:
       uses: coverallsapp/github-action@v1.1.2
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
-        flag-name: run-${{ matrix.node.version }}
+        flag-name: run-angular-${{ matrix.angular.version }}-node-${{ matrix.node.version }}
         parallel: true
 
   finish:
