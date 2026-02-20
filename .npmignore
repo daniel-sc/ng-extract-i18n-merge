@@ -8,3 +8,4 @@ coverage/
 jest*
 *.tgz
 tsconfig.json
+AGENTS.md
