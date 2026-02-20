@@ -11,6 +11,7 @@ export interface TranslationUnit {
     state?: string;
     meaning?: string;
     description?: string;
+    additionalElements?: { parentPath: string, index: number, xml: string }[];
     locations: FileLocation[];
     additionalAttributes?: { name: string, value: string, path: string }[];
 }
