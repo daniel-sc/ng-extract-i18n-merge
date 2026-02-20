@@ -171,9 +171,7 @@ export function toXlf2(translationFile: TranslationFile, options: ExportOptions)
         }
 
         updateFirstAndLastChild(u);
-        unit.additionalAttributes?.forEach(attr => {
-            (attr.path === '.' ? u : u.descendantWithPath(attr.path)!).attr[attr.name] = attr.value;
-        });
+        applyAdditionalAttributes(u, unit.additionalAttributes);
         return u;
     });
     updateFirstAndLastChild(doc);
@@ -228,9 +226,7 @@ export function toXlf1(translationFile: TranslationFile, options: ExportOptions)
             }));
         }
         updateFirstAndLastChild(body);
-        unit.additionalAttributes?.forEach(attr => {
-           (attr.path === '.' ? transUnit : transUnit.descendantWithPath(attr.path)!).attr[attr.name] = attr.value;
-        });
+        applyAdditionalAttributes(transUnit, unit.additionalAttributes);
         return transUnit;
     });
     return (translationFile.xmlHeader ?? '') + pretty(doc, options) + (translationFile.trailingWhitespace ?? '');
@@ -239,6 +235,15 @@ export function toXlf1(translationFile: TranslationFile, options: ExportOptions)
 function updateFirstAndLastChild(u: XmlElement) {
     u.firstChild = u.children[0];
     u.lastChild = u.children[u.children.length - 1];
+}
+
+function applyAdditionalAttributes(unit: XmlElement, additionalAttributes: TranslationUnit['additionalAttributes']) {
+    additionalAttributes?.forEach(attr => {
+        const targetNode = attr.path === '.' ? unit : unit.descendantWithPath(attr.path);
+        if (targetNode) {
+            targetNode.attr[attr.name] = attr.value;
+        }
+    });
 }
 
 function isWhiteSpace(node: XmlNode): node is XmlTextNode {

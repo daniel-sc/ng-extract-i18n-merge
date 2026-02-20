@@ -72,6 +72,24 @@ describe('translationFileSerialization', () => {
         });
     });
     describe('toXlf2', () => {
+        it('should serialize units with attributes on non-standard notes', () => {
+            const xlf2 = `<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="en" trgLang="fr">
+  <file id="ngi18n" original="ng.template">
+    <unit id="ID1">
+      <notes>
+        <note category="custom" annotates="general">Source text has changed. Please review the translation.</note>
+      </notes>
+      <segment state="initial">
+        <source>source val</source>
+        <target>target val</target>
+      </segment>
+    </unit>
+  </file>
+</xliff>`;
+            const translationFile = fromXlf2(xlf2);
+            expect(() => toXlf2(translationFile, exportOptions)).not.toThrow();
+        });
+
         it('should keep trailing whitespace', () => {
             const input = new TranslationFile([{
                 id: 'ID1',
@@ -315,6 +333,22 @@ describe('translationFileSerialization', () => {
         });
     });
     describe('toXlf1', () => {
+        it('should serialize units with attributes on non-standard notes', () => {
+            const xlf1 = `<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
+  <file source-language="en" target-language="fr" datatype="plaintext" original="ng2.template">
+    <body>
+      <trans-unit id="ID1" datatype="html">
+        <source>source val</source>
+        <target state="needs-adaptation">target val</target>
+        <note from="XLIFF Sync" annotates="general" priority="1">Source text has changed. Please review the translation.</note>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>`;
+            const translationFile = fromXlf1(xlf1);
+            expect(() => toXlf1(translationFile, exportOptions)).not.toThrow();
+        });
+
         it('should not include state attribute if it is undefined', () => {
             const input = new TranslationFile([{
                 id: 'ID1',
