@@ -72,6 +72,48 @@ describe('translationFileSerialization', () => {
         });
     });
     describe('toXlf2', () => {
+        it('should serialize units with attributes on non-standard notes', () => {
+            const xlf2 = `<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="en" trgLang="fr">
+  <file id="ngi18n" original="ng.template">
+    <unit id="ID1">
+      <notes>
+        <note category="custom" annotates="general">Source text has changed. Please review the translation.</note>
+      </notes>
+      <segment state="initial">
+        <source>source val</source>
+        <target>target val</target>
+      </segment>
+    </unit>
+  </file>
+</xliff>`;
+            const translationFile = fromXlf2(xlf2);
+            expect(() => toXlf2(translationFile, exportOptions)).not.toThrow();
+        });
+
+        it('should ignore additionalElements with invalid parent path', () => {
+            const input = new TranslationFile([{
+                id: 'ID1',
+                source: 'source val',
+                target: 'target val',
+                locations: [],
+                additionalElements: [{
+                    parentPath: 'notes',
+                    index: 0,
+                    xml: '<note category="custom">custom note</note>'
+                }]
+            }], 'de', 'fr');
+            expect(toXlf2(input, {...exportOptions, prettyNestedTags: true})).toEqual(`<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de" trgLang="fr">
+  <file id="ngi18n" original="ng.template">
+    <unit id="ID1">
+      <segment>
+        <source>source val</source>
+        <target>target val</target>
+      </segment>
+    </unit>
+  </file>
+</xliff>`);
+        });
+
         it('should keep trailing whitespace', () => {
             const input = new TranslationFile([{
                 id: 'ID1',
@@ -315,6 +357,22 @@ describe('translationFileSerialization', () => {
         });
     });
     describe('toXlf1', () => {
+        it('should serialize units with attributes on non-standard notes', () => {
+            const xlf1 = `<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
+  <file source-language="en" target-language="fr" datatype="plaintext" original="ng2.template">
+    <body>
+      <trans-unit id="ID1" datatype="html">
+        <source>source val</source>
+        <target state="needs-adaptation">target val</target>
+        <note from="XLIFF Sync" annotates="general" priority="1">Source text has changed. Please review the translation.</note>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>`;
+            const translationFile = fromXlf1(xlf1);
+            expect(() => toXlf1(translationFile, exportOptions)).not.toThrow();
+        });
+
         it('should not include state attribute if it is undefined', () => {
             const input = new TranslationFile([{
                 id: 'ID1',
@@ -542,6 +600,24 @@ describe('translationFileSerialization', () => {
                 {name: 'other', value: 'value', path: 'target'}
             ]);
         });
+
+        it('should ignore location context-groups without sourcefile context', () => {
+            const xlf1 = `<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
+  <file source-language="de" target-language="fr-ch" datatype="plaintext" original="ng2.template">
+    <body>
+      <trans-unit id="ID1" datatype="html">
+        <source>source val</source>
+        <target state="translated">target val</target>
+        <context-group purpose="location">
+          <context context-type="linenumber">11</context>
+        </context-group>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>`;
+            const translationFile = fromXlf1(xlf1);
+            expect(translationFile.units[0].locations).toEqual([]);
+        });
     });
     describe('round trip xlf2.0', () => {
         it('should retain trailing new line', () => {
@@ -560,6 +636,49 @@ describe('translationFileSerialization', () => {
             const translationFile = fromXlf2(xlf2);
             expect(toXlf2(translationFile, exportOptions)).toEqual(xlf2);
         });
+
+        it('should round trip non-standard notes', () => {
+            const xlf2 = `<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="en" trgLang="fr">
+  <file id="ngi18n" original="ng.template">
+    <unit id="ID1">
+      <notes>
+        <note category="custom" annotates="general">Source text has changed. Please review the translation.</note>
+      </notes>
+      <segment state="initial">
+        <source>source val</source>
+        <target>target val</target>
+      </segment>
+    </unit>
+  </file>
+</xliff>`;
+            const translationFile = fromXlf2(xlf2);
+            expect(toXlf2(translationFile, exportOptions)).toEqual(xlf2);
+        });
+
+        it('should round trip unknown elements in unit hierarchy', () => {
+            const xlf2 = `<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="en" trgLang="fr">
+  <file id="ngi18n" original="ng.template">
+    <unit id="ID1">
+      <custom-meta>
+        <flag enabled="true"/>
+      </custom-meta>
+      <notes>
+        <note category="location">app/app.component.ts:5</note>
+        <note category="custom" annotates="general">
+          <mrk mtype="x-comment">review</mrk>
+        </note>
+      </notes>
+      <segment state="initial">
+        <source>source val</source>
+        <ignorable id="I1">ignore this</ignorable>
+        <target>target val</target>
+      </segment>
+    </unit>
+  </file>
+</xliff>`;
+            const translationFile = fromXlf2(xlf2);
+            expect(toXlf2(translationFile, exportOptions)).toEqual(xlf2);
+        });
     });
     describe('round trip xlf1.2', () => {
         it('should retain trailing new line', () => {
@@ -575,6 +694,46 @@ describe('translationFileSerialization', () => {
   </file>
 </xliff>
 `;
+            const translationFile = fromXlf1(xlf1);
+            expect(toXlf1(translationFile, exportOptions)).toEqual(xlf1);
+        });
+
+        it('should round trip non-standard notes', () => {
+            const xlf1 = `<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
+  <file source-language="en" target-language="fr" datatype="plaintext" original="ng2.template">
+    <body>
+      <trans-unit id="ID1" datatype="html">
+        <source>source val</source>
+        <target state="needs-adaptation">target val</target>
+        <note from="XLIFF Sync" annotates="general" priority="1">Source text has changed. Please review the translation.</note>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>`;
+            const translationFile = fromXlf1(xlf1);
+            expect(toXlf1(translationFile, exportOptions)).toEqual(xlf1);
+        });
+
+        it('should round trip unknown elements in unit hierarchy', () => {
+            const xlf1 = `<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
+  <file source-language="en" target-language="fr" datatype="plaintext" original="ng2.template">
+    <body>
+      <trans-unit id="ID1" datatype="html">
+        <source>source val</source>
+        <alt-trans origin="tm">
+          <source>tm source</source>
+          <target>tm target</target>
+        </alt-trans>
+        <target state="needs-adaptation">target val</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">app/app.component.ts</context>
+          <context context-type="linenumber">7</context>
+          <context context-type="x-custom">keep me</context>
+        </context-group>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>`;
             const translationFile = fromXlf1(xlf1);
             expect(toXlf1(translationFile, exportOptions)).toEqual(xlf1);
         });

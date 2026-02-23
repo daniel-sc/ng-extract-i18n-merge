@@ -25,6 +25,8 @@ const REGULAR_ATTRIBUTES_XLF2: {[nodeName: string]: string[]} = {
 
 export type ImportOptions = Pick<Options, 'sortNestedTagAttributes' | 'includeContextLineNumber'>;
 export type ExportOptions = Pick<Options, 'prettyNestedTags' | 'selfClosingEmptyTargets' | 'includeContextLineNumber'>;
+type ElementHandling = 'known-recursive' | 'known-terminal' | 'unknown';
+type AdditionalElement = NonNullable<TranslationUnit['additionalElements']>[number];
 
 export function fromXlf2(xlf2: string,
     options: ImportOptions = { sortNestedTagAttributes: false, includeContextLineNumber: true }): TranslationFile {
@@ -32,7 +34,7 @@ export function fromXlf2(xlf2: string,
     const doc = new XmlDocument(xlf2);
     const file = doc.childNamed('file')!;
     const units = file.children
-        .filter((n): n is XmlElement => n.type === 'element')
+        .filter((n): n is XmlElement => n.type === 'element' && n.name === 'unit')
         .map(unit => {
             const segment = unit.childNamed('segment')!;
             const notes = unit.childNamed('notes');
@@ -56,9 +58,13 @@ export function fromXlf2(xlf2: string,
                         };
                     }) ?? []
             };
-            const additionalAttributes = getAdditionalAttributes(unit, REGULAR_ATTRIBUTES_XLF2);
+            const additionalElements = collectAdditionalElements(unit, getXlf2ElementHandling);
+            const additionalAttributes = getAdditionalAttributes(unit, REGULAR_ATTRIBUTES_XLF2, getXlf2ElementHandling);
             if (additionalAttributes.length) {
                 result.additionalAttributes = additionalAttributes;
+            }
+            if (additionalElements.length) {
+                result.additionalElements = additionalElements;
             }
             return result;
         });
@@ -75,10 +81,26 @@ export function fromXlf1(xlf1: string,
     const doc = new XmlDocument(xlf1);
     const file = doc.childNamed('file')!;
     const units = file.childNamed('body')!.children
-        .filter((n): n is XmlElement => n.type === 'element')
+        .filter((n): n is XmlElement => n.type === 'element' && n.name === 'trans-unit')
         .map(unit => {
             const notes = unit.childrenNamed('note');
             const target = unit.childNamed('target');
+            const locations = unit.childrenNamed('context-group')
+                .filter(contextGroup => contextGroup.attr.purpose === 'location')
+                .flatMap(contextGroup => {
+                    const sourceFile = contextGroup.childWithAttribute('context-type', 'sourcefile');
+                    if (!sourceFile) {
+                        return [];
+                    }
+                    const location: FileLocation = {
+                        file: sourceFile.val
+                    };
+                    if (options.includeContextLineNumber) {
+                        const lineNumber = contextGroup.childWithAttribute('context-type', 'linenumber');
+                        location.lineStart = lineNumber ? parseInt(lineNumber.val, 10) : undefined;
+                    }
+                    return [location];
+                });
             const result: TranslationUnit  = {
                 id: unit.attr.id,
                 source: toString(options, ...unit.childNamed('source')!.children),
@@ -87,20 +109,15 @@ export function fromXlf1(xlf1: string,
                 meaning: toStringOrUndefined(options, notes?.find(note => note.attr.from === 'meaning')?.children),
                 description:
                     toStringOrUndefined(options, notes?.find(note => note.attr.from === 'description')?.children),
-                locations: unit.childrenNamed('context-group')
-                    .map(contextGroup => {
-                        let location: FileLocation = {
-                            file: contextGroup.childWithAttribute('context-type', 'sourcefile')!.val
-                        }
-                        if (options.includeContextLineNumber) {
-                            location.lineStart = parseInt(contextGroup.childWithAttribute('context-type', 'linenumber')!.val, 10)
-                        }
-                        return location;
-                    }) ?? []
+                locations
             };
-            const additionalAttributes = getAdditionalAttributes(unit, REGULAR_ATTRIBUTES_XLF1);
+            const additionalElements = collectAdditionalElements(unit, getXlf1ElementHandling);
+            const additionalAttributes = getAdditionalAttributes(unit, REGULAR_ATTRIBUTES_XLF1, getXlf1ElementHandling);
             if (additionalAttributes.length) {
                 result.additionalAttributes = additionalAttributes;
+            }
+            if (additionalElements.length) {
+                result.additionalElements = additionalElements;
             }
             return result;
         });
@@ -152,7 +169,8 @@ export function toXlf2(translationFile: TranslationFile, options: ExportOptions)
         if (unit.state) {
             segment.attr.state = unit.state;
         }
-        if (unit.meaning !== undefined || unit.description !== undefined || unit.locations.length) {
+        const hasAdditionalNotesElements = unit.additionalElements?.some(({parentPath}) => parentPath === 'notes[0]' || parentPath.startsWith('notes[0].'));
+        if (unit.meaning !== undefined || unit.description !== undefined || unit.locations.length || hasAdditionalNotesElements) {
             const notes = new XmlDocument('<notes></notes>');
             u.children.splice(0, 0, notes);
             notes.children.push(...unit.locations.filter(locationFilter(options.includeContextLineNumber)).map(location => {
@@ -171,9 +189,8 @@ export function toXlf2(translationFile: TranslationFile, options: ExportOptions)
         }
 
         updateFirstAndLastChild(u);
-        unit.additionalAttributes?.forEach(attr => {
-            (attr.path === '.' ? u : u.descendantWithPath(attr.path)!).attr[attr.name] = attr.value;
-        });
+        applyAdditionalAttributes(u, unit.additionalAttributes);
+        applyAdditionalElements(u, unit.additionalElements);
         return u;
     });
     updateFirstAndLastChild(doc);
@@ -228,9 +245,8 @@ export function toXlf1(translationFile: TranslationFile, options: ExportOptions)
             }));
         }
         updateFirstAndLastChild(body);
-        unit.additionalAttributes?.forEach(attr => {
-           (attr.path === '.' ? transUnit : transUnit.descendantWithPath(attr.path)!).attr[attr.name] = attr.value;
-        });
+        applyAdditionalAttributes(transUnit, unit.additionalAttributes);
+        applyAdditionalElements(transUnit, unit.additionalElements);
         return transUnit;
     });
     return (translationFile.xmlHeader ?? '') + pretty(doc, options) + (translationFile.trailingWhitespace ?? '');
@@ -239,6 +255,29 @@ export function toXlf1(translationFile: TranslationFile, options: ExportOptions)
 function updateFirstAndLastChild(u: XmlElement) {
     u.firstChild = u.children[0];
     u.lastChild = u.children[u.children.length - 1];
+}
+
+function applyAdditionalAttributes(unit: XmlElement, additionalAttributes: TranslationUnit['additionalAttributes']) {
+    additionalAttributes?.forEach(attr => {
+        const targetNode = attr.path === '.' ? unit : unit.descendantWithPath(attr.path);
+        if (targetNode) {
+            targetNode.attr[attr.name] = attr.value;
+        }
+    });
+}
+
+function applyAdditionalElements(unit: XmlElement, additionalElements: TranslationUnit['additionalElements']) {
+    additionalElements?.forEach(({parentPath, index, xml}) => {
+        const parent = findElementByIndexedPath(unit, parentPath);
+        if (!parent) {
+            return;
+        }
+        const elementPositions = parent.children
+            .flatMap((child, childIndex) => child.type === 'element' ? [childIndex] : []);
+        const insertIndex = index >= elementPositions.length ? parent.children.length : elementPositions[index];
+        parent.children.splice(insertIndex, 0, new XmlDocument(xml));
+        updateFirstAndLastChild(parent);
+    });
 }
 
 function isWhiteSpace(node: XmlNode): node is XmlTextNode {
@@ -299,6 +338,91 @@ function addPrettyWhitespace(doc: XmlElement, indent: number, options: ExportOpt
     }
 }
 
+function collectAdditionalElements(unit: XmlElement, elementHandling: (parentPath: string, element: XmlElement) => ElementHandling): AdditionalElement[] {
+    const additionalElements: AdditionalElement[] = [];
+
+    const recurse = (parent: XmlElement, plainParentPath: string, indexedParentPath: string) => {
+        const nextSiblingIndex = new Map<string, number>();
+        const childElements = parent.children.filter((child): child is XmlElement => child.type === 'element');
+        childElements.forEach((child, index) => {
+            const siblingIndex = nextSiblingIndex.get(child.name) ?? 0;
+            nextSiblingIndex.set(child.name, siblingIndex + 1);
+
+            const childPlainPath = plainParentPath === '.' ? child.name : `${plainParentPath}.${child.name}`;
+            const childIndexedPath = indexedParentPath === '.' ? `${child.name}[${siblingIndex}]` : `${indexedParentPath}.${child.name}[${siblingIndex}]`;
+            const handling = elementHandling(plainParentPath, child);
+            if (handling === 'unknown') {
+                additionalElements.push({
+                    parentPath: indexedParentPath,
+                    index,
+                    xml: child.toString({preserveWhitespace: true, compressed: true})
+                });
+                return;
+            }
+            if (handling === 'known-recursive') {
+                recurse(child, childPlainPath, childIndexedPath);
+            }
+        });
+    };
+
+    recurse(unit, '.', '.');
+    return additionalElements;
+}
+
+function getXlf2ElementHandling(parentPath: string, element: XmlElement): ElementHandling {
+    if (parentPath === '.') {
+        return (element.name === 'notes' || element.name === 'segment') ? 'known-recursive' : 'unknown';
+    }
+    if (parentPath === 'notes') {
+        return (element.name === 'note' && ['location', 'meaning', 'description'].includes(element.attr.category))
+            ? 'known-terminal'
+            : 'unknown';
+    }
+    if (parentPath === 'segment') {
+        return (element.name === 'source' || element.name === 'target') ? 'known-terminal' : 'unknown';
+    }
+    return 'unknown';
+}
+
+function getXlf1ElementHandling(parentPath: string, element: XmlElement): ElementHandling {
+    if (parentPath === '.') {
+        if (element.name === 'source' || element.name === 'target') {
+            return 'known-terminal';
+        }
+        if (element.name === 'note') {
+            return ['meaning', 'description'].includes(element.attr.from) ? 'known-terminal' : 'unknown';
+        }
+        if (element.name === 'context-group') {
+            return element.attr.purpose === 'location' ? 'known-recursive' : 'unknown';
+        }
+        return 'unknown';
+    }
+    if (parentPath === 'context-group') {
+        return element.name === 'context' && ['sourcefile', 'linenumber'].includes(element.attr['context-type'])
+            ? 'known-terminal'
+            : 'unknown';
+    }
+    return 'unknown';
+}
+
+function findElementByIndexedPath(root: XmlElement, path: string): XmlElement | undefined {
+    if (path === '.') {
+        return root;
+    }
+    let current: XmlElement | undefined = root;
+    for (const segment of path.split('.')) {
+        const match = segment.match(/^(.+)\[(\d+)]$/);
+        if (!match || !current) {
+            return undefined;
+        }
+        const name = match[1];
+        const index = parseInt(match[2], 10);
+        current = current.children
+            .filter((child): child is XmlElement => child.type === 'element' && child.name === name)[index];
+    }
+    return current;
+}
+
 function allChildrenWithPath(unit: XmlElement, currentPath = '.'): { element: XmlElement, path: string }[] {
     return unit.children.flatMap(child => {
         if (child.type === 'element') {
@@ -309,11 +433,17 @@ function allChildrenWithPath(unit: XmlElement, currentPath = '.'): { element: Xm
     });
 }
 
-function getAdditionalAttributes(unit: XmlElement, knownAttributes: {[nodeName: string]: string[]}) {
+function getAdditionalAttributes(unit: XmlElement,
+    knownAttributes: {[nodeName: string]: string[]},
+    elementHandling: (parentPath: string, element: XmlElement) => ElementHandling) {
     return [{element: unit, path: '.'}, ...allChildrenWithPath(unit)]
         .flatMap(({element, path}) => Object.entries(element.attr)
             .map(([attrName, attrValue]) => ({element, attrName, attrValue, path}))
         )
-        .filter(({element, attrName}) => knownAttributes[element.name] ? !knownAttributes[element.name]?.includes(attrName) : false)
+        .filter(({element, path, attrName}) => {
+            const parentPath = path === '.' ? '.' : path.split('.').slice(0, -1).join('.') || '.';
+            return (path === '.' || elementHandling(parentPath, element) !== 'unknown')
+                && (knownAttributes[element.name] ? !knownAttributes[element.name]?.includes(attrName) : false);
+        })
         .map(({attrName, attrValue, path}) => ({name: attrName, value: attrValue, path}));
 }
