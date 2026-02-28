@@ -63,7 +63,7 @@ When source text changes slightly, Angular generates a new ID. Without this tool
 <!-- ✅ Old entry abc123 automatically removed -->
 ```
 
-### 3. **Inconsistent Formatting = Noisy Diffs** ❌
+### 3. **Inconsistent Formatting Causes Noisy Diffs** ❌
 Translation files often have inconsistent whitespace and ordering, making code reviews nearly impossible.
 
 **Without this tool:**
