@@ -9,6 +9,101 @@ New/removed translations are added/removed from the target translation files and
 Additionally, translation files are normalized (whitespace, stable sort) so that diffs are easy to read 
 (and translations in PRs might actually get reviewed ;-) ).
 
+## The Problem
+
+Angular's built-in `ng extract-i18n` command extracts translatable strings from your application, but it has several limitations that make maintaining translations difficult:
+
+### 1. **No Automatic Merging** ❌
+When you run `extract-i18n`, it only updates the source translation file. Your target translation files (e.g., `messages.fr.xlf`, `messages.de.xlf`) are **not updated** with new translations or cleaned up when translations are removed.
+
+**Without this tool:**
+```xml
+<!-- After running ng extract-i18n, messages.de.xlf is unchanged -->
+<trans-unit id="newFeature" datatype="html">
+  <source>New Feature</source>
+  <!-- Missing in target files! Translator never sees it. -->
+</trans-unit>
+```
+
+**With this tool:**
+```xml
+<!-- messages.de.xlf is automatically updated -->
+<trans-unit id="newFeature" datatype="html">
+  <source>New Feature</source>
+  <target state="new">New Feature</target>  <!-- ✅ Auto-added, ready for translation -->
+</trans-unit>
+```
+
+### 2. **Lost Translations on Source Changes** ❌
+When source text changes slightly, Angular generates a new ID. Without this tool, the existing translation is lost and you have to translate from scratch.
+
+**Without this tool:**
+```xml
+<!-- OLD: Translation exists -->
+<trans-unit id="abc123">
+  <source>Hello user</source>
+  <target>Hallo Benutzer</target>
+</trans-unit>
+
+<!-- NEW: After changing "Hello user" to "Hello valued user" -->
+<trans-unit id="xyz789">
+  <source>Hello valued user</source>
+  <target state="new">Hello valued user</target>  <!-- ❌ Translation lost! -->
+</trans-unit>
+<!-- ❌ Old entry abc123 still present, causing clutter -->
+```
+
+**With this tool (fuzzy matching):**
+```xml
+<!-- After changing "Hello user" to "Hello valued user" -->
+<trans-unit id="xyz789">
+  <source>Hello valued user</source>
+  <target state="new">Hallo Benutzer</target>  <!-- ✅ Translation preserved via fuzzy match! -->
+</trans-unit>
+<!-- ✅ Old entry abc123 automatically removed -->
+```
+
+### 3. **Inconsistent Formatting Causes Noisy Diffs** ❌
+Translation files often have inconsistent whitespace and ordering, making code reviews nearly impossible.
+
+**Without this tool:**
+```diff
+<!-- Whitespace and order changes create massive, unreadable diffs -->
++ <trans-unit id="feature1">
++   <source>Feature 1</source>
++ </trans-unit>
+  <trans-unit id="welcome">
+-   <source>Welcome</source>
++   <source>  Welcome  </source>  <!-- Just whitespace change! -->
+  </trans-unit>
+```
+
+**With this tool:**
+```diff
+<!-- Clean, normalized diffs show only real changes -->
++ <trans-unit id="feature1">
++   <source>Feature 1</source>
++   <target state="new">Feature 1</target>
++ </trans-unit>
+<!-- Whitespace normalized automatically, no noise in diff -->
+```
+
+### 4. **Orphaned Translations Never Removed** ❌
+When you remove a translation from your code, it stays in all target files forever, causing bloat and confusion.
+
+**Without this tool:** Removed translations accumulate over time, making files larger and harder to maintain.
+
+**With this tool:** Obsolete translations are automatically detected and removed from all target files.
+
+## Key Benefits
+
+✅ **Automated Merge Workflow** – New translations are automatically added to all target files  
+✅ **Fuzzy Matching** – Preserves existing translations when source text changes slightly  
+✅ **Smart Cleanup** – Automatically removes obsolete translations  
+✅ **Translation State Management** – Tracks which translations are new, translated, or need review  
+✅ **Normalized Output** – Consistent formatting and sorting for clean, reviewable diffs  
+✅ **Drop-in Replacement** – Works with existing Angular i18n setup, just run `ng extract-i18n`
+
 > [!TIP]
 > If you'd like to keep your translation process simple and rather validate translations, then waiting for actual translations, I'd like you to check out [doloc.io](https://doloc.io).
 >
