@@ -22,12 +22,18 @@ jobs:
             node: {version: 22.x, types-version: 22.9.1}
           - angular: {version: 20.3.9, devkit-version: 0.2003.9}
             node: {version: 24.x, types-version: 22.9.1}
-          - angular: {version: 21.0.0-rc.1, devkit-version: 0.2100.0-rc.1}
+          - angular: {version: 21.0.0, devkit-version: 0.2100.0}
             node: {version: 20.19.0, types-version: 20.19.0}
-          - angular: {version: 21.0.0-rc.1, devkit-version: 0.2100.0-rc.1}
+          - angular: {version: 21.0.0, devkit-version: 0.2100.0}
             node: {version: 22.x, types-version: 22.9.1}
-          - angular: {version: 21.0.0-rc.1, devkit-version: 0.2100.0-rc.1}
+          - angular: {version: 21.0.0, devkit-version: 0.2100.0}
             node: {version: 24.x, types-version: 22.9.1}
+          - angular: {version: 22.0.0-rc.2, devkit-version: 0.2200.0-rc.2}
+            node: {version: 22.22.3, types-version: 22.19.19}
+          - angular: {version: 22.0.0-rc.2, devkit-version: 0.2200.0-rc.2}
+            node: {version: 24.15.0, types-version: 24.12.4}
+          - angular: {version: 22.0.0-rc.2, devkit-version: 0.2200.0-rc.2}
+            node: {version: 26.x, types-version: 25.9.1}
 
     steps:
     - uses: actions/checkout@v4
