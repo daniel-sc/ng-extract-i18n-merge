@@ -10,12 +10,10 @@ Additionally, translation files are normalized (whitespace, stable sort) so that
 (and translations in PRs might actually get reviewed ;-) ).
 
 > [!TIP]
-> If you'd like to keep your translation process simple and rather validate translations, then waiting for actual translations, I'd like you to check out [doloc.io](https://doloc.io).
+> **Translate new Angular messages after extraction.** [doloc](https://doloc.io/?utm_source=github&utm_medium=referral&utm_campaign=angular_readme) is a localization API from this package's maintainer, [@daniel-sc](https://github.com/daniel-sc).
+> Run `ng extract-i18n`, send the target XLIFF file to doloc, and get the translated file back in the same script or CI run. Your repository stays the source of truth.
 >
->  Created by the maintainer of `ng-extract-i18n-merge` ([@daniel-sc](https://github.com/daniel-sc)),
-> it integrates seamlessly with this library (see [here](https://github.com/daniel-sc/ng-extract-i18n-merge/discussions/115)) and provides instant translations on extraction!
->
-> Expect great translations!
+> [Follow the Angular integration guide](https://doloc.io/getting-started/frameworks/angular/?utm_source=github&utm_medium=referral&utm_campaign=angular_readme), or [start free with your own XLIFF file](https://doloc.io/account/onboarding/?format=xliff&utm_source=github&utm_medium=referral&utm_campaign=angular_readme). The free plan includes 200 source texts per month.
 
 ## Install
 
