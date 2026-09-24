@@ -166,6 +166,42 @@ describe('Builder', () => {
         }
     });
 
+    test.each(['messages.xlf', 'nested/messages.xlf'])('should create missing output directories for source file %s', async sourceFile => {
+        const testDirectory = await fs.mkdtemp('builder-test/directories-');
+        const outputPath = `${testDirectory}/locale/en-US`;
+        const sourcePath = `${outputPath}/${sourceFile}`;
+        const targetPaths = [`${testDirectory}/locale/de/messages.xlf`, `${testDirectory}/locale/en-GB/messages.xlf`];
+        const sourceContent = '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="en-US">' +
+            '<file id="ngi18n" original="ng.template"><unit id="ID1"><segment><source>Hello</source></segment></unit></file></xliff>';
+        architectHost.addBuilder('@angular/build:extract-i18n', createBuilder(async () => {
+            await fs.writeFile(sourcePath, sourceContent, 'utf8');
+            return {success: true};
+        }));
+
+        try {
+            // Run again to cover directories that already exist.
+            for (let i = 0; i < 2; i++) {
+                const run = await architect.scheduleTarget({project: 'builder-test', target: 'extract-i18n-merge'}, {
+                    format: 'xlf2',
+                    outputPath,
+                    sourceFile,
+                    targetFiles: ['../de/messages.xlf', '../en-GB/messages.xlf'],
+                });
+                try {
+                    expect((await run.result).success).toBe(true);
+                    expect(await fs.readFile(sourcePath, 'utf8')).toContain('<source>Hello</source>');
+                    for (const targetPath of targetPaths) {
+                        expect(await fs.readFile(targetPath, 'utf8')).toContain('<target>Hello</target>');
+                    }
+                } finally {
+                    await run.stop();
+                }
+            }
+        } finally {
+            await fs.rm(testDirectory, {recursive: true, force: true});
+        }
+    });
+
     test('should auto create new target files for xlf 2.0', async () => {
         await runTest({
             messagesBefore: '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">\n' +

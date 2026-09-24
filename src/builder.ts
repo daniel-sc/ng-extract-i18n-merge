@@ -112,6 +112,7 @@ async function extractI18nMergeBuilder(options: Options, context: BuilderContext
     const sourcePath = join(normalize(outputPath), options.sourceFile ?? 'messages.xlf');
     const translationSourceFileOriginal = fromXlf(await readFileIfExists(sourcePath));
 
+    await fs.mkdir(dirname(sourcePath), {recursive: true});
     const extractI18nRun = await context.scheduleBuilder(await (options.builderI18n ?? '@angular/build:extract-i18n'), {
         buildTarget: options.buildTarget,
         outputPath: dirname(sourcePath),
@@ -205,6 +206,7 @@ async function extractI18nMergeBuilder(options: Options, context: BuilderContext
                 .map(unit => unit.id)
                 .forEach(id => idsOfUnitsWithSourceChangedToSourceLangTarget.add(id));
         }
+        await fs.mkdir(dirname(targetPath), {recursive: true});
         await fs.writeFile(targetPath, toXlf(normalizedTarget));
     }
 
