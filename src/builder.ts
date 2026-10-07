@@ -114,6 +114,7 @@ async function extractI18nMergeBuilder(options: Options, context: BuilderContext
 
     await fs.mkdir(dirname(sourcePath), {recursive: true});
     const extractI18nRun = await context.scheduleBuilder(await (options.builderI18n ?? '@angular/build:extract-i18n'), {
+        ...options.builderI18nOptions,
         buildTarget: options.buildTarget,
         outputPath: dirname(sourcePath),
         outFile: basename(sourcePath),
