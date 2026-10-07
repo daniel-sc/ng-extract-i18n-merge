@@ -57,7 +57,7 @@ During `ng update` existing builder configurations are updated to keep the previ
 ng extract-i18n # yes, same as before - this replaces the original builder
 ```
 
-Angular owns the message IDs: for example, `$localize` messages containing `Hello` and ` Hello ` can have different generated IDs.
+Angular owns the message IDs: for example, `$localize` messages containing `"Hello"` and `" Hello "` (with surrounding spaces) can have different generated IDs.
 This library normalizes whitespace after extraction without changing IDs. Fuzzy matching reuses translations from obsolete entries;
 it does not combine entries whose IDs both remain in the source. Keep source whitespace consistent, or use
 [custom IDs](https://angular.dev/guide/i18n/manage-marked-text) such as `@@greeting`, reusing an ID only for the same message text.
