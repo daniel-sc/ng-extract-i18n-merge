@@ -144,6 +144,13 @@
       "type": "object",
       "default": {},
       "additionalProperties": true,
+      "properties": {
+        "i18nDuplicateTranslation": {
+          "type": "string",
+          "enum": ["error", "warning", "ignore"],
+          "description": "How Angular handles conflicting message text under the same ID. See https://angular.dev/cli/extract-i18n#options."
+        }
+      },
       "description": "Additional options for builderI18n, validated by that builder. buildTarget, outputPath, outFile, format, and progress are controlled by this library and cannot be overridden here."
     },
     "verbose": {

@@ -151,6 +151,8 @@ describe('Builder', () => {
         const extractionSchema = JSON.parse(await fs.readFile(
             join(angularBuildRoot, 'src/builders/extract-i18n/schema.json'), 'utf8'
         )) as schema.JsonSchema;
+        const {type, enum: values} = builderSchema.properties.builderI18nOptions.properties.i18nDuplicateTranslation;
+        expect(extractionSchema).toMatchObject({properties: {i18nDuplicateTranslation: {type, enum: values}}});
         architectHost.addBuilder('@angular/build:extract-i18n', createBuilder(extractI18nBuilderMock), '', extractionSchema);
 
         await runTest({
@@ -168,10 +170,10 @@ describe('Builder', () => {
             buildTarget: 'builder-test:build',
             outputPath: 'builder-test',
             targetFiles: [],
-            builderI18nOptions: {i18nDuplicateTranslation: 'invalid'}
+            builderI18nOptions: {extraWebpackConfig: 'tools/webpack-version.partial.js'}
         });
         try {
-            await expect(run.result).rejects.toThrow(/i18nDuplicateTranslation/);
+            await expect(run.result).rejects.toThrow(/extraWebpackConfig/);
             expect(extractI18nBuilderMock).not.toHaveBeenCalled();
         } finally {
             await run.stop();
