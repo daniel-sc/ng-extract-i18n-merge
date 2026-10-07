@@ -57,6 +57,16 @@ During `ng update` existing builder configurations are updated to keep the previ
 ng extract-i18n # yes, same as before - this replaces the original builder
 ```
 
+Angular owns the message IDs: for example, `$localize` messages containing `Hello` and ` Hello ` can have different generated IDs.
+This library normalizes whitespace after extraction without changing IDs. Fuzzy matching reuses translations from obsolete entries;
+it does not combine entries whose IDs both remain in the source. Keep source whitespace consistent, or use
+[custom IDs](https://angular.dev/guide/i18n/manage-marked-text) such as `@@greeting`, reusing an ID only for the same message text.
+
+With the default Angular extractor, conflicting text under the same ID produces a warning.
+To fail instead, set `"builderI18nOptions": {"i18nDuplicateTranslation": "error"}` on the `extract-i18n` target
+(Angular also supports [`warning` and `ignore`](https://angular.dev/cli/extract-i18n#options)).
+This check detects conflicting text under the same ID, not similar text under different IDs.
+
 ### Configuration
 
 In your `angular.json` the target `extract-i18n` that can be configured with the following options:
@@ -84,6 +94,7 @@ In your `angular.json` the target `extract-i18n` that can be configured with the
 | `newTranslationTargetsBlank`                                                                                                                       | `false`                                                     | When `false` (default) the "target" of new translation units is set to the "source" value. When `true`, an empty string is used. When `'omit'`, no target element is created.                                                                                                                                                                                       |
 | `sort`                                                                                                                                             | `"stableAlphabetNew"`                                       | Sorting of all translation units in source and target translation files. Supported: <br>`"idAsc"` (sort by translation IDs), <br>`"stableAppendNew"` (keep existing sorting, append new translations at the end), <br>`"stableAlphabetNew"` (keep existing sorting, sort new translations next to alphabetical close IDs).                                          |
 | `builderI18n`                                                                                                                                      | `"@angular/build:extract-i18n"`                             | The builder to use for i18n extraction. Any custom builder should handle the same options as the default angular builder (buildTarget, outputPath, outFile, format, progress).                                                                                                                                                                                      |
+| `builderI18nOptions`                                                                                                                               | `{}`                                                        | Additional options passed to `builderI18n` and validated by that builder, e.g. `{"i18nDuplicateTranslation": "error"}` or `{"extraWebpackConfig": "tools/webpack-version.partial.js"}`. `buildTarget`, `outputPath`, `outFile`, `format`, and `progress` remain controlled by this library.                                                                         |
 | `verbose`                                                                                                                                          | `false`                                                     | Extended/debug output - it is recommended to use this only for manual debugging.                                                                                                                                                                                                                                                                                    |
 
 ## Contribute

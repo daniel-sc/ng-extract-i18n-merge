@@ -140,6 +140,19 @@
       "default": "@angular/build:extract-i18n",
       "description": "The builder to use for i18n extraction. Any custom builder should handle the same options as the default builder (buildTarget, outputPath, outFile, format, progress)."
     },
+    "builderI18nOptions": {
+      "type": "object",
+      "default": {},
+      "additionalProperties": true,
+      "properties": {
+        "i18nDuplicateTranslation": {
+          "type": "string",
+          "enum": ["error", "warning", "ignore"],
+          "description": "How Angular handles conflicting message text under the same ID. See https://angular.dev/cli/extract-i18n#options."
+        }
+      },
+      "description": "Additional options for builderI18n, validated by that builder. buildTarget, outputPath, outFile, format, and progress are controlled by this library and cannot be overridden here."
+    },
     "verbose": {
       "type": "boolean",
       "default": false,

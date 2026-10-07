@@ -1,15 +1,18 @@
 import {Architect, createBuilder} from '@angular-devkit/architect';
 import {TestingArchitectHost} from '@angular-devkit/architect/testing';
-import {schema} from '@angular-devkit/core';
+import {JsonObject, schema} from '@angular-devkit/core';
 import {promises as fs} from 'fs';
+import {dirname, join} from 'path';
 import builder from './builder';
 import {rmSafe} from './rmSafe';
 import {Options} from './options';
+import builderSchema from './schema.json';
 import {Logger} from '@angular-devkit/core/src/logger/logger';
 import Mock = jest.Mock;
 
 const MESSAGES_XLF_PATH = 'builder-test/messages.xlf';
 const MESSAGES_FR_XLF_PATH = 'builder-test/messages.fr.xlf';
+const MERGE_BUILDER_SCHEMA = builderSchema as unknown as schema.JsonSchema;
 
 describe('Builder', () => {
     let architect: Architect;
@@ -109,26 +112,72 @@ describe('Builder', () => {
         await run.stop();
     });
 
-    test('should use custom builder for i18n extraction when configured', async () => {
-        const dummyContent = '<xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de">\n  <file id="ngi18n" original="ng.template">\n  </file>\n</xliff>';
-        await fs.writeFile(MESSAGES_XLF_PATH, dummyContent, 'utf8');
-        const builderFn = jest.fn(() => ({success: true}));
-        architectHost.addBuilder('@my/custom:builder', createBuilder(builderFn)); // custom builder
+    test('should forward custom extraction options while retaining control of managed options', async () => {
+        architectHost.addBuilder('ng-extract-i18n-merge:ng-extract-i18n-merge', builder, '', MERGE_BUILDER_SCHEMA);
+        const customBuilder = jest.fn((_options: JsonObject) => ({success: true}));
+        architectHost.addBuilder('@my/custom:builder', createBuilder(customBuilder));
+
+        await runTest({
+            messagesBefore: '<xliff version="2.0" srcLang="en"><file id="ngi18n"/></xliff>',
+            options: {
+                buildTarget: 'builder-test:build',
+                format: 'xlf2',
+                builderI18n: '@my/custom:builder',
+                builderI18nOptions: {
+                    extraWebpackConfig: 'tools/webpack-version.partial.js',
+                    buildTarget: 'other:build',
+                    outputPath: 'other',
+                    outFile: 'other.json',
+                    format: 'json',
+                    progress: true
+                }
+            }
+        });
+
+        expect(customBuilder.mock.calls[0][0]).toEqual({
+            extraWebpackConfig: 'tools/webpack-version.partial.js',
+            buildTarget: 'builder-test:build',
+            outputPath: 'builder-test',
+            outFile: 'messages.xlf',
+            format: 'xlf2',
+            progress: false
+        });
+        expect(extractI18nBuilderMock).not.toHaveBeenCalled();
+    });
+
+    test('should validate additional extraction options against the installed Angular schema', async () => {
+        architectHost.addBuilder('ng-extract-i18n-merge:ng-extract-i18n-merge', builder, '', MERGE_BUILDER_SCHEMA);
+        const angularBuildRoot = dirname(require.resolve('@angular/build/package.json'));
+        const extractionSchema = JSON.parse(await fs.readFile(
+            join(angularBuildRoot, 'src/builders/extract-i18n/schema.json'), 'utf8'
+        )) as schema.JsonSchema;
+        const {type, enum: values} = builderSchema.properties.builderI18nOptions.properties.i18nDuplicateTranslation;
+        expect(extractionSchema).toMatchObject({properties: {i18nDuplicateTranslation: {type, enum: values}}});
+        architectHost.addBuilder('@angular/build:extract-i18n', createBuilder(extractI18nBuilderMock), '', extractionSchema);
+
+        await runTest({
+            messagesBefore: '<xliff version="2.0" srcLang="en"><file id="ngi18n"/></xliff>',
+            options: {
+                buildTarget: 'builder-test:build',
+                format: 'xlf2',
+                builderI18nOptions: {i18nDuplicateTranslation: 'error'}
+            }
+        });
+        expect(extractI18nBuilderMock.mock.calls[0][0].i18nDuplicateTranslation).toBe('error');
+        extractI18nBuilderMock.mockClear();
 
         const run = await architect.scheduleTarget({project: 'builder-test', target: 'extract-i18n-merge'}, {
-            format: 'xlf2',
-                    prettyNestedTags: true,
-            targetFiles: ['messages.fr.xlf'],
+            buildTarget: 'builder-test:build',
             outputPath: 'builder-test',
-            builderI18n: '@my/custom:builder'
+            targetFiles: [],
+            builderI18nOptions: {extraWebpackConfig: 'tools/webpack-version.partial.js'}
         });
-        const result = await run.result;
-
-        expect(result.success).toBeTruthy();
-        expect(builderFn).toHaveBeenCalled();
-        expect(extractI18nBuilderMock).not.toHaveBeenCalled();
-
-        await run.stop();
+        try {
+            await expect(run.result).rejects.toThrow(/extraWebpackConfig/);
+            expect(extractI18nBuilderMock).not.toHaveBeenCalled();
+        } finally {
+            await run.stop();
+        }
     });
 
     test('should succeed without a source file', async () => {
