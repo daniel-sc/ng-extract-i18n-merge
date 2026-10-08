@@ -50,10 +50,10 @@ export function fromXlf2(xlf2: string,
                     .filter((n): n is XmlElement => n.type === 'element' && n.attr.category === 'location')
                     .map(note => {
                         const [file, lines] = note.val.split(':', 2);
-                        const [lineStart, lineEnd] = lines.split(',', 2);
+                        const [lineStart, lineEnd] = lines?.split(',', 2) ?? [];
                         return {
                             file,
-                            lineStart: parseInt(lineStart, 10),
+                            lineStart: lineStart !== undefined ? parseInt(lineStart, 10) : undefined,
                             lineEnd: lineEnd !== undefined ? parseInt(lineEnd, 10) : undefined
                         };
                     }) ?? []
@@ -175,7 +175,7 @@ export function toXlf2(translationFile: TranslationFile, options: ExportOptions)
             u.children.splice(0, 0, notes);
             notes.children.push(...unit.locations.filter(locationFilter(options.includeContextLineNumber)).map(location => {
                 let locationNote = location.file;
-                if (options.includeContextLineNumber) {
+                if (options.includeContextLineNumber && location.lineStart !== undefined) {
                     locationNote += `:${location.lineStart}${location.lineEnd ? ',' + location.lineEnd : ''}`;
                 }
                 return new XmlDocument(`<note category="location">${locationNote}</note>`)
@@ -237,7 +237,7 @@ export function toXlf1(translationFile: TranslationFile, options: ExportOptions)
                 let contextGroup = new XmlDocument(`<context-group purpose="location">
                     <context context-type="sourcefile">${location.file}</context>
                 </context-group>`);
-                if (options.includeContextLineNumber) {
+                if (options.includeContextLineNumber && location.lineStart !== undefined) {
                     contextGroup.children.push(new XmlDocument(`<context context-type="linenumber">${location.lineStart}</context>`))
                     updateFirstAndLastChild(contextGroup);
                 }
