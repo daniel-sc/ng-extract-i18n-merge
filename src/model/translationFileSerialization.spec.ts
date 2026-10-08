@@ -293,7 +293,7 @@ describe('translationFileSerialization', () => {
                     }
                 ]
             }], 'de', 'fr', '<?xml version="1.0" encoding="UTF-8"?>\n');
-            expect(toXlf2(input, {...exportOptions, includeContextLineNumber: false})).toEqual(`<?xml version="1.0" encoding="UTF-8"?>
+            const xlf2 = `<?xml version="1.0" encoding="UTF-8"?>
 <xliff version="2.0" xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="de" trgLang="fr">
   <file id="ngi18n" original="ng.template">
     <unit id="ID1">
@@ -309,7 +309,9 @@ describe('translationFileSerialization', () => {
       </segment>
     </unit>
   </file>
-</xliff>`);
+</xliff>`;
+            expect(toXlf2(input, {...exportOptions, includeContextLineNumber: false})).toEqual(xlf2);
+            expect(toXlf2(fromXlf2(xlf2), exportOptions)).toEqual(xlf2);
         });
 
         it('should format additionalAttributes', () => {
@@ -580,6 +582,7 @@ describe('translationFileSerialization', () => {
                 description: 'An introduction header for this sample',
                 locations: [{file: 'app/app.component.ts'}]
             }], 'de', 'fr-ch', '<?xml version="1.0" encoding="UTF-8"?>\n'));
+            expect(toXlf1(fromXlf1(xlf1), exportOptions)).toEqual(xlf1);
         });
 
         it('should parse additionalAttributes', () => {
