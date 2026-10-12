@@ -1,0 +1,29 @@
+{
+  "name": "shop",
+  "projectType": "application",
+  "sourceRoot": "apps/shop/src",
+  "i18n": {
+    "sourceLocale": "en",
+    "locales": {
+      "fr": "apps/shop/src/locale/messages.fr.xlf"
+    }
+  },
+  "targets": {
+    "build": {
+      "executor": "@angular/build:application",
+      "options": {
+        "browser": "apps/shop/src/main.ts",
+        "tsConfig": "apps/shop/tsconfig.app.json",
+        "index": false,
+        "outputPath": "dist/shop"
+      }
+    },
+    "extract-i18n": {
+      "executor": "@angular/build:extract-i18n",
+      "options": {
+        "buildTarget": "shop:build",
+        "format": "xlf2"
+      }
+    }
+  }
+}

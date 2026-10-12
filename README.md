@@ -27,6 +27,25 @@ documented [here](https://angular.dev/guide/i18n/merge).
 ng add ng-extract-i18n-merge
 ```
 
+### Nx
+
+Tested with Angular 20.3.9 / Nx 22.5.0, Angular 21.0.0 / Nx 22.5.0, and Angular 22.0.0 / Nx 23.3.0,
+using the `@angular/build:application` builder.
+Your workspace needs `@nx/angular` (matching your Nx version) and Angular i18n configured,
+including target locales in the application's `project.json`.
+
+From the workspace root, replace `my-app` with your project name:
+
+```shell
+npm install --save-dev ng-extract-i18n-merge
+npx nx generate ng-extract-i18n-merge:ng-add --project=my-app
+npx nx run my-app:extract-i18n --skip-nx-cache
+```
+
+Setup configures the selected project's `extract-i18n` target using Nx's Angular compatibility support.
+Skip Nx caching because merging reads and updates existing translation files in place.
+Historical `workspace.json` setups are not covered by this integration test.
+
 ### Upgrade from 1.x.x to 2.0.0
 
 Run `ng update ng-extract-i18n-merge@2` to upgrade from v1 to v2. This migration
@@ -105,3 +124,8 @@ In your `angular.json` the target `extract-i18n` that can be configured with the
 Feedback and PRs always welcome :-)
 
 Before developing complex changes, I'd recommend opening an issue to discuss whether the indented goals match the scope of this package.
+
+Run `npm run test-nx -- 20`, `npm run test-nx -- 21`, or `npm run test-nx -- 22` for the Nx integration test
+(defaults to Angular 21). Each case builds and packs this package, installs it in a temporary workspace with
+pinned Nx/Angular versions, and checks setup, extraction, and merging. It requires npm registry access.
+CI runs all three cases on Node 22.22.3.
