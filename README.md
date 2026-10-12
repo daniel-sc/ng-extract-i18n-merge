@@ -9,6 +9,9 @@ New/removed translations are added/removed from the target translation files and
 Additionally, translation files are normalized (whitespace, stable sort) so that diffs are easy to read 
 (and translations in PRs might actually get reviewed ;-) ).
 
+**Video walkthrough:** [Why and how to set up ng-extract-i18n-merge with Angular i18n](https://youtu.be/G4PS2WxhDw0).
+The video explains where this library fits into Angular's i18n workflow.
+
 > [!TIP]
 > **Translate new Angular messages after extraction.** [doloc](https://doloc.io/?utm_source=github&utm_medium=referral&utm_campaign=angular_readme) is a localization API from this package's maintainer, [@daniel-sc](https://github.com/daniel-sc).
 > Run `ng extract-i18n`, send the target XLIFF file to doloc, and get the translated file back in the same script or CI run. Your repository stays the source of truth.
