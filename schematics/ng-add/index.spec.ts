@@ -57,6 +57,25 @@ describe('ngAdd', () => {
             '        }'));
         //expect(tree.files).toEqual([]);
     });
+    it('should require a project in Nx workspaces', async () => {
+        appTree.create('/nx.json', '{}');
+        const originalWorkspace = appTree.readContent('/angular.json');
+
+        await expect(runner.runSchematic('ng-add', {}, appTree)).rejects.toThrow('Specify --project=<name>');
+        expect(appTree.readContent('/angular.json')).toBe(originalWorkspace);
+    });
+
+    it('should configure the selected project in Nx workspaces', async () => {
+        appTree.create('/nx.json', '{}');
+        appTree = await runner.runExternalSchematic('@schematics/angular', 'application', {...appOptions, name: 'shop'}, appTree);
+        const originalWorkspace = JSON.parse(appTree.readContent('/angular.json'));
+
+        const tree = await runner.runSchematic('ng-add', {project: 'shop'}, appTree);
+        const workspace = JSON.parse(tree.readContent('/angular.json'));
+        expect(workspace.projects.shop.architect['extract-i18n'].builder).toBe('ng-extract-i18n-merge:ng-extract-i18n-merge');
+        expect(workspace.projects.bar).toEqual(originalWorkspace.projects.bar);
+    });
+
     it('should infer format for config with options', async () => {
         appTree.create('/src/other-path/messages.fr.xlf', xliffFileV1_2);
         const angularJson = JSON.parse(appTree.readContent('/angular.json'));

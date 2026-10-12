@@ -1,9 +1,9 @@
+import {JsonArray, JsonObject, normalize, Path, relative} from '@angular-devkit/core';
 import {Rule, SchematicContext, SchematicsException, Tree} from '@angular-devkit/schematics';
 import {updateWorkspace} from '@schematics/angular/utility/workspace';
-import {Schema} from './schema';
-import {JsonArray, JsonObject, normalize, Path, relative} from '@angular-devkit/core';
 
 import {Options} from '../../src/options';
+import {Schema} from './schema';
 
 function getTargetFiles(i18nExtension: JsonObject | undefined): string[] {
     const locales = i18nExtension?.locales ? (Object.values(i18nExtension?.locales) as JsonArray | string[] | undefined) : undefined;
@@ -55,11 +55,14 @@ function getOutFileRelativeToOutputPath(outFile: string, outputPathFromExtractI1
 }
 
 // noinspection JSUnusedGlobalSymbols
-export function ngAdd(_options: Schema): Rule {
+export function ngAdd(options: Schema): Rule {
     return (tree: Tree, context: SchematicContext) => {
+        if (tree.exists('/nx.json') && !options.project) {
+            throw new SchematicsException('Specify --project=<name> when configuring an Nx workspace.');
+        }
         return updateWorkspace(async (workspace) => {
-            const projectName = _options.project || Array.from(workspace.projects.keys())[0];
-            const projectWorkspace = workspace.projects.get(projectName)!;
+            const projectName = options.project || Array.from(workspace.projects.keys())[0];
+            const projectWorkspace = workspace.projects.get(projectName);
             if (!projectWorkspace) {
                 throw new SchematicsException(`Project ${projectName} not found!`);
             }

@@ -54,6 +54,21 @@ jobs:
         flag-name: run-angular-${{ matrix.angular.version }}-node-${{ matrix.node.version }}
         parallel: true
 
+  nx:
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        angular: [20, 21, 22]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.22.3
+          cache: npm
+      - run: npm ci
+      - run: npm run test-nx -- ${{ matrix.angular }}
+
   finish:
     needs: build
     runs-on: ubuntu-22.04

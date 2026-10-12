@@ -1,6 +1,7 @@
 .github/
 .idea/
 builder-test/
+integration/
 coverage/
 *.ts
 !*.d.ts

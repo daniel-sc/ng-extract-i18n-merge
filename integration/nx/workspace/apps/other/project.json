@@ -1,0 +1,12 @@
+{
+  "name": "other",
+  "projectType": "application",
+  "targets": {
+    "extract-i18n": {
+      "executor": "@angular/build:extract-i18n",
+      "options": {
+        "buildTarget": "other:build"
+      }
+    }
+  }
+}
