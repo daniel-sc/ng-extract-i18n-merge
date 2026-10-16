@@ -3,6 +3,25 @@ import {TranslationFile} from './model/translationFileModels';
 
 describe('merger', () => {
     describe('mergeWithMapping', () => {
+        describe.each(['new', 'initial'])('translation state with initial state %s', initialState => {
+            it.each([false, true, undefined])('should honor resetTranslationState=%s for changed source text', resetTranslationState => {
+                const source = new TranslationFile([
+                    {id: 'greeting', source: 'Welcome home', locations: []},
+                    {id: 'added', source: 'New message', locations: []}
+                ], 'en');
+                const target = new TranslationFile([
+                    {id: 'greeting', source: 'Hello', target: 'Bonjour', state: 'final', locations: []}
+                ], 'en', 'fr');
+                const merger = new Merger({resetTranslationState}, source, initialState);
+                const result = merger.mergeWithMapping(target, false);
+                expect(result.units.find(unit => unit.id === 'greeting')).toMatchObject({
+                    source: 'Welcome home', target: 'Bonjour',
+                    state: resetTranslationState === false ? 'final' : initialState
+                });
+                expect(result.units.find(unit => unit.id === 'added')?.state).toBe(initialState);
+            });
+        });
+
         it('should fuzzy match correctly', () => {
             const translationSourceFile = new TranslationFile([
                 {id: 'a1', source: 'aaaaaaaaaaa1', locations: []},
