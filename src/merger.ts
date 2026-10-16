@@ -101,7 +101,7 @@ export class Merger {
                 }
                 updatedDestUnit = {
                     ...destUnit,
-                    state: isSourceLang ? 'final' : (onlyWhitespaceChanged ? destUnit.state : this.initialTranslationState),
+                    state: isSourceLang ? 'final' : (onlyWhitespaceChanged || this.options.resetTranslationState === false ? destUnit.state : this.initialTranslationState),
                     source: unit.source,
                     target: target
                 }
