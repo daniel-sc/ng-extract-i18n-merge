@@ -48,22 +48,8 @@ Historical `workspace.json` setups are not covered by this integration test.
 
 ### Upgrade from 1.x.x to 2.0.0
 
-Run `ng update ng-extract-i18n-merge@2` to upgrade from v1 to v2. This migration
-switches to Angular's built-in `extract-i18n` builder and changes some defaults
-(see breaking changes below).
-
-If you plan to upgrade from v1 straight to v3 you must first upgrade to v2 using
-the command above and then run `ng update ng-extract-i18n-merge` again for the
-v3 update.
-
-Breaking changes:
-
-* Now this plugin uses the default Angular `extract-i18n` target - so you can
-  simply run `ng extract-i18n`.
-* Default sort is now `stableAppendNew` (was `idAsc`).
-* Leading/trailing whitespaces are normalized (collapsed to one space) but not
-  completely trimmed.
-* The provided npm run script was removed (you can create your own if needed).
+First run `ng update ng-extract-i18n-merge@2`, then follow the v3 upgrade below.
+See the [archived v1 migration guide](https://github.com/daniel-sc/ng-extract-i18n-merge/blob/v3.4.0/README.md#upgrade-from-1xx-to-200) for breaking changes.
 
 ### Upgrade from 2.x.x to 3.0.0
 
