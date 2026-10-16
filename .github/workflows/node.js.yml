@@ -41,6 +41,10 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: ${{ matrix.node.version }}
+    # Avoid npm 10 crashing on Angular/Vitest optional peers (npm/cli#9787).
+    # Remove once every matrix Node version bundles npm that passes these installs.
+    - name: Use npm 11.19.1
+      run: npm install --global npm@11.19.1
     - run: rm package-lock.json # otherwise we cannot overwrite the peerDependencies version of @angular-devkit/build-angular below
     - run: npm i --save-exact "@types/node@${{ matrix.node.types-version }}" "@angular-devkit/architect@${{ matrix.angular.devkit-version }}" "@angular-devkit/core@${{ matrix.angular.version }}" "@angular-devkit/schematics@${{ matrix.angular.version }}" "@schematics/angular@${{ matrix.angular.version }}" "@angular/build@${{ matrix.angular.version }}" "@angular/core@${{ matrix.angular.version }}" "@angular/compiler-cli@${{ matrix.angular.version }}"
     - run: npm i
@@ -66,6 +70,10 @@ jobs:
         with:
           node-version: 22.22.3
           cache: npm
+      # Avoid npm 10 crashing on Angular/Vitest optional peers (npm/cli#9787).
+      # Remove once every matrix Node version bundles npm that passes these installs.
+      - name: Use npm 11.19.1
+        run: npm install --global npm@11.19.1
       - run: npm ci
       - run: npm run test-nx -- ${{ matrix.angular }}
 
