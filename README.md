@@ -4,19 +4,9 @@
 
 # Angular extract i18n and merge
 
-This extends Angular CLI to improve the i18n extraction and merge workflow. 
-New/removed translations are added/removed from the target translation files and translation states are managed. 
-Additionally, translation files are normalized (whitespace, stable sort) so that diffs are easy to read 
-(and translations in PRs might actually get reviewed ;-) ).
-
-**Video walkthrough:** [Why and how to set up ng-extract-i18n-merge with Angular i18n](https://youtu.be/G4PS2WxhDw0).
-The video explains where this library fits into Angular's i18n workflow.
-
-> [!TIP]
-> **Translate new Angular messages after extraction.** [doloc](https://doloc.io/?utm_source=github&utm_medium=referral&utm_campaign=angular_readme) is a localization API from this package's maintainer, [@daniel-sc](https://github.com/daniel-sc).
-> Run `ng extract-i18n`, send the target XLIFF file to doloc, and get the translated file back in the same script or CI run. Your repository stays the source of truth.
->
-> [Follow the Angular integration guide](https://doloc.io/getting-started/frameworks/angular/?utm_source=github&utm_medium=referral&utm_campaign=angular_readme), or [start free with your own XLIFF file](https://doloc.io/account/onboarding/?format=xliff&utm_source=github&utm_medium=referral&utm_campaign=angular_readme). The free plan includes 200 source texts per month.
+Keep your Angular translation files in sync with `ng extract-i18n`.
+Automatically add new messages, remove obsolete ones, and manage translation states in your locale XLIFF files.
+Whitespace normalization and stable sorting keep diffs easy to review.
 
 ## Install
 
@@ -25,7 +15,11 @@ documented [here](https://angular.dev/guide/i18n/merge).
 
 ```shell
 ng add ng-extract-i18n-merge
+ng extract-i18n
 ```
+
+**Video walkthrough:** [Why and how to set up ng-extract-i18n-merge with Angular i18n](https://youtu.be/G4PS2WxhDw0).
+See setup, extraction, merging, and translation review in an Angular project.
 
 ### Nx
 
@@ -46,24 +40,23 @@ Setup configures the selected project's `extract-i18n` target using Nx's Angular
 Skip Nx caching because merging reads and updates existing translation files in place.
 Historical `workspace.json` setups are not covered by this integration test.
 
-### Upgrade from 1.x.x to 2.0.0
-
-First run `ng update ng-extract-i18n-merge@2`, then follow the v3 upgrade below.
-See the [archived v1 migration guide](https://github.com/daniel-sc/ng-extract-i18n-merge/blob/v3.4.0/README.md#upgrade-from-1xx-to-200) for breaking changes.
-
-### Upgrade from 2.x.x to 3.0.0
-
-Run `ng update ng-extract-i18n-merge` to update to v3.0.0 using the Angular update mechanism.
-This release drops support for Angular 19 and older.
-The defaults for `prettyNestedTags` and `sort` changed to `false` and `"stableAlphabetNew"` respectively.
-`builderI18n` now defaults to `@angular/build:extract-i18n` instead of `@angular-devkit/build-angular:extract-i18n`.
-During `ng update` existing builder configurations are updated to keep the previous behaviour (except for `builderI18n`, where the new default is best for most setups).
-
 ## Usage
 
+Run the same command whenever you add, change, or remove source messages:
+
 ```shell
-ng extract-i18n # yes, same as before - this replaces the original builder
+ng extract-i18n
 ```
+
+### Translate new messages with doloc
+
+To automate translation after extraction, use doloc, a localization API from this package's maintainer.
+Send your target XLIFF file and get the translated file back in the same script or CI run.
+Your repository stays the source of truth.
+
+[Follow the Angular integration guide](https://doloc.io/getting-started/frameworks/angular/?utm_source=github&utm_medium=referral&utm_campaign=angular_readme).
+
+### Message IDs and whitespace
 
 Angular owns the message IDs: for example, `$localize` messages containing `"Hello"` and `" Hello "` (with surrounding spaces) can have different generated IDs.
 This library normalizes whitespace after extraction without changing IDs. Fuzzy matching reuses translations from obsolete entries;
@@ -104,6 +97,21 @@ In your `angular.json` the target `extract-i18n` that can be configured with the
 | `builderI18n`                                                                                                                                      | `"@angular/build:extract-i18n"`                             | The builder to use for i18n extraction. Any custom builder should handle the same options as the default angular builder (buildTarget, outputPath, outFile, format, progress).                                                                                                                                                                                      |
 | `builderI18nOptions`                                                                                                                               | `{}`                                                        | Additional options passed to `builderI18n` and validated by that builder, e.g. `{"i18nDuplicateTranslation": "error"}` or `{"extraWebpackConfig": "tools/webpack-version.partial.js"}`. `buildTarget`, `outputPath`, `outFile`, `format`, and `progress` remain controlled by this library.                                                                         |
 | `verbose`                                                                                                                                          | `false`                                                     | Extended/debug output - it is recommended to use this only for manual debugging.                                                                                                                                                                                                                                                                                    |
+
+## Upgrade
+
+### Upgrade from 1.x.x to 2.0.0
+
+First run `ng update ng-extract-i18n-merge@2`, then follow the v3 upgrade below.
+See the [archived v1 migration guide](https://github.com/daniel-sc/ng-extract-i18n-merge/blob/v3.4.0/README.md#upgrade-from-1xx-to-200) for breaking changes.
+
+### Upgrade from 2.x.x to 3.0.0
+
+Run `ng update ng-extract-i18n-merge` to update to v3.0.0 using the Angular update mechanism.
+This release drops support for Angular 19 and older.
+The defaults for `prettyNestedTags` and `sort` changed to `false` and `"stableAlphabetNew"` respectively.
+`builderI18n` now defaults to `@angular/build:extract-i18n` instead of `@angular-devkit/build-angular:extract-i18n`.
+During `ng update` existing builder configurations are updated to keep the previous behaviour (except for `builderI18n`, where the new default is best for most setups).
 
 ## Contribute
 
